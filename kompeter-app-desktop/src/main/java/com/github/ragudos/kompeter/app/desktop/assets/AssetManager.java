@@ -2,8 +2,12 @@ package com.github.ragudos.kompeter.app.desktop.assets;
 
 import com.github.ragudos.kompeter.utilities.cache.LRU;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+
+import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Image;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +26,11 @@ public class AssetManager {
         }
 
         try {
-            return Optional.of(AssetLoader.loadImage(path));
+            Image img = AssetLoader.loadImage(path);
+
+            IMAGES.update(path, img);
+
+            return Optional.of(img);
         } catch (IOException | InterruptedException | IllegalArgumentException err) {
             LOGGER.log(Level.SEVERE, "Cannot load image: " + path, err);
         }

@@ -1,13 +1,18 @@
 package com.github.ragudos.kompeter.app.desktop.frames;
 
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JFrame;
+
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.auth.MainAuthScene;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import javax.swing.JFrame;
+
+import net.miginfocom.swing.MigLayout;
 
 public class MainFrame extends JFrame {
     private class MainFrameWindowListener extends WindowAdapter {
@@ -29,13 +34,15 @@ public class MainFrame extends JFrame {
         SceneManager sceneManager = new StaticSceneManager();
         SceneNavigator sceneNavigator = SceneNavigator.getInstance();
 
+        setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
+        add(sceneManager.view());
+
         sceneNavigator.initialize(sceneManager);
-
         sceneManager.registerScene(MainAuthScene.SCENE_NAME, () -> new MainAuthScene(), MainAuthScene.SCENE_GUARD);
-
         sceneManager.navigateTo(MainAuthScene.SCENE_NAME);
 
-        pack();
+        setPreferredSize(new Dimension(1280, 720));
+        setSize(getPreferredSize());
         setLocationRelativeTo(null);
     }
 }

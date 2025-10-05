@@ -1,48 +1,49 @@
 package com.github.ragudos.kompeter.app.desktop.navigation;
 
 import javax.swing.JPanel;
+
 import org.jetbrains.annotations.NotNull;
 
 public interface Scene {
-    default boolean canHide() {
-        return true;
-    }
+	default boolean canHide() {
+		return true;
+	}
 
-    default boolean canShow() {
-        return true;
-    }
+	default boolean canShow() {
+		return true;
+	}
 
-    default @NotNull Scene self() {
-        return this;
-    }
+	default @NotNull Scene self() {
+		return this;
+	}
 
-    @NotNull
-    String name();
+	@NotNull
+	String name();
 
-    @NotNull
-    JPanel view();
+	@NotNull
+	JPanel view();
 
-    default void onBeforeHide() {
-    }
+	default void onBeforeHide() {
+	}
 
-    default void onBeforeShow() {
-    }
+	default void onBeforeShow() {
+	}
 
-    default void onCannotHide() {
-    }
+	default void onCannotHide() {
+	}
 
-    default void onCannotShow() {
-    }
+	default void onCannotShow() {
+	}
 
-    void onCreate();
+	void onCreate();
 
-    void onDestroy();
+	void onDestroy();
 
-    void onHide();
+	void onHide();
 
-    void onShow();
+	void onShow();
 
-    default boolean supportsSubScenes() {
-        return false;
-    }
+	default boolean supportsSubScenes() {
+		return this instanceof SceneWithSubScenes;
+	}
 }

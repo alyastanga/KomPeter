@@ -63,7 +63,11 @@ public class StaticSceneManager implements SceneManager {
             // Show scene's default sub scene if it is a parent of scenes
             if (parsedSceneName.subSceneName() == null || parsedSceneName.subSceneName().isBlank()) {
                 if (parentScene.supportsSubScenes()) {
-                    ((SceneWithSubScenes) parentScene.self()).navigateToDefault();
+                    final Scene copyOfParentScene = parentScene;
+
+                    SwingUtilities.invokeLater(() -> {
+                        ((SceneWithSubScenes) copyOfParentScene.self()).navigateToDefault();
+                    });
                 }
             }
         }
@@ -186,7 +190,7 @@ public class StaticSceneManager implements SceneManager {
                 return false;
             }
 
-            if (!currentScene.canHide()) {
+            if (currentScene != null && !currentScene.canHide()) {
                 currentScene.onCannotHide();
 
                 return false;
@@ -203,10 +207,17 @@ public class StaticSceneManager implements SceneManager {
             // swap
             String newSceneName = newScene.name();
 
-            currentScene.onBeforeHide();
+            if (currentScene != null) {
+                currentScene.onBeforeHide();
+            }
+
             newScene.onBeforeShow();
             cardLayout.show(view, newSceneName);
-            currentScene.onHide();
+
+            if (currentScene != null) {
+                currentScene.onHide();
+            }
+
             newScene.onShow();
 
             currentSceneName = newSceneName;
@@ -231,6 +242,7 @@ public class StaticSceneManager implements SceneManager {
             return subSceneManager.navigateTo(parsedSceneName.subSceneName());
         }
 
+        LOGGER.info("Navigated to: " + name);
         return true;
     };
 }
