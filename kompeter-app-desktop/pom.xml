@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>kompeter-app-desktop</artifactId>
-    <version>1.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -45,9 +44,9 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf</artifactId>
-            <version>3.6.1</version>
+            <groupId>com.github.ragudos.kompeter</groupId>
+            <artifactId>kompeter-lookandfeel</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.miglayout</groupId>

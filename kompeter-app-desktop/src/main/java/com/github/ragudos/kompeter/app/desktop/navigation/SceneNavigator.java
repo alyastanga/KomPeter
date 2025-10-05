@@ -2,8 +2,6 @@ package com.github.ragudos.kompeter.app.desktop.navigation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Flow.Publisher;
-import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -27,7 +25,7 @@ public class SceneNavigator implements Observer<String> {
         return instance;
     }
 
-    private List<Consumer<String>> subscribers = newArrayList<>();
+    private List<Consumer<String>> subscribers = new ArrayList<>();
     private String currentFullSceneName;
     private SceneManager sceneManager;
     private AtomicBoolean initialized = new AtomicBoolean(false);

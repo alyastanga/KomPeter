@@ -3,11 +3,11 @@ package com.github.ragudos.kompeter.app.desktop.frames;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
+import com.github.ragudos.kompeter.app.desktop.scenes.auth.MainAuthScene;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
-import java.awt.Dimension;
 
 public class MainFrame extends JFrame {
     private class MainFrameWindowListener extends WindowAdapter {
@@ -31,7 +31,9 @@ public class MainFrame extends JFrame {
 
         sceneNavigator.initialize(sceneManager);
 
-        sceneManager.registerScene();
+        sceneManager.registerScene(MainAuthScene.SCENE_NAME, () -> new MainAuthScene(), MainAuthScene.SCENE_GUARD);
+
+        sceneManager.navigateTo(MainAuthScene.SCENE_NAME);
 
         pack();
         setLocationRelativeTo(null);

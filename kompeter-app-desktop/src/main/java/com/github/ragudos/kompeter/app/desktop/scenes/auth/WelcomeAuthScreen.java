@@ -1,43 +1,69 @@
 package com.github.ragudos.kompeter.app.desktop.scenes.auth;
 
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 
+import net.miginfocom.swing.MigLayout;
+
 public class WelcomeAuthScreen implements Scene {
-    public static final String SCENE_NAME = "welcome";
+	public static final String SCENE_NAME = "welcome";
 
-    private final JPanel view = new JPanel();
+	private final JPanel view = new JPanel();
 
-    public WelcomeAuthScreen() {
-        onCreate();
-    }
+	public WelcomeAuthScreen() {
+		onCreate();
+	}
 
-    @Override
-    public void onCreate() {
-    }
+	@Override
+	public void onCreate() {
+		view.setLayout(new MigLayout("", "[265px][168px]", "[37px]"));
 
-    @Override
-    public void onHide() {
-    }
+		/** TITLE **/
+		JPanel titleContainer = new JPanel();
+		JLabel title = new JLabel("KOMPETER");
+		JLabel subtitle = new JLabel("Computer Parths & Accesories");
 
-    @Override
-    public void onShow() {
-    }
+		titleContainer.setLayout(new MigLayout(""));
+		titleContainer.add(title);
+		titleContainer.add(subtitle);
 
-    @Override
-    public void onDestroy() {
-    }
+		/** BUTTONS **/
+		JPanel buttonContainer = new JPanel();
+		JButton signInButton = new JButton("Sign In");
+		JButton signUpButton = new JButton("Sign Up");
 
-    @Override
-    public @NotNull String name() {
-        return SCENE_NAME;
-    }
+		buttonContainer.setLayout(new MigLayout(""));
+		buttonContainer.add(signInButton);
+		buttonContainer.add(signUpButton);
 
-    @Override
-    public @NotNull JPanel view() {
-        return view;
-    }
+		view.add(titleContainer, "cell 0 0,alignx left,aligny center");
+		view.add(buttonContainer, "cell 1 0,alignx left,aligny top");
+	}
+
+	@Override
+	public void onHide() {
+	}
+
+	@Override
+	public void onShow() {
+	}
+
+	@Override
+	public void onDestroy() {
+	}
+
+	@Override
+	public @NotNull String name() {
+		return SCENE_NAME;
+	}
+
+	@Override
+	public @NotNull JPanel view() {
+		return view;
+	}
 }
