@@ -9,7 +9,6 @@ import javax.swing.SwingUtilities;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.github.ragudos.kompeter.utilities.cache.LRU;
 import com.github.ragudos.kompeter.utilities.cache.ObserverLRU;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 

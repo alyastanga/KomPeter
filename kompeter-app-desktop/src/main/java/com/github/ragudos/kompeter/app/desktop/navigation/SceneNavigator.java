@@ -19,7 +19,7 @@ public class SceneNavigator implements Observer<String> {
     private static final Logger LOGGER = KompeterLogger.getLogger(SceneNavigator.class);
     private static SceneNavigator instance;
 
-    private static synchronized SceneNavigator getInstance() {
+    public static synchronized SceneNavigator getInstance() {
         if (instance == null) {
             instance = new SceneNavigator();
         }
