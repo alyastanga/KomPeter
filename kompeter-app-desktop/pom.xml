@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="https://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.github.ragudos.kompeter</groupId>
+        <groupId>com.github.ragudos</groupId>
 
         <artifactId>KomPeter</artifactId>
         <version>1.0-SNAPSHOT</version>
@@ -14,32 +14,32 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.ragudos.kompeter</groupId>
+            <groupId>com.github.ragudos</groupId>
             <artifactId>kompeter-utilities</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ragudos.kompeter</groupId>
+            <groupId>com.github.ragudos</groupId>
             <artifactId>kompeter-configuration</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ragudos.kompeter</groupId>
+            <groupId>com.github.ragudos</groupId>
             <artifactId>kompeter-monitoring</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ragudos.kompeter</groupId>
+            <groupId>com.github.ragudos</groupId>
             <artifactId>kompeter-inventory</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ragudos.kompeter</groupId>
+            <groupId>com.github.ragudos</groupId>
             <artifactId>kompeter-pointofsale</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ragudos.kompeter</groupId>
+            <groupId>com.github.ragudos</groupId>
             <artifactId>kompeter-cryptography</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
