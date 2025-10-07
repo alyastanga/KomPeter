@@ -2,7 +2,8 @@ package com.github.ragudos.kompeter.app.desktop.navigation;
 
 import org.jetbrains.annotations.NotNull;
 
-public record ParsedSceneName(@NotNull String fullPath, @NotNull String parentSceneName, String subSceneName) {
+public record ParsedSceneName(
+        @NotNull String fullPath, @NotNull String parentSceneName, String subSceneName) {
 
     public static final String SEPARATOR = "/";
 

@@ -8,5 +8,4 @@ public interface SceneWithSubScenes extends Scene {
     void navigateToDefault();
 
     SceneManager sceneManager();
-
 }

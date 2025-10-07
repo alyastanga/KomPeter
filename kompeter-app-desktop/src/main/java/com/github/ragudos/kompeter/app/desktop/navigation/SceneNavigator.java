@@ -1,17 +1,14 @@
 package com.github.ragudos.kompeter.app.desktop.navigation;
 
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import com.github.ragudos.kompeter.utilities.observer.Observer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-
 import javax.swing.SwingUtilities;
-
 import org.jetbrains.annotations.NotNull;
-
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-import com.github.ragudos.kompeter.utilities.observer.Observer;
 
 public class SceneNavigator implements Observer<String> {
     private static final Logger LOGGER = KompeterLogger.getLogger(SceneNavigator.class);
@@ -30,8 +27,7 @@ public class SceneNavigator implements Observer<String> {
     private SceneManager sceneManager;
     private AtomicBoolean initialized = new AtomicBoolean(false);
 
-    private SceneNavigator() {
-    }
+    private SceneNavigator() {}
 
     public void destroy() {
         sceneManager.destroy();
@@ -44,9 +40,10 @@ public class SceneNavigator implements Observer<String> {
             throw new IllegalStateException("SceneNavigator is not yet initialized.");
         }
 
-        SwingUtilities.invokeLater(() -> {
-            sceneManager.destroyScene(sceneManager.scene(name));
-        });
+        SwingUtilities.invokeLater(
+                () -> {
+                    sceneManager.destroyScene(sceneManager.scene(name));
+                });
     }
 
     public String currentFullSceneName() {
@@ -71,39 +68,37 @@ public class SceneNavigator implements Observer<String> {
     }
 
     /**
-     * This method is useful to globally navigate to a scene. It will throw an
-     * exception if the scene is not registered or if the scene is not a valid
-     * scene.
+     * This method is useful to globally navigate to a scene. It will throw an exception if the scene
+     * is not registered or if the scene is not a valid scene.
      *
-     * <p>
-     * The <code>sceneName</code> has the format of
-     * <code>[parentSceneName]/[subSceneName]/...
-     * </code> and the scene name must be registered in the {@link SceneManager}.
-     * Each [parentSceneName]'s respective scene must handle the [subSceneName] in
-     * its own {@link SceneManager}.
+     * <p>The <code>sceneName</code> has the format of <code>[parentSceneName]/[subSceneName]/...
+     * </code> and the scene name must be registered in the {@link SceneManager}. Each
+     * [parentSceneName]'s respective scene must handle the [subSceneName] in its own {@link
+     * SceneManager}.
      *
      * @param sceneName The name of the scene to navigate to.
      * @throws IllegalArgumentException If the scene name is invalid.
-     * @throws WrongThreadException     If this method is called from a thread other
-     *                                  than the Event Dispatch Thread.
+     * @throws WrongThreadException If this method is called from a thread other than the Event
+     *     Dispatch Thread.
      */
     public void navigateTo(@NotNull final String sceneName) {
         if (!initialized.get()) {
             throw new IllegalStateException("SceneNavigator is not initialized.");
         }
 
-        SwingUtilities.invokeLater(() -> {
-            if (!sceneManager.navigateTo(sceneName)) {
-                return;
-            }
+        SwingUtilities.invokeLater(
+                () -> {
+                    if (!sceneManager.navigateTo(sceneName)) {
+                        return;
+                    }
 
-            LOGGER.info("Navigated to scene: " + sceneName);
+                    LOGGER.info("Navigated to scene: " + sceneName);
 
-            synchronized (sceneName) {
-                currentFullSceneName = sceneName;
-                notifySubscribers(sceneName);
-            }
-        });
+                    synchronized (sceneName) {
+                        currentFullSceneName = sceneName;
+                        notifySubscribers(sceneName);
+                    }
+                });
     }
 
     @Override

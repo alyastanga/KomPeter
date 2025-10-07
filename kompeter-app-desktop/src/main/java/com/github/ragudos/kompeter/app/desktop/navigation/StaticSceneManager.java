@@ -1,16 +1,13 @@
 package com.github.ragudos.kompeter.app.desktop.navigation;
 
+import com.github.ragudos.kompeter.utilities.cache.ObserverLRU;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.awt.CardLayout;
 import java.util.HashMap;
 import java.util.logging.Logger;
-
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
 import org.jetbrains.annotations.NotNull;
-
-import com.github.ragudos.kompeter.utilities.cache.ObserverLRU;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public class StaticSceneManager implements SceneManager {
     private Logger LOGGER = KompeterLogger.getLogger(StaticSceneManager.class);
@@ -38,7 +35,8 @@ public class StaticSceneManager implements SceneManager {
         SwingUtilities.invokeLater(() -> destroyScene(removedScene));
     }
 
-    private Scene loadOrCreateScene(@NotNull final ParsedSceneName parsedSceneName, @NotNull final SceneEntry entry) {
+    private Scene loadOrCreateScene(
+            @NotNull final ParsedSceneName parsedSceneName, @NotNull final SceneEntry entry) {
         String parentName = parsedSceneName.parentSceneName();
         Scene parentScene = scene(parentName);
 
@@ -65,9 +63,10 @@ public class StaticSceneManager implements SceneManager {
                 if (parentScene.supportsSubScenes()) {
                     final Scene copyOfParentScene = parentScene;
 
-                    SwingUtilities.invokeLater(() -> {
-                        ((SceneWithSubScenes) copyOfParentScene.self()).navigateToDefault();
-                    });
+                    SwingUtilities.invokeLater(
+                            () -> {
+                                ((SceneWithSubScenes) copyOfParentScene.self()).navigateToDefault();
+                            });
                 }
             }
         }
@@ -83,8 +82,8 @@ public class StaticSceneManager implements SceneManager {
     }
 
     @Override
-    public synchronized void registerScene(@NotNull String name, @NotNull SceneFactory factory,
-            @NotNull SceneGuard guard) {
+    public synchronized void registerScene(
+            @NotNull String name, @NotNull SceneFactory factory, @NotNull SceneGuard guard) {
         if (sceneEntriesCache.containsKey(name)) {
             LOGGER.warning("Trying to register an existing scene: " + name);
 
@@ -109,7 +108,8 @@ public class StaticSceneManager implements SceneManager {
         sceneEntriesCache.remove(name);
 
         LOGGER.info("Scene unregistered: " + name);
-    };
+    }
+    ;
 
     @Override
     public synchronized void destroy() {
@@ -128,7 +128,8 @@ public class StaticSceneManager implements SceneManager {
         view.removeAll();
 
         LOGGER.info("Scene manager destroyed.");
-    };
+    }
+    ;
 
     @Override
     public synchronized void destroyScene(@NotNull Scene scene) {
@@ -154,27 +155,32 @@ public class StaticSceneManager implements SceneManager {
         cardLayout.removeLayoutComponent(sceneView);
         view.remove(sceneView);
         scene.onDestroy();
-    };
+    }
+    ;
 
     @Override
     public @NotNull Scene currentScene() {
         return sceneCache.get(currentSceneName);
-    };
+    }
+    ;
 
     @Override
     public @NotNull String currentSceneName() {
         return currentSceneName;
-    };
+    }
+    ;
 
     @Override
     public @NotNull JPanel view() {
         return view;
-    };
+    }
+    ;
 
     @Override
     public @NotNull Scene scene(@NotNull final String name) {
         return sceneCache.get(name);
-    };
+    }
+    ;
 
     @Override
     public synchronized boolean navigateTo(@NotNull final String name) {
@@ -234,7 +240,8 @@ public class StaticSceneManager implements SceneManager {
             SceneWithSubScenes subScene = (SceneWithSubScenes) currentScene.self();
             SceneManager subSceneManager = subScene.sceneManager();
 
-            if (subSceneManager != null && subSceneManager.currentSceneName() != null
+            if (subSceneManager != null
+                    && subSceneManager.currentSceneName() != null
                     && subSceneManager.currentSceneName().equals(parsedSceneName.subSceneName())) {
                 return false;
             }
@@ -244,5 +251,6 @@ public class StaticSceneManager implements SceneManager {
 
         LOGGER.info("Navigated to: " + name);
         return true;
-    };
+    }
+    ;
 }
