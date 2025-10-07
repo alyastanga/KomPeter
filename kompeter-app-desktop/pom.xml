@@ -10,7 +10,12 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.github.ragudos</groupId>
     <artifactId>kompeter-app-desktop</artifactId>
+    
+    <properties>
+        <exec.mainClass>com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp</exec.mainClass>
+    </properties>
 
     <dependencies>
         <dependency>
