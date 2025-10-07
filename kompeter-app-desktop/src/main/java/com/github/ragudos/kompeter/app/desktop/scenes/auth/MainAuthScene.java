@@ -1,17 +1,21 @@
 package com.github.ragudos.kompeter.app.desktop.scenes.auth;
 
-import javax.swing.JPanel;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneGuard;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
-
+import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
+import org.jetbrains.annotations.NotNull;
 
 public class MainAuthScene implements SceneWithSubScenes {
+    public static class MainAuthSceneGuard implements SceneGuard {
+        @Override
+        public boolean canAccess() {
+            return true;
+        }
+    }
+
     public static final String SCENE_NAME = "auth";
     public static final SceneGuard SCENE_GUARD = new MainAuthSceneGuard();
 
@@ -27,12 +31,10 @@ public class MainAuthScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void onShow() {
-    }
+    public void onShow() {}
 
     @Override
-    public void onHide() {
-    }
+    public void onHide() {}
 
     @Override
     public void onCreate() {

@@ -1,10 +1,8 @@
 package com.github.ragudos.kompeter.app.desktop.scenes.auth;
 
-import javax.swing.JPanel;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class SignInAuthScene implements Scene {
     public static final String SCENE_NAME = "sign-in";
@@ -16,20 +14,16 @@ public class SignInAuthScene implements Scene {
     }
 
     @Override
-    public void onCreate() {
-    }
+    public void onCreate() {}
 
     @Override
-    public void onShow() {
-    }
+    public void onShow() {}
 
     @Override
-    public void onHide() {
-    }
+    public void onHide() {}
 
     @Override
-    public void onDestroy() {
-    }
+    public void onDestroy() {}
 
     @Override
     public @NotNull String name() {
