@@ -14,17 +14,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
- * <p>
  * A wrapper for {@link PreparedStatement} that allows named parameters in SQL.
  *
- * <p>
- * This is useful to have a clearer and more readable SQL query file instead of
- * using '?'.
+ * <p>This is useful to have a clearer and more readable SQL query file instead of using '?'.
  *
- * <p>
- * It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
- *
+ * <p>It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
  */
 public final class NamedPreparedStatement implements AutoCloseable {
     private final PreparedStatement prepStmt;
@@ -39,7 +33,8 @@ public final class NamedPreparedStatement implements AutoCloseable {
         this(conn, sql, Statement.NO_GENERATED_KEYS);
     }
 
-    public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag) throws SQLException {
+    public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag)
+            throws SQLException {
         final int SQL_QUERY_LENGTH = sql.length();
         StringBuilder parsedSqlBuilder = new StringBuilder();
         int jdbcStartingIndex = 1; // JDBC parameter index starts at 1
@@ -59,7 +54,11 @@ public final class NamedPreparedStatement implements AutoCloseable {
 
             if (matcher.find()) {
                 throw new SQLException(
-                        "Delimiter " + DELIMITER + " has no following name. Should be " + DELIMITER + "name_something");
+                        "Delimiter "
+                                + DELIMITER
+                                + " has no following name. Should be "
+                                + DELIMITER
+                                + "name_something");
             }
 
             final int PARAM_NAME_LAST_INDEX = matcher.end();
@@ -67,8 +66,10 @@ public final class NamedPreparedStatement implements AutoCloseable {
             parsedSqlBuilder.append(sql, currentLoopIndex, DELIMITER_INDEX);
             parsedSqlBuilder.append('?');
 
-            fields.computeIfAbsent(sql.substring(currentLoopIndex + 1, PARAM_NAME_LAST_INDEX),
-                    v -> new ArrayList<>()).add(jdbcStartingIndex++);
+            fields
+                    .computeIfAbsent(
+                            sql.substring(currentLoopIndex + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
+                    .add(jdbcStartingIndex++);
         }
 
         parsedSql = parsedSqlBuilder.toString();

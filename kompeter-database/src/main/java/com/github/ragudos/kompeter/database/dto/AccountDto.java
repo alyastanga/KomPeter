@@ -9,4 +9,7 @@ public record AccountDto(
         int _userId,
         @NotNull String passwordHash,
         @NotNull String passwordSalt,
-        @NotNull String email) {}
+        @NotNull String email) {
+    public static record AccountPassword(
+            @NotNull String passwordHash, @NotNull String passwordSalt) {}
+}
