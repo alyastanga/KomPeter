@@ -4,49 +4,75 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ *
+ * <p>
+ * A wrapper for {@link PreparedStatement} that allows named parameters in SQL.
+ *
+ * <p>
+ * This is useful to have a clearer and more readable SQL query file instead of
+ * using '?'.
+ *
+ * <p>
+ * It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
+ *
+ */
 public final class NamedPreparedStatement implements AutoCloseable {
     private final PreparedStatement prepStmt;
     private final Map<String, List<Integer>> fields = new HashMap<>();
+    private final String parsedSql;
 
-    public NamedPreparedStatement(final Connection conn, String sql) throws SQLException {
-        StringBuilder parsedSql = new StringBuilder();
-        int length = sql.length();
-        int index = 1; // JDBC parameter index starts at 1
+    private static final Pattern PARAM_PATTERN = Pattern.compile("\\G\\w+");
 
-        for (int i = 0; i < length; ) {
-            char c = sql.charAt(i);
-            if (c == ':') {
-                int j = i + 1;
-                // Parameter name chars: letters, digits, underscore
-                while (j < length && (Character.isLetterOrDigit(sql.charAt(j)) || sql.charAt(j) == '_')) {
-                    j++;
-                }
-                String name = sql.substring(i + 1, j);
+    public static final char DELIMITER = ':';
 
-                // Replace :name with ?
-                parsedSql.append('?');
-
-                // Store index for this parameter name
-                fields.computeIfAbsent(name, v -> new ArrayList<>()).add(index++);
-                i = j; // advance past the parameter name
-            } else {
-                parsedSql.append(c);
-                i++;
-            }
-        }
-
-        prepStmt = conn.prepareStatement(parsedSql.toString());
+    public NamedPreparedStatement(final Connection conn, final String sql) throws SQLException {
+        this(conn, sql, Statement.NO_GENERATED_KEYS);
     }
 
-    @Override
-    public void close() throws SQLException {
-        prepStmt.close();
+    public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag) throws SQLException {
+        final int SQL_QUERY_LENGTH = sql.length();
+        StringBuilder parsedSqlBuilder = new StringBuilder();
+        int jdbcStartingIndex = 1; // JDBC parameter index starts at 1
+        int currentLoopIndex = 0;
+
+        while (currentLoopIndex < SQL_QUERY_LENGTH) {
+            final int DELIMITER_INDEX = sql.indexOf(DELIMITER, currentLoopIndex);
+
+            if (DELIMITER_INDEX == -1) {
+                parsedSqlBuilder.append(sql, currentLoopIndex, SQL_QUERY_LENGTH);
+
+                break;
+            }
+
+            Matcher matcher = PARAM_PATTERN.matcher(sql);
+            matcher.region(currentLoopIndex + 1, SQL_QUERY_LENGTH);
+
+            if (matcher.find()) {
+                throw new SQLException(
+                        "Delimiter " + DELIMITER + " has no following name. Should be " + DELIMITER + "name_something");
+            }
+
+            final int PARAM_NAME_LAST_INDEX = matcher.end();
+
+            parsedSqlBuilder.append(sql, currentLoopIndex, DELIMITER_INDEX);
+            parsedSqlBuilder.append('?');
+
+            fields.computeIfAbsent(sql.substring(currentLoopIndex + 1, PARAM_NAME_LAST_INDEX),
+                    v -> new ArrayList<>()).add(jdbcStartingIndex++);
+        }
+
+        parsedSql = parsedSqlBuilder.toString();
+        prepStmt = conn.prepareStatement(parsedSql, autoGenerateKeysFlag);
     }
 
     public ResultSet executeQuery() throws SQLException {
@@ -85,5 +111,20 @@ public final class NamedPreparedStatement implements AutoCloseable {
         for (int pos : positions) {
             prepStmt.setTimestamp(pos, value);
         }
+    }
+
+    public void executeUpdate() throws SQLException {
+        prepStmt.executeUpdate();
+    }
+
+    public String getSql() {
+        return parsedSql;
+    }
+
+    @Override
+    public void close() throws SQLException {
+        prepStmt.close();
+
+        fields.clear();
     }
 }
