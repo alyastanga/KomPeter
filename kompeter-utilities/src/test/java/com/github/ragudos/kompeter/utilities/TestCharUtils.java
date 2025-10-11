@@ -39,7 +39,9 @@ public class TestCharUtils {
                     65, 66, 67, 68, 69, 70, 71, 72, 73, 74 // ASCII for 'A' to 'J'
                 };
         char[] charBytes = new char[] {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'};
+        char[] charBytes2 = new char[] {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'};
 
         assertTrue(CharUtils.constantTimeEquals(asciiBytes, CharUtils.charArrayToByteArray(charBytes)));
+        assertTrue(CharUtils.constantTimeEquals(charBytes, charBytes2));
     }
 }

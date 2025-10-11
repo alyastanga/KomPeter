@@ -19,19 +19,64 @@ public final class Directories {
     static {
         if (SystemInfo.isWindows) {
             APP_DATA_DIRECTORY = SystemInfo.USER_HOME + File.separator + "AppData";
+            APP_DIRECTORY = APP_DATA_DIRECTORY + File.separator + "Local";
+            CONFIG_DIRECTORY =
+                    APP_DIRECTORY + File.separator + Metadata.APP_TITLE + File.separator + "config";
+            LOGS_DIRECTORY =
+                    APP_DIRECTORY + File.separator + Metadata.APP_TITLE + File.separator + "logs";
+        } else if (SystemInfo.isLinux) {
+            APP_DATA_DIRECTORY = SystemInfo.USER_HOME + File.separator + ".local";
             APP_DIRECTORY =
-                    APP_DATA_DIRECTORY + File.separator + "Local" + File.separator + Metadata.APP_TITLE;
-        } else if (SystemInfo.isLinux || SystemInfo.isMac) {
-            APP_DATA_DIRECTORY = SystemInfo.USER_HOME;
-            APP_DIRECTORY = APP_DATA_DIRECTORY + File.separator + "." + Metadata.APP_TITLE;
+                    APP_DATA_DIRECTORY + File.separator + "share" + File.separator + Metadata.APP_TITLE;
+            CONFIG_DIRECTORY =
+                    APP_DATA_DIRECTORY
+                            + File.separator
+                            + "state"
+                            + File.separator
+                            + Metadata.APP_TITLE
+                            + File.separator
+                            + "config";
+            LOGS_DIRECTORY =
+                    APP_DATA_DIRECTORY
+                            + File.separator
+                            + "state"
+                            + File.separator
+                            + Metadata.APP_TITLE
+                            + File.separator
+                            + "logs";
+        } else if (SystemInfo.isMac) {
+            APP_DATA_DIRECTORY = SystemInfo.USER_HOME + File.separator + "Library";
+            APP_DIRECTORY =
+                    APP_DATA_DIRECTORY
+                            + File.separator
+                            + "Application Support"
+                            + File.separator
+                            + Metadata.APP_TITLE;
+            ;
+            CONFIG_DIRECTORY =
+                    APP_DATA_DIRECTORY
+                            + File.separator
+                            + "Preferences"
+                            + File.separator
+                            + Metadata.APP_TITLE
+                            + File.separator
+                            + "config";
+            LOGS_DIRECTORY =
+                    APP_DATA_DIRECTORY
+                            + File.separator
+                            + "Preferences"
+                            + File.separator
+                            + Metadata.APP_TITLE
+                            + File.separator
+                            + "logs";
         } else {
             APP_DATA_DIRECTORY = SystemInfo.USER_HOME + File.separator + "etc";
             APP_DIRECTORY = APP_DATA_DIRECTORY + File.separator + Metadata.APP_TITLE;
+            CONFIG_DIRECTORY = APP_DIRECTORY + File.separator + "config";
+            LOGS_DIRECTORY = APP_DIRECTORY + File.separator + "logs";
         }
 
         SQLITE_DIRECTORY = APP_DIRECTORY + File.separator + "sqlite";
-        LOGS_DIRECTORY = APP_DIRECTORY + File.separator + "logs";
-        CONFIG_DIRECTORY = APP_DIRECTORY + File.separator + "config";
     }
 
     private Directories() {

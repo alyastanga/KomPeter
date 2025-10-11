@@ -1,6 +1,7 @@
 package com.github.ragudos.kompeter.cryptography;
 
 import com.github.ragudos.kompeter.utilities.CharUtils;
+import java.util.Base64;
 import org.jetbrains.annotations.NotNull;
 
 public final record HashedStringWithSalt(@NotNull byte[] hashedString, @NotNull Salt salt) {
@@ -14,6 +15,10 @@ public final record HashedStringWithSalt(@NotNull byte[] hashedString, @NotNull 
 
     public boolean equals(@NotNull final HashedStringWithSalt hsws) {
         return equalsHashedString(hsws) && equalsSalt(hsws);
+    }
+
+    public String hashedStringToBase64() {
+        return Base64.getEncoder().encodeToString(hashedString());
     }
 
     public boolean isHashedStringEmpty() {

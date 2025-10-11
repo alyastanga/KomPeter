@@ -11,13 +11,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class TestSqliteFactoryDao {
-    @Test
-    @DisplayName("Test migration")
-    void testMigration() {
+    @BeforeAll
+    static void testMigration() {
         try {
             AbstractMigratorFactory factory =
                     AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);

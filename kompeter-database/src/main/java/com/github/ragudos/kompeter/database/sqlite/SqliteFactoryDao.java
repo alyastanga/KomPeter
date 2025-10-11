@@ -62,7 +62,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
         try {
             for (int i = 0; i < POOLED_CONNECTION_COUNT; ++i) {
-                pooledConnections.add(createProxy(createConnection()));
+                pooledConnections.offer(createProxy(createConnection()));
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Failed to create connections", e);
@@ -92,14 +92,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public void shutdown() throws SQLException {
         super.shutdown();
-
-        writeLock.lock();
-
-        try {
-            instance = null;
-        } finally {
-            writeLock.unlock();
-        }
+        instance = null;
     }
 
     @Override

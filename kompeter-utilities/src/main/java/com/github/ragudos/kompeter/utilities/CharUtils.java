@@ -1,6 +1,7 @@
 package com.github.ragudos.kompeter.utilities;
 
 import java.util.Base64;
+import org.jetbrains.annotations.NotNull;
 
 public final class CharUtils {
     public static char[] byteArrayToCharArray(byte[] bArray) {
@@ -42,5 +43,19 @@ public final class CharUtils {
 
     public static String toBase64(byte[] str) {
         return Base64.getEncoder().encodeToString(str);
+    }
+
+    public static boolean constantTimeEquals(@NotNull char[] a, @NotNull char[] b) {
+        if (a.length != b.length) {
+            return false;
+        }
+
+        int res = 0;
+
+        for (int i = 0; i < a.length; ++i) {
+            res |= a[i] ^ b[i];
+        }
+
+        return res == 0;
     }
 }
