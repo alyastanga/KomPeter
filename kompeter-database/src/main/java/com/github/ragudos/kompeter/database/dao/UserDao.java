@@ -14,9 +14,7 @@ public interface UserDao {
      *
      * @return -1 if no user was created, otherwise return the _user_id
      */
-    int createUser(
-            @NotNull Connection conn,
-            @NotNull String displayName)
+    int createUser(@NotNull Connection conn, @NotNull String displayName)
             throws IOException, SQLException;
 
     Optional<UserDto> getUserById(

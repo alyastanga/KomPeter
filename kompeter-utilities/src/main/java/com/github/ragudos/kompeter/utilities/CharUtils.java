@@ -1,7 +1,6 @@
 package com.github.ragudos.kompeter.utilities;
 
 import java.util.Base64;
-
 import org.jetbrains.annotations.NotNull;
 
 public final class CharUtils {
@@ -59,5 +58,4 @@ public final class CharUtils {
 
         return res == 0;
     }
-
 }

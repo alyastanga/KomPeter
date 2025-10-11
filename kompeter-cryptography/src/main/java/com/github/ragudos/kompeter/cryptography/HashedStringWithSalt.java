@@ -1,9 +1,7 @@
 package com.github.ragudos.kompeter.cryptography;
 
 import com.github.ragudos.kompeter.utilities.CharUtils;
-
 import java.util.Base64;
-
 import org.jetbrains.annotations.NotNull;
 
 public final record HashedStringWithSalt(@NotNull byte[] hashedString, @NotNull Salt salt) {

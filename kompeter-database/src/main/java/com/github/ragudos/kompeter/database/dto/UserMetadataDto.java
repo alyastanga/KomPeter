@@ -10,5 +10,5 @@ public record UserMetadataDto(
         @NotNull String displayName,
         @NotNull String firstName,
         @NotNull String lastName,
-        @NotNull String[] roles) {
-};
+        @NotNull String[] roles) {}
+;
