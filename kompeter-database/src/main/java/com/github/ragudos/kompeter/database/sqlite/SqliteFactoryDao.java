@@ -54,19 +54,25 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
             Directories.SQLITE_DIRECTORY + File.separator + "main.db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
 
+    public static final int POOL_CONNECTION_COUNT = 1;
+
     private SqliteFactoryDao() {
         super();
 
         FileUtils.createDirectoryIfNotExists(Directories.SQLITE_DIRECTORY);
         FileUtils.createFileIfNotExists(MAIN_DB_FILE_NAME);
 
+        writeLock.lock();
+
         try {
-            for (int i = 0; i < POOLED_CONNECTION_COUNT; ++i) {
-                pooledConnections.offer(createProxy(createConnection()));
+            for (int i = 0; i < POOL_CONNECTION_COUNT; ++i) {
+                pooledConnections.add(createProxy(createConnection()));
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Failed to create connections", e);
             throw new RuntimeException("Failed to initialize FactoryDao");
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -92,7 +98,14 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public void shutdown() throws SQLException {
         super.shutdown();
-        instance = null;
+
+        writeLock.lock();
+
+        try {
+            instance = null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     @Override
