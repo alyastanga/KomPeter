@@ -16,116 +16,115 @@ import java.util.regex.Pattern;
 /**
  * A wrapper for {@link PreparedStatement} that allows named parameters in SQL.
  *
- * <p>This is useful to have a clearer and more readable SQL query file instead of using '?'.
+ * <p>
+ * This is useful to have a clearer and more readable SQL query file instead of
+ * using '?'.
  *
- * <p>It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
+ * <p>
+ * It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
  */
 public final class NamedPreparedStatement implements AutoCloseable {
-    private final PreparedStatement prepStmt;
-    private final Map<String, List<Integer>> fields = new HashMap<>();
-    private final String parsedSql;
+	private final PreparedStatement prepStmt;
+	private final Map<String, List<Integer>> fields = new HashMap<>();
+	private final String parsedSql;
 
-    private static final Pattern PARAM_PATTERN = Pattern.compile("\\G\\w+");
+	private static final Pattern PARAM_PATTERN = Pattern.compile("[A-Za-z0-9_]+");
 
-    public static final char DELIMITER = ':';
+	public static final char DELIMITER = ':';
 
-    public NamedPreparedStatement(final Connection conn, final String sql) throws SQLException {
-        this(conn, sql, Statement.NO_GENERATED_KEYS);
-    }
+	public NamedPreparedStatement(final Connection conn, final String sql) throws SQLException {
+		this(conn, sql, Statement.NO_GENERATED_KEYS);
+	}
 
-    public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag)
-            throws SQLException {
-        final int SQL_QUERY_LENGTH = sql.length();
-        StringBuilder parsedSqlBuilder = new StringBuilder();
-        int jdbcStartingIndex = 1; // JDBC parameter index starts at 1
-        int currentLoopIndex = 0;
+	public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag) throws SQLException {
+		final int SQL_QUERY_LENGTH = sql.length();
+		StringBuilder parsedSqlBuilder = new StringBuilder();
+		int jdbcStartingIndex = 1; // JDBC parameter index starts at 1
+		int currentLoopIndex = 0;
 
-        while (currentLoopIndex < SQL_QUERY_LENGTH) {
-            final int DELIMITER_INDEX = sql.indexOf(DELIMITER, currentLoopIndex);
+		while (currentLoopIndex < SQL_QUERY_LENGTH) {
+			final int DELIMITER_INDEX = sql.indexOf(DELIMITER, currentLoopIndex);
 
-            if (DELIMITER_INDEX == -1) {
-                parsedSqlBuilder.append(sql, currentLoopIndex, SQL_QUERY_LENGTH);
+			if (DELIMITER_INDEX == -1) {
+				parsedSqlBuilder.append(sql, currentLoopIndex, SQL_QUERY_LENGTH);
 
-                break;
-            }
+				break;
+			}
 
-            Matcher matcher = PARAM_PATTERN.matcher(sql);
-            matcher.region(currentLoopIndex + 1, SQL_QUERY_LENGTH);
+			Matcher matcher = PARAM_PATTERN.matcher(sql);
+			matcher.region(DELIMITER_INDEX + 1, SQL_QUERY_LENGTH);
 
-            if (matcher.find()) {
-                throw new SQLException(
-                        "Delimiter "
-                                + DELIMITER
-                                + " has no following name. Should be "
-                                + DELIMITER
-                                + "name_something");
-            }
+			if (!matcher.find()) {
+				throw new SQLException(
+						"Delimiter " + DELIMITER + " has no following name. Should be " + DELIMITER + "name_something");
+			}
 
-            final int PARAM_NAME_LAST_INDEX = matcher.end();
+			final int PARAM_NAME_LAST_INDEX = matcher.end();
 
-            parsedSqlBuilder.append(sql, currentLoopIndex, DELIMITER_INDEX);
-            parsedSqlBuilder.append('?');
+			parsedSqlBuilder.append(sql, currentLoopIndex, DELIMITER_INDEX);
+			parsedSqlBuilder.append('?');
 
-            fields
-                    .computeIfAbsent(
-                            sql.substring(currentLoopIndex + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
-                    .add(jdbcStartingIndex++);
-        }
+			fields.computeIfAbsent(sql.substring(DELIMITER_INDEX + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
+					.add(jdbcStartingIndex++);
 
-        parsedSql = parsedSqlBuilder.toString();
-        prepStmt = conn.prepareStatement(parsedSql, autoGenerateKeysFlag);
-    }
+			// Move to after the parameter
+			currentLoopIndex = PARAM_NAME_LAST_INDEX;
+		}
 
-    public ResultSet executeQuery() throws SQLException {
-        return prepStmt.executeQuery();
-    }
+		parsedSql = parsedSqlBuilder.toString();
+		prepStmt = conn.prepareStatement(parsedSql, autoGenerateKeysFlag);
+	}
 
-    public PreparedStatement getPreparedStatement() {
-        return prepStmt;
-    }
+	public ResultSet executeQuery() throws SQLException {
+		return prepStmt.executeQuery();
+	}
 
-    public void setInt(final String name, final int value) throws SQLException {
-        List<Integer> positions = fields.get(name);
-        if (positions == null) {
-            throw new IllegalArgumentException("Parameter not found: " + name);
-        }
-        for (int pos : positions) {
-            prepStmt.setInt(pos, value);
-        }
-    }
+	public PreparedStatement getPreparedStatement() {
+		return prepStmt;
+	}
 
-    public void setString(final String name, final String value) throws SQLException {
-        List<Integer> positions = fields.get(name);
-        if (positions == null) {
-            throw new IllegalArgumentException("Parameter not found: " + name);
-        }
-        for (int pos : positions) {
-            prepStmt.setString(pos, value);
-        }
-    }
+	public void setInt(final String name, final int value) throws SQLException {
+		List<Integer> positions = fields.get(name);
+		if (positions == null) {
+			throw new IllegalArgumentException("Parameter not found: " + name);
+		}
+		for (int pos : positions) {
+			prepStmt.setInt(pos, value);
+		}
+	}
 
-    public void setTimestamp(final String name, final Timestamp value) throws SQLException {
-        List<Integer> positions = fields.get(name);
-        if (positions == null) {
-            throw new IllegalArgumentException("Parameter not found: " + name);
-        }
-        for (int pos : positions) {
-            prepStmt.setTimestamp(pos, value);
-        }
-    }
+	public void setString(final String name, final String value) throws SQLException {
+		List<Integer> positions = fields.get(name);
+		if (positions == null) {
+			throw new IllegalArgumentException("Parameter not found: " + name);
+		}
+		for (int pos : positions) {
+			prepStmt.setString(pos, value);
+		}
+	}
 
-    public void executeUpdate() throws SQLException {
-        prepStmt.executeUpdate();
-    }
+	public void setTimestamp(final String name, final Timestamp value) throws SQLException {
+		List<Integer> positions = fields.get(name);
+		if (positions == null) {
+			throw new IllegalArgumentException("Parameter not found: " + name);
+		}
+		for (int pos : positions) {
+			prepStmt.setTimestamp(pos, value);
+		}
+	}
 
-    public String getSql() {
-        return parsedSql;
-    }
+	public void executeUpdate() throws SQLException {
+		prepStmt.executeUpdate();
+	}
 
-    @Override
-    public void close() throws SQLException {
-        prepStmt.close();
+	public String getSql() {
+		return parsedSql;
+	}
 
-        fields.clear();
-    }
+	@Override
+	public void close() throws SQLException {
+		prepStmt.close();
+
+		fields.clear();
+	}
 }

@@ -16,9 +16,7 @@ public interface UserDao {
      */
     int createUser(
             @NotNull Connection conn,
-            @NotNull String displayName,
-            @NotNull String firstName,
-            @NotNull String lastName)
+            @NotNull String displayName)
             throws IOException, SQLException;
 
     Optional<UserDto> getUserById(
