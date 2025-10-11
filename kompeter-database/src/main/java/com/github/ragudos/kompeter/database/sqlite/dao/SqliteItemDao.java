@@ -20,7 +20,7 @@ public class SqliteItemDao implements ItemDao {
     @Override
     public List<ItemDto> getAllItems() throws SQLException, IOException {
         List<ItemDto> items = new ArrayList<>();
-        var query = SqliteQueryLoader.getInstance().get("get", "items", SqlQueryType.SELECT);
+        var query = SqliteQueryLoader.getInstance().get("select_all_items", "items", SqlQueryType.SELECT);
                 
         try(
             var stmt = conn.prepareStatement(query);
@@ -36,8 +36,6 @@ public class SqliteItemDao implements ItemDao {
                 
                 items.add(item);
             }
-              
-            
         }
         return items;
     }
