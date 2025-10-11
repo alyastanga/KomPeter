@@ -28,21 +28,32 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class is responsible for creating the appropriate SQL factory DAO based on the database
- * type. It uses a factory method pattern to create the appropriate instance. <br>
+ * This class is responsible for creating the appropriate SQL factory DAO based
+ * on the database
+ * type. It uses a factory method pattern to create the appropriate instance.
  * <br>
- * Example usage of the AbstractSqlFactoryDao to retrieve a platform-specific DAO implementation.
+ * <br>
+ * Example usage of the AbstractSqlFactoryDao to retrieve a platform-specific
+ * DAO implementation.
  *
- * <p>This snippet demonstrates how to obtain a MySQL-specific factory instance using the factory
- * method {@link AbstractSqlFactoryDao#getSqlFactoryDao(int)}, and then retrieve the {@link
- * SessionDao} to perform a data access operation. This promotes loose coupling between
- * database-specific implementations and the business logic, making the codebase easier to maintain
+ * <p>
+ * This snippet demonstrates how to obtain a MySQL-specific factory instance
+ * using the factory
+ * method {@link AbstractSqlFactoryDao#getSqlFactoryDao(int)}, and then retrieve
+ * the {@link
+ * SessionDao} to perform a data access operation. This promotes loose coupling
+ * between
+ * database-specific implementations and the business logic, making the codebase
+ * easier to maintain
  * and extend for other database platforms.
  *
  * <pre>
@@ -60,11 +71,16 @@ import org.jetbrains.annotations.NotNull;
  * var sessionExists = sessionDao.sessionExists(sessionUid);
  * </pre>
  *
- * <p>This design allows easy substitution of different database backends by changing only the
- * factory input type, without modifying the business logic that relies on the DAO interfaces.
+ * <p>
+ * This design allows easy substitution of different database backends by
+ * changing only the
+ * factory input type, without modifying the business logic that relies on the
+ * DAO interfaces.
  *
- * @see <a href= "https://www.oracle.com/java/technologies/dataaccessobject.html">Article about DAO
- *     Pattern by Oracle</a>
+ * @see <a href=
+ *      "https://www.oracle.com/java/technologies/dataaccessobject.html">Article
+ *      about DAO
+ *      Pattern by Oracle</a>
  */
 public abstract class AbstractSqlFactoryDao {
     protected class PooledConnectionHandler implements InvocationHandler {
@@ -99,16 +115,10 @@ public abstract class AbstractSqlFactoryDao {
     protected static final Logger LOGGER = KompeterLogger.getLogger(AbstractSqlFactoryDao.class);
     public static final int SQLITE = 1;
 
-    public static final int POOLED_CONNECTION_COUNT = 5;
+    public static final int POOLED_CONNECTION_COUNT = 1;
 
     // We use LinkedList since we are only going to pop and push onto this
-    protected final List<Connection> pooledConnections = new LinkedList<>();
-    protected final List<Connection> usedPoolConnections = new ArrayList<>();
-
-    // For thread-safety
-    protected final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
-    protected final Lock readLock = rwLock.readLock();
-    protected final Lock writeLock = rwLock.writeLock();
+    protected final BlockingQueue<Connection> pooledConnections = new ArrayBlockingQueue<>(1);
 
     public static @NotNull AbstractSqlFactoryDao getSqlFactoryDao(int databaseType) {
         return switch (databaseType) {
@@ -118,58 +128,39 @@ public abstract class AbstractSqlFactoryDao {
     }
 
     protected void returnConnection(@NotNull Connection conn) {
-        writeLock.lock();
-
-        try {
-            pooledConnections.add(conn);
-            usedPoolConnections.remove(conn);
-        } finally {
-            writeLock.unlock();
-        }
+        pooledConnections.offer(conn);
     }
 
     /**
-     * Used to override default behavior of {@link Connection} for specific methods like {@link
+     * Used to override default behavior of {@link Connection} for specific methods
+     * like {@link
      * Connection#close}
      */
     protected @NotNull Connection createProxy(@NotNull Connection realConn) {
-        return (Connection)
-                Proxy.newProxyInstance(
-                        realConn.getClass().getClassLoader(),
-                        new Class<?>[] {Connection.class},
-                        new PooledConnectionHandler(realConn));
+        return (Connection) Proxy.newProxyInstance(
+                realConn.getClass().getClassLoader(),
+                new Class<?>[] { Connection.class },
+                new PooledConnectionHandler(realConn));
     }
 
     /**
      * Get a {@link Connection} from the connection pool
      *
-     * <p>Useful for reusing connections for fast connection to the database.
+     * <p>
+     * Useful for reusing connections for fast connection to the database.
      *
      * @return A {@link Connection} wrapped around the real connection.
      */
     public @NotNull Connection getConnection() {
-        writeLock.lock();
-
         try {
-            if (pooledConnections.isEmpty()) {
-                throw new IllegalStateException("No free connetions");
-            }
-
-            Connection conn = pooledConnections.remove(0);
-
-            usedPoolConnections.add(conn);
-
-            return conn;
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            writeLock.unlock();
+            return pooledConnections.take();
+        } catch (InterruptedException err) {
+            LOGGER.log(Level.SEVERE, "Cannot take connection", err);
+            return null;
         }
     }
 
     public void shutdown() throws SQLException {
-        writeLock.lock();
-
         try {
             for (Connection conn : pooledConnections) {
                 InvocationHandler handler = Proxy.getInvocationHandler(conn);
@@ -179,18 +170,8 @@ public abstract class AbstractSqlFactoryDao {
                 }
             }
 
-            for (Connection conn : usedPoolConnections) {
-                InvocationHandler handler = Proxy.getInvocationHandler(conn);
-
-                if (handler instanceof PooledConnectionHandler p) {
-                    p.reallyClose();
-                }
-            }
-
             pooledConnections.clear();
-            usedPoolConnections.clear();
         } finally {
-            writeLock.unlock();
         }
     }
 
