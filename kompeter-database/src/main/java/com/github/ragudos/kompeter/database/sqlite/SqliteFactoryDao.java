@@ -134,7 +134,12 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull ItemDao getItemDao() {
-        return new SqliteItemDao();
+        try {
+            return new SqliteItemDao(SqliteFactoryDao.getInstance().createConnection());
+        } catch (SQLException ex) {
+            System.getLogger(SqliteFactoryDao.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
+        return null;
     }
 
     @Override
