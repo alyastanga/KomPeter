@@ -1,0 +1,61 @@
+package com.github.ragudos.kompeter.database.sqlite.dao;
+
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.dao.InventoryDao;
+import com.github.ragudos.kompeter.database.dto.InventoryMetadataDto;
+import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SqliteInventoryDao implements InventoryDao{
+    private final Connection conn;
+    public SqliteInventoryDao(Connection conn){
+        this.conn = conn;
+    }
+
+    @Override
+    public List<InventoryMetadataDto> getAllData(Location location, OrderBy orderBy, Direction direction) throws SQLException, IOException {
+        List<InventoryMetadataDto> inventory = new ArrayList<>();
+        var query = SqliteQueryLoader.getInstance().get("select_all_inventory_metadata", "items", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        StringBuilder sql = new StringBuilder(query);
+        if(location != null){
+            sql.append("WHERE sl.name = ?");
+        }
+        if(orderBy != null){
+            sql.append(" ORDER BY " + orderBy.toString());               
+        }
+        if(direction != null){
+            sql.append(direction == Direction.ASC ? " ASC " : " DESC ");
+        }
+        
+        try(var stmt = conn.prepareStatement(sql.toString());){
+            if(location != null){
+                stmt.setString(1, location.toString());
+            }
+            var rs = stmt.executeQuery();
+            while(rs.next()){
+                InventoryMetadataDto metadata = new InventoryMetadataDto(
+                        rs.getInt("_item_id"),
+                        rs.getInt("_item_stock_id"),
+                        rs.getInt("_item_stock_storage_location_id"),
+                        rs.getTimestamp("_created_at"),
+                        rs.getString("category_name"),
+                        rs.getString("item_name"),
+                        rs.getString("description"),
+                        rs.getString("brand_name"),
+                        rs.getDouble("unit_price_php"),
+                        rs.getInt("quantity"),
+                        rs.getString("location_name") 
+                );
+                inventory.add(metadata);
+            }
+        }
+        return inventory;
+    }
+
+    
+    
+}
