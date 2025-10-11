@@ -1,33 +1,152 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.github.ragudos.kompeter.inventory;
-/**
- *
- * @author Peter M. Dela Cruz
- * 
- */
+
+import com.github.ragudos.kompeter.database.dao.InventoryDao;
+import com.github.ragudos.kompeter.database.dto.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.dto.ItemDto;
+import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
+import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
-public class InventoryService {
-    private final SqliteItemDao sqlItemDao;
+public class InventoryService implements Inventory{
+    private final SqliteItemDao sqliteItemDao;
+    private final SqliteInventoryDao sqliteInventoryDao;
     
-    public InventoryService(SqliteItemDao sqlItemDao){
-        this.sqlItemDao = sqlItemDao;
+    public InventoryService(SqliteItemDao sqliteItemDao, SqliteInventoryDao sqliteInventoryDao ){
+        this.sqliteItemDao = sqliteItemDao;
+        this.sqliteInventoryDao = sqliteInventoryDao;
     }
-    
-    public List<ItemDto> getAllItem(){
+
+    @Override
+    public List<InventoryMetadataDto> showInventoryItems() {
         try{
-            return sqlItemDao.getAllItems();
+            return sqliteInventoryDao.getAllData(null, null, null);
         }catch(SQLException e){
-            throw new RuntimeException("Database error occurred while retrieving all items.", e);
+            e.printStackTrace();
         }catch(IOException e){
-            throw new RuntimeException("Configuration/File error while retrieving query for all items.", e);
+            e.printStackTrace();
         }
+        return null;
     }
+
+    @Override
+    public void deleteItem() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void updateItem() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void searchItem() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void refresh() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByDateAdded() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortAlphabetically() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByCategory() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByItemId() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addItem(String name, String description) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addRestock(String category, String brand, String itemName, int quantity, String supplier) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addBrand(String name, String description) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addCategory(String name, String description) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addStorageLoc(String name, String description) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addPurchaseItem(int supplierId, Timestamp purchaseDate, String code, Timestamp deliveryDate, double vat, double discVal, DiscountType discType) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addPurchasePayments(int _purchaseId, Timestamp paymentDate, String refNumber, PaymentMethod paymentMethod, double amount) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addPurchaseItemStocks(int _purchaseId, int _itemStocksId, String refNumber, PaymentMethod paymentMethod, double amount) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setItemStockStorageLoc(int _itemStockId, int quantity_ordered, int quantity_received, int quantity, double unitCost) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setItemCategory(int _itemId, int _categoryId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setItemStocks(int _itemId, int _itemBrandId, double _unitPrice, int min_quantity) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByAscPrice() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByDescPrice() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByAscQuantity() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void sortByDescQuantity() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+
 }
