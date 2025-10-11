@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * // Step 3: Use the Dao to perform operations, such as checking if a session
  * // exists
- * var sessionExists = sessionDao.sessionExists(sessionUid);
+ * var sessionExists = sessionDao.sessionExists(conn, sessionUid);
  * </pre>
  *
  * <p>This design allows easy substitution of different database backends by changing only the
