@@ -25,7 +25,7 @@ public final class NamedPreparedStatement implements AutoCloseable {
     private final Map<String, List<Integer>> fields = new HashMap<>();
     private final String parsedSql;
 
-    private static final Pattern PARAM_PATTERN = Pattern.compile("\\G\\w+");
+    private static final Pattern PARAM_PATTERN = Pattern.compile("[A-Za-z0-9_]+");
 
     public static final char DELIMITER = ':';
 
@@ -50,9 +50,9 @@ public final class NamedPreparedStatement implements AutoCloseable {
             }
 
             Matcher matcher = PARAM_PATTERN.matcher(sql);
-            matcher.region(currentLoopIndex + 1, SQL_QUERY_LENGTH);
+            matcher.region(DELIMITER_INDEX + 1, SQL_QUERY_LENGTH);
 
-            if (matcher.find()) {
+            if (!matcher.find()) {
                 throw new SQLException(
                         "Delimiter "
                                 + DELIMITER
@@ -68,8 +68,11 @@ public final class NamedPreparedStatement implements AutoCloseable {
 
             fields
                     .computeIfAbsent(
-                            sql.substring(currentLoopIndex + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
+                            sql.substring(DELIMITER_INDEX + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
                     .add(jdbcStartingIndex++);
+
+            // Move to after the parameter
+            currentLoopIndex = PARAM_NAME_LAST_INDEX;
         }
 
         parsedSql = parsedSqlBuilder.toString();

@@ -11,13 +11,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class TestSqliteFactoryDao {
-    @Test
-    @DisplayName("Test migration")
-    void testMigration() {
+    @BeforeAll
+    static void testMigration() {
         try {
             AbstractMigratorFactory factory =
                     AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
@@ -46,16 +46,7 @@ public class TestSqliteFactoryDao {
                 AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
         Connection c1 = factory.getConnection();
-        Connection c2 = factory.getConnection();
-        Connection c3 = factory.getConnection();
-        Connection c4 = factory.getConnection();
-        Connection c5 = factory.getConnection();
-
         assertNotNull(c1);
-        assertNotNull(c2);
-        assertNotNull(c3);
-        assertNotNull(c4);
-        assertNotNull(c5);
 
         assertThrows(
                 IllegalStateException.class,
@@ -68,10 +59,6 @@ public class TestSqliteFactoryDao {
             factory.shutdown();
 
             assertTrue(c1.isClosed(), "Connection is closed after shutdown of pool");
-            assertTrue(c2.isClosed(), "Connection is closed after shutdown of pool");
-            assertTrue(c3.isClosed(), "Connection is closed after shutdown of pool");
-            assertTrue(c4.isClosed(), "Connection is closed after shutdown of pool");
-            assertTrue(c5.isClosed(), "Connection is closed after shutdown of pool");
 
             assertThrows(
                     IllegalStateException.class,

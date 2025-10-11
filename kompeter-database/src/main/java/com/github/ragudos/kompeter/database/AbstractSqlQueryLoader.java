@@ -93,6 +93,7 @@ public abstract class AbstractSqlQueryLoader {
             return query;
         }
 
+        LOGGER.severe("No SQL query found for " + path);
         // should not be reached
         return null;
     }
