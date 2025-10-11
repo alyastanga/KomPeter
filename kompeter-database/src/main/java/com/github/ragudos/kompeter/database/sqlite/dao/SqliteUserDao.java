@@ -17,13 +17,17 @@ import org.jetbrains.annotations.Range;
 
 public class SqliteUserDao implements UserDao {
     @Override
-    public int createUser(@NotNull Connection conn, @NotNull String displayName, @NotNull String firstName,
+    public int createUser(
+            @NotNull Connection conn,
+            @NotNull String displayName,
+            @NotNull String firstName,
             @NotNull String lastName)
             throws IOException, SQLException {
-        try (NamedPreparedStatement stmnt = new NamedPreparedStatement(
-                conn,
-                SqliteQueryLoader.getInstance().get("create_user", "users", SqlQueryType.INSERT),
-                Statement.RETURN_GENERATED_KEYS)) {
+        try (NamedPreparedStatement stmnt =
+                new NamedPreparedStatement(
+                        conn,
+                        SqliteQueryLoader.getInstance().get("create_user", "users", SqlQueryType.INSERT),
+                        Statement.RETURN_GENERATED_KEYS)) {
             stmnt.setString("display_name", displayName);
             stmnt.setString("first_name", firstName);
             stmnt.setString("last_name", lastName);
@@ -40,8 +44,9 @@ public class SqliteUserDao implements UserDao {
     public Optional<UserDto> getUserById(
             @NotNull Connection conn, @Range(from = 0, to = 2147483647) int _userId)
             throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance().get("get_user_by_id", "users", SqlQueryType.SELECT))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance().get("get_user_by_id", "users", SqlQueryType.SELECT))) {
             stmnt.setInt(1, _userId);
 
             ResultSet rs = stmnt.executeQuery();
@@ -61,9 +66,10 @@ public class SqliteUserDao implements UserDao {
     @Override
     public boolean displayNameTaken(@NotNull Connection conn, @NotNull String displayName)
             throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance()
-                        .get("select_display_name_taken", "users", SqlQueryType.SELECT))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_display_name_taken", "users", SqlQueryType.SELECT))) {
             stmnt.setString(1, displayName);
 
             ResultSet rs = stmnt.executeQuery();

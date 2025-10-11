@@ -25,35 +25,22 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class is responsible for creating the appropriate SQL factory DAO based
- * on the database
- * type. It uses a factory method pattern to create the appropriate instance.
+ * This class is responsible for creating the appropriate SQL factory DAO based on the database
+ * type. It uses a factory method pattern to create the appropriate instance. <br>
  * <br>
- * <br>
- * Example usage of the AbstractSqlFactoryDao to retrieve a platform-specific
- * DAO implementation.
+ * Example usage of the AbstractSqlFactoryDao to retrieve a platform-specific DAO implementation.
  *
- * <p>
- * This snippet demonstrates how to obtain a MySQL-specific factory instance
- * using the factory
- * method {@link AbstractSqlFactoryDao#getSqlFactoryDao(int)}, and then retrieve
- * the {@link
- * SessionDao} to perform a data access operation. This promotes loose coupling
- * between
- * database-specific implementations and the business logic, making the codebase
- * easier to maintain
+ * <p>This snippet demonstrates how to obtain a MySQL-specific factory instance using the factory
+ * method {@link AbstractSqlFactoryDao#getSqlFactoryDao(int)}, and then retrieve the {@link
+ * SessionDao} to perform a data access operation. This promotes loose coupling between
+ * database-specific implementations and the business logic, making the codebase easier to maintain
  * and extend for other database platforms.
  *
  * <pre>
@@ -71,16 +58,11 @@ import org.jetbrains.annotations.NotNull;
  * var sessionExists = sessionDao.sessionExists(sessionUid);
  * </pre>
  *
- * <p>
- * This design allows easy substitution of different database backends by
- * changing only the
- * factory input type, without modifying the business logic that relies on the
- * DAO interfaces.
+ * <p>This design allows easy substitution of different database backends by changing only the
+ * factory input type, without modifying the business logic that relies on the DAO interfaces.
  *
- * @see <a href=
- *      "https://www.oracle.com/java/technologies/dataaccessobject.html">Article
- *      about DAO
- *      Pattern by Oracle</a>
+ * @see <a href= "https://www.oracle.com/java/technologies/dataaccessobject.html">Article about DAO
+ *     Pattern by Oracle</a>
  */
 public abstract class AbstractSqlFactoryDao {
     protected class PooledConnectionHandler implements InvocationHandler {
@@ -132,22 +114,21 @@ public abstract class AbstractSqlFactoryDao {
     }
 
     /**
-     * Used to override default behavior of {@link Connection} for specific methods
-     * like {@link
+     * Used to override default behavior of {@link Connection} for specific methods like {@link
      * Connection#close}
      */
     protected @NotNull Connection createProxy(@NotNull Connection realConn) {
-        return (Connection) Proxy.newProxyInstance(
-                realConn.getClass().getClassLoader(),
-                new Class<?>[] { Connection.class },
-                new PooledConnectionHandler(realConn));
+        return (Connection)
+                Proxy.newProxyInstance(
+                        realConn.getClass().getClassLoader(),
+                        new Class<?>[] {Connection.class},
+                        new PooledConnectionHandler(realConn));
     }
 
     /**
      * Get a {@link Connection} from the connection pool
      *
-     * <p>
-     * Useful for reusing connections for fast connection to the database.
+     * <p>Useful for reusing connections for fast connection to the database.
      *
      * @return A {@link Connection} wrapped around the real connection.
      */
