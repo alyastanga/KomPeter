@@ -1,5 +1,9 @@
 package com.github.ragudos.kompeter.app.desktop.components.icons;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter;
+import com.formdev.flatlaf.util.AnimatedIcon;
+import com.formdev.flatlaf.util.UIScale;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -7,15 +11,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Line2D;
-
 import javax.swing.AbstractButton;
-
 import org.jetbrains.annotations.NotNull;
-
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter;
-import com.formdev.flatlaf.util.AnimatedIcon;
-import com.formdev.flatlaf.util.UIScale;
 
 public class RevealEyeIcon implements AnimatedIcon {
     private final @NotNull FlatSVGIcon icon;
@@ -56,8 +53,12 @@ public class RevealEyeIcon implements AnimatedIcon {
             float endX = x + getIconWidth() - s;
             float endY = y + s;
 
-            Shape shape = new Line2D.Float(startX, startY, startX + (endX - startX) * animatedValue,
-                    startY + (endY - startY) * animatedValue);
+            Shape shape =
+                    new Line2D.Float(
+                            startX,
+                            startY,
+                            startX + (endX - startX) * animatedValue,
+                            startY + (endY - startY) * animatedValue);
 
             drawLine(g2, shape, c.getForeground(), 1.5f);
         }
@@ -67,7 +68,8 @@ public class RevealEyeIcon implements AnimatedIcon {
 
     private void drawLine(Graphics2D g2, Shape shape, Color color, float size) {
         g2.setColor(color);
-        g2.setStroke(new BasicStroke(UIScale.scale(size), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.setStroke(
+                new BasicStroke(UIScale.scale(size), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.draw(shape);
     }
 
@@ -75,5 +77,4 @@ public class RevealEyeIcon implements AnimatedIcon {
     public float getValue(Component c) {
         return ((AbstractButton) c).isSelected() ? 0 : 1;
     }
-
 }

@@ -5,18 +5,14 @@ import com.github.ragudos.kompeter.app.desktop.listeners.ButtonSceneNavigationAc
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
-
-import net.miginfocom.swing.MigLayout;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-
+import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class SignInAuthScene implements Scene {
@@ -31,9 +27,7 @@ public class SignInAuthScene implements Scene {
 
     private class SignInButtonListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
-
-        }
+        public void actionPerformed(ActionEvent e) {}
     }
 
     public SignInAuthScene() {
@@ -44,7 +38,7 @@ public class SignInAuthScene implements Scene {
     public void onCreate() {
         view.setLayout(new MigLayout("gapy 28px, flowy, fillx", "[grow,center]", "[center]"));
 
-        /** TITLE **/
+        /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
         JLabel subtitle = new JLabel(HtmlUtils.wrapInHtml("<h2>Computer Parts<br>& Accesories</h2>"));
@@ -57,10 +51,10 @@ public class SignInAuthScene implements Scene {
         titleContainer.add(title);
         titleContainer.add(subtitle);
 
-        /** FORM **/
+        /** FORM * */
         JPanel formContainer = new JPanel();
 
-        /** INPUT **/
+        /** INPUT * */
         JPanel inputFormContainer = new JPanel();
         JPanel emailInputContainer = new JPanel();
         JPanel passwordInputContainer = new JPanel();
@@ -86,13 +80,14 @@ public class SignInAuthScene implements Scene {
         passwordInputContainer.add(passwordInput, "growx");
         passwordInputContainer.add(passwordInputError);
 
-        inputFormContainer.setLayout(new MigLayout("gapy 9px, flowy, fillx", "[grow,center]", "[center]"));
+        inputFormContainer.setLayout(
+                new MigLayout("gapy 9px, flowy, fillx", "[grow,center]", "[center]"));
 
         inputFormContainer.add(emailInputContainer, "growx");
         inputFormContainer.add(passwordInputContainer, "growx");
         inputFormContainer.add(submitButton, "growx");
 
-        /** NAVIGATION **/
+        /** NAVIGATION * */
         JPanel navigationButtonsContainer = new JPanel();
         JButton createAccountButton = new JButton("Create an account");
 
@@ -102,7 +97,8 @@ public class SignInAuthScene implements Scene {
 
         createAccountButton.addActionListener(new ButtonSceneNavigationActionListener());
 
-        navigationButtonsContainer.setLayout(new MigLayout("flowy, fillx", "[grow,center]", "[center]"));
+        navigationButtonsContainer.setLayout(
+                new MigLayout("flowy, fillx", "[grow,center]", "[center]"));
 
         navigationButtonsContainer.add(createAccountButton, "growx");
 
@@ -116,16 +112,13 @@ public class SignInAuthScene implements Scene {
     }
 
     @Override
-    public void onShow() {
-    }
+    public void onShow() {}
 
     @Override
-    public void onHide() {
-    }
+    public void onHide() {}
 
     @Override
-    public void onDestroy() {
-    }
+    public void onDestroy() {}
 
     @Override
     public @NotNull String name() {

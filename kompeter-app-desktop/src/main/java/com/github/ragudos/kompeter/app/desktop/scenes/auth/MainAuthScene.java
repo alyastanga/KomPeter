@@ -42,12 +42,10 @@ public class MainAuthScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void onShow() {
-    }
+    public void onShow() {}
 
     @Override
-    public void onHide() {
-    }
+    public void onHide() {}
 
     @Override
     public void onDestroy() {
