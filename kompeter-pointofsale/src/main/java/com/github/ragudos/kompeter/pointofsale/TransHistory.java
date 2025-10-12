@@ -32,10 +32,10 @@ public class TransHistory {
                 System.out.println("----Items Bought-----");
 
                 for (int j = 0; j < t.cartItems.size(); j++) {
-                    System.out.println("Product ID: " + t.cartItems.get(j).productID);
-                    System.out.println("Product Name: " + t.cartItems.get(j).productName);
-                    System.out.println("Quantity: " + t.cartItems.get(j).qty);
-                    System.out.println("Price: " + t.cartItems.get(j).price);
+                    System.out.println("Product ID: " + t.cartItems.get(j).productID());
+                    System.out.println("Product Name: " + t.cartItems.get(j).productName());
+                    System.out.println("Quantity: " + t.cartItems.get(j).qty());
+                    System.out.println("Price: " + t.cartItems.get(j).price());
                     System.out.println("-----------------");
                 }
             }
