@@ -31,12 +31,6 @@ public class MainAuthScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void onShow() {}
-
-    @Override
-    public void onHide() {}
-
-    @Override
     public void onCreate() {
         view.setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
 
@@ -45,6 +39,14 @@ public class MainAuthScene implements SceneWithSubScenes {
         sceneManager.registerScene(WelcomeAuthScreen.SCENE_NAME, () -> new WelcomeAuthScreen());
         sceneManager.registerScene(SignInAuthScene.SCENE_NAME, () -> new SignInAuthScene());
         sceneManager.registerScene(SignUpAuthScene.SCENE_NAME, () -> new SignUpAuthScene());
+    }
+
+    @Override
+    public void onShow() {
+    }
+
+    @Override
+    public void onHide() {
     }
 
     @Override
