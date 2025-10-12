@@ -25,9 +25,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,10 +99,14 @@ public abstract class AbstractSqlFactoryDao {
     protected static final Logger LOGGER = KompeterLogger.getLogger(AbstractSqlFactoryDao.class);
     public static final int SQLITE = 1;
 
-    public static final int POOLED_CONNECTION_COUNT = 1;
-
     // We use LinkedList since we are only going to pop and push onto this
-    protected final BlockingQueue<Connection> pooledConnections = new ArrayBlockingQueue<>(1);
+    protected final List<Connection> pooledConnections = new LinkedList<>();
+    protected final List<Connection> usedConnections = new ArrayList<>();
+
+    // For thread-safety
+    protected final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
+    protected final Lock readLock = rwLock.readLock();
+    protected final Lock writeLock = rwLock.writeLock();
 
     public static @NotNull AbstractSqlFactoryDao getSqlFactoryDao(int databaseType) {
         return switch (databaseType) {
@@ -110,7 +116,14 @@ public abstract class AbstractSqlFactoryDao {
     }
 
     protected void returnConnection(@NotNull Connection conn) {
-        pooledConnections.offer(conn);
+        writeLock.lock();
+
+        try {
+            pooledConnections.add(conn);
+            usedConnections.remove(conn);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     /**
@@ -133,16 +146,30 @@ public abstract class AbstractSqlFactoryDao {
      * @return A {@link Connection} wrapped around the real connection.
      */
     public @NotNull Connection getConnection() {
+        writeLock.lock();
+
         try {
-            return pooledConnections.take();
-        } catch (InterruptedException err) {
-            LOGGER.log(Level.SEVERE, "Cannot take connection", err);
-            return null;
+            if (pooledConnections.isEmpty()) {
+                throw new IllegalStateException("No free connetions");
+            }
+
+            Connection conn = pooledConnections.removeFirst();
+
+            usedConnections.add(conn);
+
+            return conn;
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            writeLock.unlock();
         }
     }
 
     public void shutdown() throws SQLException {
+        writeLock.lock();
+
         try {
+
             for (Connection conn : pooledConnections) {
                 InvocationHandler handler = Proxy.getInvocationHandler(conn);
 
@@ -151,8 +178,18 @@ public abstract class AbstractSqlFactoryDao {
                 }
             }
 
+            for (Connection conn : usedConnections) {
+                InvocationHandler handler = Proxy.getInvocationHandler(conn);
+
+                if (handler instanceof PooledConnectionHandler p) {
+                    p.reallyClose();
+                }
+            }
+
             pooledConnections.clear();
+            usedConnections.clear();
         } finally {
+            writeLock.unlock();
         }
     }
 
