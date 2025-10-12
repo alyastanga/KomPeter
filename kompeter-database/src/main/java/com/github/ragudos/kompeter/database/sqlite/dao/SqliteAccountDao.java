@@ -3,6 +3,7 @@ package com.github.ragudos.kompeter.database.sqlite.dao;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
 import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.AccountDao;
+import com.github.ragudos.kompeter.database.dto.AccountDto;
 import com.github.ragudos.kompeter.database.dto.AccountDto.AccountPassword;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
@@ -38,6 +39,30 @@ public class SqliteAccountDao implements AccountDao {
             ResultSet rs = stmnt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
+
+    @Override
+    public Optional<AccountDto> getAccountByEmail(@NotNull Connection conn, @NotNull String email)
+            throws IOException, SQLException {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_password_account_by_email", "accounts", SqlQueryType.SELECT))) {
+            stmnt.setString(1, email);
+
+            ResultSet rs = stmnt.executeQuery();
+
+            return rs.next()
+                    ? Optional.of(
+                            new AccountDto(
+                                    rs.getInt("_account_id"),
+                                    rs.getTimestamp("_created_at"),
+                                    rs.getInt("_user_id"),
+                                    rs.getString("password_hash"),
+                                    rs.getString("password_salt"),
+                                    rs.getString("email")))
+                    : Optional.empty();
         }
     }
 
