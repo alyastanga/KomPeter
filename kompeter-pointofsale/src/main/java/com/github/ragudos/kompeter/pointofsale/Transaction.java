@@ -15,8 +15,12 @@ class Transaction {
     ArrayList<CartItem> cartItems = new ArrayList<>();
     int TransID;
     LocalDateTime TimeStamp;
-    float Total;
+    double Total;
     SaleDao saleDao;
+    
+    final double vatRate = 0.12;
+    double discountValue = 0.0;
+    DiscountType discountType = DiscountType.FIXED;
 
     Transaction(Cart cart, SaleDao saleDao) {
         this.saleDao = saleDao;
@@ -45,4 +49,38 @@ class Transaction {
                 DiscountType.FIXED
         );
     }
+    
+    void printReciept () {
+        double vatAmount = Total * vatRate;
+        double discountAmount =  (discountType == DiscountType.PERCENTAGE) ? Total * (discountValue/100) : discountValue;
+        double grandTotal = Total + vatAmount - discountAmount; 
+         
+        System.out.println(" ============================= ");
+        System.out.println("    KOMPETER COMPUTER PARTS    ");
+        System.out.println("     & ACCESSORIES RECEIPT     ");
+        System.out.println(" ============================= ");
+        
+        System.out.println(" Transaction ID: " + TransID);
+        System.out.println(" Date & Time: " + TimeStamp);
+        System.out.println(" ----------------------------- ");
+        System.out.printf("%-15s %5s %10s%n", "Item", "Qty", "Subtotal");
+        System.out.println(" ----------------------------- ");
+                
+        for (CartItem items: cartItems) {
+            double subTotal = items.qty() * items.price();
+            System.out.printf("%-15s %5d %10.2f%n", items.productName(), items.qty(), subTotal);
+        }
+        
+         System.out.println(" ----------------------------- ");
+         System.out.printf("%-20s %10.2f%n", "Subtotal:", Total);
+         System.out.printf("%-20s %10.2f%n", "VAT (12%):", vatAmount);
+         if(discountAmount>0) {
+              System.out.printf("%-20s %10.2f%n", "Discount: ", -discountAmount);
+         }
+         System.out.println(" ----------------------------- ");
+         System.out.printf("%-20s %10.2f%n"," Grand Total: ", + Total);
+         System.out.println(" ============================= ");
+         System.out.println("     THANK YOU FOR SHOPPING    ");
+         System.out.println(" ============================= ");
+        }
 }

@@ -13,28 +13,19 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws SQLException {
 
-        // Use the real SaleDao implementation
-        SaleDao saleDao = new SqliteSaleDao();
-
+        // 1️⃣ Create a fake SaleDao (or mock)
+        SaleDao saleDao = new SqliteSaleDao(); // or null if you only want to test printReceipt()
+        // 2️⃣ Create a new cart and add items
         Cart cart = new Cart(saleDao);
-
-        // Add items
-        cart.addItem(new CartItem(1, "Apple", 2, 10.0));
-        cart.addItem(new CartItem(2, "Banana", 3, 5.0));
-
-        // Display cart
-        cart.displayCart();
-
-        // Checkout and save to DB
-        float total = cart.checkOut();
-        System.out.println("Checked out total: " + total);
-
-        // Verify the sale is saved
-        SaleDto lastSale = saleDao.get((int) total); // Actually, you should use the transaction ID
-        if (lastSale != null) {
-            System.out.println("Sale saved in DB: " + lastSale.saleCode());
-        } else {
-            System.out.println("Sale not found in DB");
-        }
+        cart.addItem(new CartItem(101, "Mouse", 2, 350f));
+        cart.addItem(new CartItem(102, "Keyboard", 1, 850f));
+        cart.addItem(new CartItem(103, "Monitor 24\"", 1, 5250f));
+        // 3️⃣ Perform checkout (this creates the transaction)
+        Transaction transaction = new Transaction(cart, saleDao);
+        // 4️⃣ Print the receipt to console
+        transaction.printReciept();
+        
+        // 5️⃣ Optional: Save to DB
+        // transaction.saveToDatabase();    
     }
 }

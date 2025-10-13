@@ -49,8 +49,8 @@ class Cart {
         }
     }
 
-    float getCartTotal() {
-        float sum = 0;
+    double getCartTotal() {
+        double sum = 0;
         for (int i = 0; i < cI.size(); i++) {
             sum += cI.get(i).getTotalPrice();
         }
@@ -68,11 +68,11 @@ class Cart {
         System.out.println("Grand Total: " + getCartTotal());
     }
 
-    float checkOut() throws SQLException {
+    double checkOut() throws SQLException {
         if (cI.isEmpty()) {
             System.out.println("Cart is empty. Cannot checkout");
-        } else { /// wrong logic
-            float total = getCartTotal();
+        } else {
+            double total = getCartTotal();
             displayCart();
             
             Transaction trans = new Transaction(this, saleDao);
