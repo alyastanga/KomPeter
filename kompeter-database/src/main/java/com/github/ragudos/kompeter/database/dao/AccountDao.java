@@ -16,16 +16,19 @@ public interface AccountDao {
      */
     int createAccount(
             @NotNull Connection conn,
-            final int _userId,
-            final @NotNull String email,
-            final @NotNull String passwordHash,
-            final @NotNull String passwordSalt)
+            int _userId,
+            @NotNull String email,
+            @NotNull String passwordHash,
+            @NotNull String passwordSalt)
+            throws IOException, SQLException;
+
+    Optional<AccountDto> getAccountByEmail(@NotNull Connection conn, @NotNull String email)
             throws IOException, SQLException;
 
     /** Get the {@link AccountPassword}. This has the encoded hashed password and password salt. */
-    Optional<AccountPassword> getAccountPassword(
-            @NotNull Connection conn, final @NotNull String email) throws IOException, SQLException;
+    Optional<AccountPassword> getAccountPassword(@NotNull Connection conn, @NotNull String email)
+            throws IOException, SQLException;
 
-    boolean emailExists(@NotNull Connection conn, final @NotNull String email)
+    boolean emailExists(@NotNull Connection conn, @NotNull String email)
             throws IOException, SQLException;
 }

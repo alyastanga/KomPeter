@@ -32,9 +32,34 @@ public class SqliteUserDao implements UserDao {
             stmnt.setString("first_name", firstName);
             stmnt.setString("last_name", lastName);
 
+            stmnt.executeUpdate();
+
             ResultSet rs = stmnt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
+
+    @Override
+    public Optional<UserDto> getUserByDisplayName(
+            @NotNull Connection conn, @NotNull String displayName) throws IOException, SQLException {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_user_by_display_name", "users", SqlQueryType.SELECT))) {
+            stmnt.setString(1, displayName);
+
+            ResultSet rs = stmnt.executeQuery();
+
+            return rs.next()
+                    ? Optional.of(
+                            new UserDto(
+                                    rs.getInt("_user_id"),
+                                    rs.getTimestamp("_created_at"),
+                                    rs.getString("display_name"),
+                                    rs.getString("first_name"),
+                                    rs.getString("last_name")))
+                    : Optional.empty();
         }
     }
 
@@ -44,10 +69,11 @@ public class SqliteUserDao implements UserDao {
             throws IOException, SQLException {
         try (PreparedStatement stmnt =
                 conn.prepareStatement(
-                        SqliteQueryLoader.getInstance().get("get_user_by_id", "users", SqlQueryType.SELECT))) {
+                        SqliteQueryLoader.getInstance()
+                                .get("select_user_by_id", "users", SqlQueryType.SELECT))) {
             stmnt.setInt(1, _userId);
 
-            ResultSet rs = stmnt.getResultSet();
+            ResultSet rs = stmnt.executeQuery();
 
             return rs.next()
                     ? Optional.of(
@@ -62,8 +88,40 @@ public class SqliteUserDao implements UserDao {
     }
 
     @Override
+    public Optional<UserDto> getUserByEmail(@NotNull Connection conn, @NotNull String email)
+            throws SQLException, IOException {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_user_by_email", "users", SqlQueryType.SELECT))) {
+            stmnt.setString(1, email);
+
+            ResultSet rs = stmnt.executeQuery();
+
+            return rs.next()
+                    ? Optional.of(
+                            new UserDto(
+                                    rs.getInt("_user_id"),
+                                    rs.getTimestamp("_created_at"),
+                                    rs.getString("display_name"),
+                                    rs.getString("first_name"),
+                                    rs.getString("last_name")))
+                    : Optional.empty();
+        }
+    }
+
+    @Override
     public boolean displayNameTaken(@NotNull Connection conn, @NotNull String displayName)
             throws IOException, SQLException {
-        throw new UnsupportedOperationException("Unimplemented method 'displayNameTaken'");
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_display_name_taken", "users", SqlQueryType.SELECT))) {
+            stmnt.setString(1, displayName);
+
+            ResultSet rs = stmnt.executeQuery();
+
+            return rs.next() && rs.getInt(1) != 0;
+        }
     }
 }

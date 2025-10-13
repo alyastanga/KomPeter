@@ -21,6 +21,7 @@ import com.github.ragudos.kompeter.database.dao.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -57,7 +58,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * // Step 3: Use the Dao to perform operations, such as checking if a session
  * // exists
- * var sessionExists = sessionDao.sessionExists(sessionUid);
+ * var sessionExists = sessionDao.sessionExists(conn, sessionUid);
  * </pre>
  *
  * <p>This design allows easy substitution of different database backends by changing only the
@@ -84,7 +85,11 @@ public abstract class AbstractSqlFactoryDao {
                 return null;
             }
 
-            return method.invoke(conn, args);
+            try {
+                return method.invoke(conn, args);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
         }
 
         public void reallyClose() throws SQLException {
@@ -95,11 +100,9 @@ public abstract class AbstractSqlFactoryDao {
     protected static final Logger LOGGER = KompeterLogger.getLogger(AbstractSqlFactoryDao.class);
     public static final int SQLITE = 1;
 
-    public static final int POOLED_CONNECTION_COUNT = 5;
-
     // We use LinkedList since we are only going to pop and push onto this
     protected final List<Connection> pooledConnections = new LinkedList<>();
-    protected final List<Connection> usedPoolConnections = new ArrayList<>();
+    protected final List<Connection> usedConnections = new ArrayList<>();
 
     // For thread-safety
     protected final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
@@ -118,7 +121,7 @@ public abstract class AbstractSqlFactoryDao {
 
         try {
             pooledConnections.add(conn);
-            usedPoolConnections.remove(conn);
+            usedConnections.remove(conn);
         } finally {
             writeLock.unlock();
         }
@@ -151,9 +154,9 @@ public abstract class AbstractSqlFactoryDao {
                 throw new IllegalStateException("No free connetions");
             }
 
-            Connection conn = pooledConnections.remove(0);
+            Connection conn = pooledConnections.removeFirst();
 
-            usedPoolConnections.add(conn);
+            usedConnections.add(conn);
 
             return conn;
         } catch (Exception e) {
@@ -167,6 +170,7 @@ public abstract class AbstractSqlFactoryDao {
         writeLock.lock();
 
         try {
+
             for (Connection conn : pooledConnections) {
                 InvocationHandler handler = Proxy.getInvocationHandler(conn);
 
@@ -175,7 +179,7 @@ public abstract class AbstractSqlFactoryDao {
                 }
             }
 
-            for (Connection conn : usedPoolConnections) {
+            for (Connection conn : usedConnections) {
                 InvocationHandler handler = Proxy.getInvocationHandler(conn);
 
                 if (handler instanceof PooledConnectionHandler p) {
@@ -184,7 +188,7 @@ public abstract class AbstractSqlFactoryDao {
             }
 
             pooledConnections.clear();
-            usedPoolConnections.clear();
+            usedConnections.clear();
         } finally {
             writeLock.unlock();
         }

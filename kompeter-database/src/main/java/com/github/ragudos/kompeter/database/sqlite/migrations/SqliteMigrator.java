@@ -14,7 +14,6 @@ import com.github.ragudos.kompeter.database.SqlScriptParser;
 import com.github.ragudos.kompeter.database.SqlScriptParser.SqlStatement;
 import com.github.ragudos.kompeter.database.migrations.Migrator;
 import com.github.ragudos.kompeter.database.migrations.SqlMigration.ParsedSqlMigration;
-import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public class SqliteMigrator implements Migrator {
@@ -90,7 +89,7 @@ public class SqliteMigrator implements Migrator {
                             LOGGER.log(Level.INFO, "Type: {0} | Name: {1}",
                                     new Object[] { parsedSqlStatement.type(), queryMigration.name() });
 
-                            rawSqlQueryStatement.executeUpdate();
+                            rawSqlQueryStatement.execute();
                         }
                     }
 
