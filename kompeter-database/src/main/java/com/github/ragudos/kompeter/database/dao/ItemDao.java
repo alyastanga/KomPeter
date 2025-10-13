@@ -6,12 +6,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface ItemDao {
-    //CREATE
-    //READ
+    // CREATE
+    // READ
     List<ItemDto> getAllItems() throws SQLException, IOException;
+
     List<ItemDto> getItemsById(int id) throws SQLException, IOException;
-    
-    
-    //UPDATE
-    //DELETE
+
+    // UPDATE
+    // DELETE
 }

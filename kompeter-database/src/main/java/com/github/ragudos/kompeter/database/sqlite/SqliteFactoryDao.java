@@ -138,7 +138,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     public @NotNull ItemDao getItemDao() {
         return new SqliteItemDao(SqliteFactoryDao.getInstance().getConnection());
     }
-    
+
     @Override
     public @NotNull ItemRestockDao getItemRestockDao() {
         return new SqliteItemRestockDao();
@@ -188,10 +188,9 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     public @NotNull SupplierDao getSupplierDao() {
         return new SqliteSupplierDao();
     }
-    
+
     @Override
-    public @NotNull InventoryDao getInventoryDao(){
+    public @NotNull InventoryDao getInventoryDao() {
         return new SqliteInventoryDao(SqliteFactoryDao.getInstance().getConnection());
     }
-    
 }

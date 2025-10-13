@@ -3,6 +3,6 @@ module kompeter.inventory {
     requires java.desktop;
     requires java.sql;
     requires org.jetbrains.annotations;
-    
+
     exports com.github.ragudos.kompeter.inventory;
 }

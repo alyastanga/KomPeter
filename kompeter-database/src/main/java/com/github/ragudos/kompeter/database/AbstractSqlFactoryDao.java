@@ -226,6 +226,6 @@ public abstract class AbstractSqlFactoryDao {
     public @NotNull abstract SalePaymentDao getSalePaymentDao();
 
     public @NotNull abstract SupplierDao getSupplierDao();
-    
+
     public @NotNull abstract InventoryDao getInventoryDao();
 }
