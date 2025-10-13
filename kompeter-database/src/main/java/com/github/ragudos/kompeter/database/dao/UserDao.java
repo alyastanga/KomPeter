@@ -25,6 +25,12 @@ public interface UserDao {
             @NotNull Connection conn, @Range(from = 0, to = Integer.MAX_VALUE) int _userId)
             throws IOException, SQLException;
 
+    Optional<UserDto> getUserByDisplayName(@NotNull Connection conn, @NotNull String displayName)
+            throws IOException, SQLException;
+
+    Optional<UserDto> getUserByEmail(@NotNull Connection conn, @NotNull String email)
+            throws IOException, SQLException;
+
     boolean displayNameTaken(@NotNull Connection conn, @NotNull String displayName)
             throws IOException, SQLException;
 }

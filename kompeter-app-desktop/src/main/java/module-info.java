@@ -10,6 +10,8 @@ module kompeter.app.desktop {
     requires com.miglayout.swing;
     requires io.github.classgraph;
     requires com.formdev.flatlaf;
+    requires com.formdev.flatlaf.extras;
 
     exports com.github.ragudos.kompeter.app.desktop;
+    exports com.github.ragudos.kompeter.app.desktop.scenes.inventory;
 }

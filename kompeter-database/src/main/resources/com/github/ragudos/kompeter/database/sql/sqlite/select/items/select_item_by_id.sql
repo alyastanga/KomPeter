@@ -1,3 +1,3 @@
-SELECT 1
+SELECT *
 FROM items
-WHERE _item_id = :_item_id;
+WHERE _item_id = ?

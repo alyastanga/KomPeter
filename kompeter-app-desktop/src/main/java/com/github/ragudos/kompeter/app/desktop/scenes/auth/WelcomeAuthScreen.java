@@ -53,8 +53,8 @@ public class WelcomeAuthScreen implements Scene {
 
         buttonContainer.setLayout(new MigLayout("gapx 96px,wrap", "[right][left]", "[grow,center]"));
 
-        buttonContainer.add(signInButton);
-        buttonContainer.add(signUpButton);
+        buttonContainer.add(signInButton, "width :150px:");
+        buttonContainer.add(signUpButton, "width :150px:");
 
         view.add(titleContainer, "cell 0 0");
         view.add(buttonContainer, "cell 0 1");
