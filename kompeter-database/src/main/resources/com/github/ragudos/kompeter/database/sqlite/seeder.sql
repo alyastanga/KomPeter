@@ -49,9 +49,9 @@ INSERT INTO sessions (_user_id, session_token, ip_address) VALUES
 
 -- Storage Locations (4 rows - NEW TABLE)
 INSERT INTO storage_locations (_storage_location_id, name, description) VALUES
-(1, 'Main Display Floor', 'High visibility area for quick sales items.'),
-(2, 'Warehouse A - Components', 'Primary storage for large components and bulk items.'),
-(3, 'Warehouse B - Laptops & Peripherals', 'Secure storage for high-value and packaged units.'),
+(1, 'Kompeter Display Floor', 'High visibility area for quick sales items.'),
+(2, 'Warehouse A', 'PC components - Primary storage for large components and bulk items.'),
+(3, 'Warehouse B', 'Laptops and Peripherals - Secure storage for high-value and packaged units.'),
 (4, 'Receiving Dock', 'Temporary location for newly arrived items.');
 
 -- Item Categories (4 rows)

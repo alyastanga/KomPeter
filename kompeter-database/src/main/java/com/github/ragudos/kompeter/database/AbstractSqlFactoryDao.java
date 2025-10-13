@@ -1,6 +1,7 @@
 package com.github.ragudos.kompeter.database;
 
 import com.github.ragudos.kompeter.database.dao.AccountDao;
+import com.github.ragudos.kompeter.database.dao.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.ItemCategoryAssignmentDao;
 import com.github.ragudos.kompeter.database.dao.ItemDao;
@@ -229,4 +230,6 @@ public abstract class AbstractSqlFactoryDao {
     public @NotNull abstract SalePaymentDao getSalePaymentDao();
 
     public @NotNull abstract SupplierDao getSupplierDao();
+
+    public @NotNull abstract InventoryDao getInventoryDao();
 }

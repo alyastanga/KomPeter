@@ -2,6 +2,7 @@ package com.github.ragudos.kompeter.database.sqlite;
 
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.AccountDao;
+import com.github.ragudos.kompeter.database.dao.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.ItemCategoryAssignmentDao;
 import com.github.ragudos.kompeter.database.dao.ItemDao;
@@ -19,6 +20,7 @@ import com.github.ragudos.kompeter.database.dao.SupplierDao;
 import com.github.ragudos.kompeter.database.dao.UserDao;
 import com.github.ragudos.kompeter.database.dao.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.SqliteAccountDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemBrandDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemCategoryAssignmentDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemDao;
@@ -140,7 +142,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull ItemDao getItemDao() {
-        return new SqliteItemDao();
+        return new SqliteItemDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
@@ -191,5 +193,10 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public @NotNull SupplierDao getSupplierDao() {
         return new SqliteSupplierDao();
+    }
+
+    @Override
+    public @NotNull InventoryDao getInventoryDao() {
+        return new SqliteInventoryDao(SqliteFactoryDao.getInstance().getConnection());
     }
 }

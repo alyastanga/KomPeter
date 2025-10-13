@@ -13,4 +13,5 @@ module kompeter.app.desktop {
     requires com.formdev.flatlaf.extras;
 
     exports com.github.ragudos.kompeter.app.desktop;
+    exports com.github.ragudos.kompeter.app.desktop.scenes.inventory;
 }
