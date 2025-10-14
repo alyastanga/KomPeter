@@ -1,4 +1,4 @@
-package com.github.ragudos.kompeter.app.desktop.scenes.inventory;
+package com.github.ragudos.kompeter.app.desktop.scenes.home.inventory;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.utilities.helper.Palette;

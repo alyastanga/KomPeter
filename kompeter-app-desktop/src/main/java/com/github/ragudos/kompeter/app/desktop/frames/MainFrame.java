@@ -4,6 +4,7 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.auth.MainAuthScene;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.HomeScene;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
@@ -31,12 +32,13 @@ public class MainFrame extends JFrame {
         SceneManager sceneManager = new StaticSceneManager();
         SceneNavigator sceneNavigator = SceneNavigator.getInstance();
 
-        setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
-        add(sceneManager.view());
+        setLayout(new MigLayout("insets 0", "[grow,center]", "[grow,center]"));
+        add(sceneManager.view(), "grow");
 
         sceneNavigator.initialize(sceneManager);
         sceneManager.registerScene(
                 MainAuthScene.SCENE_NAME, () -> new MainAuthScene(), MainAuthScene.SCENE_GUARD);
+        sceneManager.registerScene(HomeScene.SCENE_NAME, () -> new HomeScene(), HomeScene.SCENE_GUARD);
         sceneManager.navigateTo(MainAuthScene.SCENE_NAME);
 
         setPreferredSize(new Dimension(1280, 720));

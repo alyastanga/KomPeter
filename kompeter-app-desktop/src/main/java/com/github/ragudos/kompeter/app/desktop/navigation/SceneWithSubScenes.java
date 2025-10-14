@@ -8,4 +8,59 @@ public interface SceneWithSubScenes extends Scene {
     void navigateToDefault();
 
     SceneManager sceneManager();
+
+    @Override
+    default void onBeforeHide() {
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
+
+        sceneManager().currentScene().onBeforeHide();
+    }
+
+    @Override
+    default void onBeforeShow() {
+
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
+
+        sceneManager().currentScene().canShow();
+    }
+
+    @Override
+    default boolean canHide() {
+        if (sceneManager().currentScene() == null) {
+            return true;
+        }
+
+        return sceneManager().currentScene().canHide();
+    }
+
+    @Override
+    default boolean canShow() {
+        if (sceneManager().currentScene() == null) {
+            return true;
+        }
+
+        return sceneManager().currentScene().canShow();
+    }
+
+    @Override
+    default void onCannotHide() {
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
+
+        sceneManager().currentScene().onCannotHide();
+    }
+
+    @Override
+    default void onCannotShow() {
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
+
+        sceneManager().currentScene().onCannotShow();
+    }
 }

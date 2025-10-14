@@ -19,7 +19,7 @@ public final class SessionManager {
         // Private constructor to prevent instantiation
     }
 
-    public Session getSession() {
+    public Session session() {
         return session;
     }
 

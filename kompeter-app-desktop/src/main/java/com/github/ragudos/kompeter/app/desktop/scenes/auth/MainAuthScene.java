@@ -32,9 +32,9 @@ public class MainAuthScene implements SceneWithSubScenes {
 
     @Override
     public void onCreate() {
-        view.setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
+        view.setLayout(new MigLayout("insets 0", "[grow,center]", "[grow,center]"));
 
-        view.add(sceneManager.view());
+        view.add(sceneManager.view(), "grow");
 
         sceneManager.registerScene(WelcomeAuthScreen.SCENE_NAME, () -> new WelcomeAuthScreen());
         sceneManager.registerScene(SignInAuthScene.SCENE_NAME, () -> new SignInAuthScene());

@@ -1,5 +1,6 @@
 module kompeter.app.desktop {
     requires java.desktop;
+    requires kompeter.auth;
     requires kompeter.configuration;
     requires kompeter.utilities;
     requires kompeter.cryptography;
@@ -13,5 +14,5 @@ module kompeter.app.desktop {
     requires com.formdev.flatlaf.extras;
 
     exports com.github.ragudos.kompeter.app.desktop;
-    exports com.github.ragudos.kompeter.app.desktop.scenes.inventory;
+    exports com.github.ragudos.kompeter.app.desktop.scenes.home.inventory;
 }

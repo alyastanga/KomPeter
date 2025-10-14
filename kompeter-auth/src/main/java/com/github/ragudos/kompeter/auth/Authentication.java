@@ -84,7 +84,7 @@ public final class Authentication {
     }
 
     public static void signOut() throws AuthenticationException {
-        String sessionToken = SessionManager.getInstance().getSession().sessionToken();
+        String sessionToken = SessionManager.getInstance().session().sessionToken();
         AbstractSqlFactoryDao factory =
                 AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
