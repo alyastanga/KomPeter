@@ -1,13 +1,12 @@
 package com.github.ragudos.kompeter.database.dao.user;
 
+import com.github.ragudos.kompeter.database.dto.user.SessionDto;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
-
-import com.github.ragudos.kompeter.database.dto.user.SessionDto;
 
 public interface SessionDao {
     int createSession(@NotNull Connection conn, @Range(from = 0, to = Integer.MAX_VALUE) int _userId)

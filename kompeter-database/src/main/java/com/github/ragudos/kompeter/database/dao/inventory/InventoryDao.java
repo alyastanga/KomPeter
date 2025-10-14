@@ -1,10 +1,9 @@
 package com.github.ragudos.kompeter.database.dao.inventory;
 
+import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-
-import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 
 public interface InventoryDao {
     public enum Location {

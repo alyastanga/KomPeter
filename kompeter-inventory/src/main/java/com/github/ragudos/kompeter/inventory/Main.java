@@ -5,12 +5,13 @@ import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventory
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 
 public class Main {
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		SqliteItemDao sqliteItemDao = new SqliteItemDao(SqliteFactoryDao.getInstance().getConnection());
-		SqliteInventoryDao sqliteInventoryDao = new SqliteInventoryDao(SqliteFactoryDao.getInstance().getConnection());
-		InventoryService is = new InventoryService(sqliteItemDao, sqliteInventoryDao);
+        SqliteItemDao sqliteItemDao = new SqliteItemDao(SqliteFactoryDao.getInstance().getConnection());
+        SqliteInventoryDao sqliteInventoryDao =
+                new SqliteInventoryDao(SqliteFactoryDao.getInstance().getConnection());
+        InventoryService is = new InventoryService(sqliteItemDao, sqliteInventoryDao);
 
-		System.out.println(is.showInventoryItems());
-	}
+        System.out.println(is.showInventoryItems());
+    }
 }

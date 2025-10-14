@@ -1,11 +1,10 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.user;
 
+import com.github.ragudos.kompeter.database.dao.user.RoleDao;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.jetbrains.annotations.NotNull;
-
-import com.github.ragudos.kompeter.database.dao.user.RoleDao;
 
 public class SqliteRoleDao implements RoleDao {
     @Override

@@ -1,13 +1,12 @@
 package com.github.ragudos.kompeter.database.dao.user;
 
+import com.github.ragudos.kompeter.database.dto.user.AccountDto;
+import com.github.ragudos.kompeter.database.dto.user.AccountDto.AccountPassword;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-
-import com.github.ragudos.kompeter.database.dto.user.AccountDto;
-import com.github.ragudos.kompeter.database.dto.user.AccountDto.AccountPassword;
 
 public interface AccountDao {
     /**

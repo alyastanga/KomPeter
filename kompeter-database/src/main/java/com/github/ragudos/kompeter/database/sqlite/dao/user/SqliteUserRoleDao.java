@@ -1,8 +1,8 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.user;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
-import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.NamedPreparedStatement;
+import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import com.github.ragudos.kompeter.utilities.StringUtils;
 import java.io.IOException;
