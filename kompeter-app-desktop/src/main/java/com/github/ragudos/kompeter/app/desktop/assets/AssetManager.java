@@ -36,7 +36,8 @@ public class AssetManager {
     private static ImageIcon loadIcon(@NotNull final String path) {
         SVGDocument svgDocument = getDocument(path);
         FloatSize size = svgDocument.size();
-        BufferedImage icon = new BufferedImage((int) size.width, (int) size.height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage icon =
+                new BufferedImage((int) size.width, (int) size.height, BufferedImage.TYPE_INT_ARGB);
         var g = icon.createGraphics();
 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

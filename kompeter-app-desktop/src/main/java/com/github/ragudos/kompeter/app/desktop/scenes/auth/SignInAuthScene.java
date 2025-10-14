@@ -27,16 +27,18 @@ import org.jetbrains.annotations.NotNull;
 public class SignInAuthScene implements Scene {
     public static final String SCENE_NAME = "sign_in";
 
-    private final EnterKeyListener inputEnterKeyListener = new EnterKeyListener(this::handleInputEnterKey);
+    private final EnterKeyListener inputEnterKeyListener =
+            new EnterKeyListener(this::handleInputEnterKey);
 
     private final JPanel view = new JPanel();
 
-    private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER,
-            inputEnterKeyListener);
+    private final JTextField emailInput =
+            TextFieldFactory.createTextField("Email", JTextField.CENTER, inputEnterKeyListener);
     private final JLabel emailInputError = new JLabel();
 
-    private final JPasswordField passwordInput = TextFieldFactory.createPasswordField(
-            "Password", JPasswordField.CENTER, inputEnterKeyListener);
+    private final JPasswordField passwordInput =
+            TextFieldFactory.createPasswordField(
+                    "Password", JPasswordField.CENTER, inputEnterKeyListener);
     private final JLabel passwordInputError = new JLabel();
 
     private final JButton submitButton = new JButton("Sign in");
@@ -179,8 +181,9 @@ public class SignInAuthScene implements Scene {
         /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-        JLabel subtitle = new JLabel(
-                HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+        JLabel subtitle =
+                new JLabel(
+                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
@@ -259,7 +262,8 @@ public class SignInAuthScene implements Scene {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         scrollPaneContent.setLayout(
-                new MigLayout("insets 0, gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
+                new MigLayout(
+                        "insets 0, gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
 
         scrollPaneContent.add(titleContainer);
         scrollPaneContent.add(formContainer, "growx, width ::350px");

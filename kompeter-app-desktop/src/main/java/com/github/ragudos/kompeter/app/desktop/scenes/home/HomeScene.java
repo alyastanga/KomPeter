@@ -8,7 +8,6 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
-import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames.HomeScenes.SettingsScenes;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.inventory.InventoryScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.monitoring.MonitoringScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.PointOfSaleScene;
@@ -16,7 +15,6 @@ import com.github.ragudos.kompeter.app.desktop.scenes.home.profile.ProfileScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.settings.SettingsScene;
 import com.github.ragudos.kompeter.auth.Session;
 import com.github.ragudos.kompeter.auth.SessionManager;
-
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
@@ -24,13 +22,14 @@ import org.jetbrains.annotations.NotNull;
 public class HomeScene implements SceneWithSubScenes {
     public static final String SCENE_NAME = "home";
 
-    public static final SceneGuard SCENE_GUARD = new SceneGuard() {
-        @Override
-        public boolean canAccess() {
-            return true;
-            // return SessionManager.getInstance().session() != null;
-        }
-    };
+    public static final SceneGuard SCENE_GUARD =
+            new SceneGuard() {
+                @Override
+                public boolean canAccess() {
+                    return true;
+                    // return SessionManager.getInstance().session() != null;
+                }
+            };
 
     private final SceneManager sceneManager = new StaticSceneManager();
 
@@ -53,21 +52,19 @@ public class HomeScene implements SceneWithSubScenes {
 
             sceneManager.registerScene(
                     PointOfSaleScene.SCENE_NAME, () -> new PointOfSaleScene(), PointOfSaleScene.SCENE_GUARD);
-            sceneManager.registerScene(
-                    MonitoringScene.SCENE_NAME, () -> new MonitoringScene());
-            sceneManager.registerScene(
-                    InventoryScene.SCENE_NAME, () -> new InventoryScene());
+            sceneManager.registerScene(MonitoringScene.SCENE_NAME, () -> new MonitoringScene());
+            sceneManager.registerScene(InventoryScene.SCENE_NAME, () -> new InventoryScene());
 
             return;
         }
 
-        if (session.user().isPurchasingOfficer() || session.user().isLogistics() || session.user().isAdmin()) {
+        if (session.user().isPurchasingOfficer()
+                || session.user().isLogistics()
+                || session.user().isAdmin()) {
             sceneManager.unregisterScene(PointOfSaleScene.SCENE_NAME);
 
-            sceneManager.registerScene(
-                    MonitoringScene.SCENE_NAME, () -> new MonitoringScene());
-            sceneManager.registerScene(
-                    InventoryScene.SCENE_NAME, () -> new InventoryScene());
+            sceneManager.registerScene(MonitoringScene.SCENE_NAME, () -> new MonitoringScene());
+            sceneManager.registerScene(InventoryScene.SCENE_NAME, () -> new InventoryScene());
         }
 
         if (session.user().isClerk() || session.user().isAdmin()) {

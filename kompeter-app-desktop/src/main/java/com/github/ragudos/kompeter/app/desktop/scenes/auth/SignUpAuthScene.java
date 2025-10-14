@@ -33,28 +33,30 @@ public class SignUpAuthScene implements Scene {
 
     private EnterKeyListener inputKeyEnterListener = new EnterKeyListener(this::handleInputEnterKey);
 
-    private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER,
-            inputKeyEnterListener);
+    private final JTextField emailInput =
+            TextFieldFactory.createTextField("Email", JTextField.CENTER, inputKeyEnterListener);
     private final JLabel emailInputError = new JLabel();
 
-    private final JTextField displayNameInput = TextFieldFactory.createTextField("Display Name", JTextField.CENTER,
-            inputKeyEnterListener);
+    private final JTextField displayNameInput =
+            TextFieldFactory.createTextField("Display Name", JTextField.CENTER, inputKeyEnterListener);
     private final JLabel displayNameInputError = new JLabel();
 
-    private final JTextField firstNameInput = TextFieldFactory.createTextField("First Name", JTextField.CENTER,
-            inputKeyEnterListener);
+    private final JTextField firstNameInput =
+            TextFieldFactory.createTextField("First Name", JTextField.CENTER, inputKeyEnterListener);
     private final JLabel firstNameInputError = new JLabel();
 
-    private final JTextField lastNameInput = TextFieldFactory.createTextField("Last Name", JTextField.CENTER,
-            inputKeyEnterListener);
+    private final JTextField lastNameInput =
+            TextFieldFactory.createTextField("Last Name", JTextField.CENTER, inputKeyEnterListener);
     private final JLabel lastNameInputError = new JLabel();
 
-    private final JPasswordField passwordInput = TextFieldFactory.createPasswordField(
-            "Password", JPasswordField.CENTER, inputKeyEnterListener);
+    private final JPasswordField passwordInput =
+            TextFieldFactory.createPasswordField(
+                    "Password", JPasswordField.CENTER, inputKeyEnterListener);
     private final JLabel passwordInputError = new JLabel();
 
-    private final JPasswordField confirmPasswordInput = TextFieldFactory.createPasswordField(
-            "Confirm Password", JPasswordField.CENTER, inputKeyEnterListener);
+    private final JPasswordField confirmPasswordInput =
+            TextFieldFactory.createPasswordField(
+                    "Confirm Password", JPasswordField.CENTER, inputKeyEnterListener);
     private final JLabel confirmPasswordInputError = new JLabel();
 
     private final JButton submitButton = new JButton("Sign up");
@@ -317,8 +319,9 @@ public class SignUpAuthScene implements Scene {
         /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-        JLabel subtitle = new JLabel(
-                HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+        JLabel subtitle =
+                new JLabel(
+                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
@@ -429,7 +432,8 @@ public class SignUpAuthScene implements Scene {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         scrollPaneContent.setLayout(
-                new MigLayout("insets 0 ,gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
+                new MigLayout(
+                        "insets 0 ,gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
 
         scrollPaneContent.add(titleContainer);
         scrollPaneContent.add(formContainer, "growx, width ::350px");

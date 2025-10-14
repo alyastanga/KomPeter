@@ -6,7 +6,6 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
-
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
@@ -45,12 +44,10 @@ public class MainAuthScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void onShow() {
-    }
+    public void onShow() {}
 
     @Override
-    public void onHide() {
-    }
+    public void onHide() {}
 
     @Override
     public void onDestroy() {

@@ -7,25 +7,23 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.monitoring.scenes.MonitoringOverviewScene;
-import com.github.ragudos.kompeter.auth.Session;
-import com.github.ragudos.kompeter.auth.SessionManager;
-
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public final class MonitoringScene implements SceneWithSubScenes {
     public static final String SCENE_NAME = "monitoring";
-    public static final SceneGuard SCENE_GUARD = new SceneGuard() {
-        public boolean canAccess() {
-            // Session session = SessionManager.getInstance().session();
+    public static final SceneGuard SCENE_GUARD =
+            new SceneGuard() {
+                public boolean canAccess() {
+                    // Session session = SessionManager.getInstance().session();
 
-            // return session.user().isAdmin() || session.user().isPurchasingOfficer();
+                    // return session.user().isAdmin() || session.user().isPurchasingOfficer();
 
-            return true;
-
-        };
-    };
+                    return true;
+                }
+                ;
+            };
 
     private final JPanel view = new JPanel();
 

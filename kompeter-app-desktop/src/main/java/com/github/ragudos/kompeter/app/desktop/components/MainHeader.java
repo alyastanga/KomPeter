@@ -6,14 +6,11 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-
-import net.miginfocom.swing.MigLayout;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainHeader implements SceneComponent {

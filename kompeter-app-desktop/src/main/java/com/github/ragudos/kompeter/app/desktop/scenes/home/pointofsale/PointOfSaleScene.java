@@ -8,22 +8,22 @@ import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.CheckoutScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.ShopScene;
-
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class PointOfSaleScene implements SceneWithSubScenes {
     public static final String SCENE_NAME = "point_of_sale";
-    public static final SceneGuard SCENE_GUARD = new SceneGuard() {
-        @Override
-        public boolean canAccess() {
-            // Session session = SessionManager.getInstance().session();
+    public static final SceneGuard SCENE_GUARD =
+            new SceneGuard() {
+                @Override
+                public boolean canAccess() {
+                    // Session session = SessionManager.getInstance().session();
 
-            return true;
-            // return session.user().isAdmin() || session.user().isClerk();
-        }
-    };
+                    return true;
+                    // return session.user().isAdmin() || session.user().isClerk();
+                }
+            };
 
     private final JPanel view = new JPanel();
 

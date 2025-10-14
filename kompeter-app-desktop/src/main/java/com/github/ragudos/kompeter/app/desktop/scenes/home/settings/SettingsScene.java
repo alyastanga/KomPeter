@@ -47,7 +47,8 @@ public final class SettingsScene implements SceneWithSubScenes {
 
     @Override
     public void navigateToDefault() {
-        SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.SettingsScenes.MAIN_SETTINGS_SCENE);
+        SceneNavigator.getInstance()
+                .navigateTo(SceneNames.HomeScenes.SettingsScenes.MAIN_SETTINGS_SCENE);
     }
 
     @Override

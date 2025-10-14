@@ -7,24 +7,23 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.inventory.scenes.ProductListScene;
-import com.github.ragudos.kompeter.auth.Session;
-import com.github.ragudos.kompeter.auth.SessionManager;
-
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class InventoryScene implements SceneWithSubScenes {
     public static final String SCENE_NAME = "inventory";
-    public static final SceneGuard SCENE_GUARD = new SceneGuard() {
-        public boolean canAccess() {
-            // Session session = SessionManager.getInstance().session();
+    public static final SceneGuard SCENE_GUARD =
+            new SceneGuard() {
+                public boolean canAccess() {
+                    // Session session = SessionManager.getInstance().session();
 
-            // return session.user().isAdmin() || session.user().isLogistics();
+                    // return session.user().isAdmin() || session.user().isLogistics();
 
-            return true;
-        };
-    };
+                    return true;
+                }
+                ;
+            };
 
     private final JPanel view = new JPanel();
 
@@ -55,7 +54,8 @@ public class InventoryScene implements SceneWithSubScenes {
 
     @Override
     public void navigateToDefault() {
-        SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.InventoryScenes.PRODUCT_LIST_SCENE);
+        SceneNavigator.getInstance()
+                .navigateTo(SceneNames.HomeScenes.InventoryScenes.PRODUCT_LIST_SCENE);
     }
 
     @Override
