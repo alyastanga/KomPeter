@@ -1,33 +1,49 @@
 package com.github.ragudos.kompeter.app.desktop.components;
 
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+
 import javax.swing.JPanel;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+
 public class MainSidebar implements SceneComponent {
-    private static final Logger LOGGER = KompeterLogger.getLogger(MainSidebar.class);
+	private static final Logger LOGGER = KompeterLogger.getLogger(MainSidebar.class);
 
-    private final JPanel view;
+	private final JPanel view;
 
-    public MainSidebar() {
-        view = new JPanel();
-    }
+	private final AtomicBoolean initialized = new AtomicBoolean(false);
 
-    @Override
-    public void destroy() {}
+	public MainSidebar() {
+		view = new JPanel();
+	}
 
-    @Override
-    public void initialize() {}
+	@Override
+	public void destroy() {
+		if (!initialized.get()) {
+			return;
+		}
+	}
 
-    @Override
-    public boolean isInitialized() {
-        return false;
-    }
+	@Override
+	public void initialize() {
+		if (initialized.get()) {
+			return;
+		}
 
-    @Override
-    public @NotNull JPanel view() {
-        return view;
-    }
+		initialized.set(true);
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized.get();
+	}
+
+	@Override
+	public @NotNull JPanel view() {
+		return view;
+	}
 }
