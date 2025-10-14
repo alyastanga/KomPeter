@@ -28,6 +28,7 @@ public interface InventoryDao {
         BRAND_NAME,
         CATEGORY_NAME,
         QUANTITY,
+        DATE_ADDED,
         PRICE;
 
         @Override
@@ -37,6 +38,7 @@ public interface InventoryDao {
                 case BRAND_NAME -> "ib.name";
                 case CATEGORY_NAME -> "ic.name";
                 case QUANTITY -> "issl.quantity";
+                case DATE_ADDED -> "i._created_at";
                 case PRICE -> "ist.unit_price_php";
             };
         }
@@ -49,4 +51,6 @@ public interface InventoryDao {
 
     List<InventoryMetadataDto> getAllData(Location location, OrderBy orderBy, Direction direction)
             throws SQLException, IOException;
+    
+   
 }

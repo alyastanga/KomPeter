@@ -62,4 +62,6 @@ public class SqliteInventoryDao implements InventoryDao {
         }
         return inventory;
     }
+    
+    
 }
