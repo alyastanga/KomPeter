@@ -1,8 +1,10 @@
 package com.github.ragudos.kompeter.app.desktop.components;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
+import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +20,18 @@ public class MainSidebar implements SceneComponent {
         view = new JPanel();
     }
 
+    private void navigationListener(final @NotNull String sceneName) {
+
+    }
+
     @Override
     public void destroy() {
         if (!initialized.get()) {
             return;
         }
+
+        SceneNavigator.getInstance().unsubscribe(this::navigationListener);
+        initialized.set(false);
     }
 
     @Override
@@ -30,6 +39,8 @@ public class MainSidebar implements SceneComponent {
         if (initialized.get()) {
             return;
         }
+
+        SceneNavigator.getInstance().subscribe(this::navigationListener);
 
         initialized.set(true);
     }
