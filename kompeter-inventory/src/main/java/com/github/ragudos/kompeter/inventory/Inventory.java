@@ -20,21 +20,21 @@ public interface Inventory {
     void refresh(); // refresh trigger
 
     // sorting methods
-    void sortByDateAdded(); // sort by date
+    List<InventoryMetadataDto> sortByDateAdded(); // sort by date
 
-    void sortAlphabetically(); // sort by names
+    List<InventoryMetadataDto> sortAlphabetically(); // sort by names
 
-    void sortByCategory(); // sort by category
+    List<InventoryMetadataDto> sortByCategory(); // sort by category
 
-    void sortByItemId(); // sort by item id
+    List<InventoryMetadataDto> sortByItemId(); // sort by item id
 
-    void sortByAscPrice(); // min to max
+    List<InventoryMetadataDto> sortByAscPrice(); // min to max
 
-    void sortByDescPrice(); // max to min
+    List<InventoryMetadataDto> sortByDescPrice(); // max to min
 
-    void sortByAscQuantity();
+    List<InventoryMetadataDto> sortByAscQuantity();
 
-    void sortByDescQuantity();
+    List<InventoryMetadataDto> sortByDescQuantity();
 
     // Create: adding methods
     void addItem(String name, @Nullable String description); // items table only
