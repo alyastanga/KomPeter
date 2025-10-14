@@ -33,31 +33,33 @@ public class SignUpAuthScene implements Scene {
 
     private EnterKeyListener inputKeyEnterListener = new EnterKeyListener(this::handleInputEnterKey);
 
-    private final JTextField emailInput =
-            TextFieldFactory.createTextField("Email", JTextField.CENTER, inputKeyEnterListener);
+    private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER,
+            inputKeyEnterListener);
     private final JLabel emailInputError = new JLabel();
 
-    private final JTextField displayNameInput =
-            TextFieldFactory.createTextField("Display Name", JTextField.CENTER, inputKeyEnterListener);
+    private final JTextField displayNameInput = TextFieldFactory.createTextField("Display Name", JTextField.CENTER,
+            inputKeyEnterListener);
     private final JLabel displayNameInputError = new JLabel();
 
-    private final JTextField firstNameInput =
-            TextFieldFactory.createTextField("First Name", JTextField.CENTER, inputKeyEnterListener);
+    private final JTextField firstNameInput = TextFieldFactory.createTextField("First Name", JTextField.CENTER,
+            inputKeyEnterListener);
     private final JLabel firstNameInputError = new JLabel();
 
-    private final JTextField lastNameInput =
-            TextFieldFactory.createTextField("Last Name", JTextField.CENTER, inputKeyEnterListener);
+    private final JTextField lastNameInput = TextFieldFactory.createTextField("Last Name", JTextField.CENTER,
+            inputKeyEnterListener);
     private final JLabel lastNameInputError = new JLabel();
 
-    private final JPasswordField passwordInput =
-            TextFieldFactory.createPasswordField(
-                    "Password", JPasswordField.CENTER, inputKeyEnterListener);
+    private final JPasswordField passwordInput = TextFieldFactory.createPasswordField(
+            "Password", JPasswordField.CENTER, inputKeyEnterListener);
     private final JLabel passwordInputError = new JLabel();
 
-    private final JPasswordField confirmPasswordInput =
-            TextFieldFactory.createPasswordField(
-                    "Confirm Password", JPasswordField.CENTER, inputKeyEnterListener);
+    private final JPasswordField confirmPasswordInput = TextFieldFactory.createPasswordField(
+            "Confirm Password", JPasswordField.CENTER, inputKeyEnterListener);
     private final JLabel confirmPasswordInputError = new JLabel();
+
+    private final JButton submitButton = new JButton("Sign up");
+
+    private final JButton navigateToLoginButton = new JButton("Already have an account");
 
     private final AtomicBoolean busy = new AtomicBoolean(false);
 
@@ -259,6 +261,7 @@ public class SignUpAuthScene implements Scene {
              * lastNameInput.getText(), emailInput.getText(), passwordInput.getPassword(),
              * confirmPasswordInput.getPassword()); ;
              */
+            SwingUtilities.invokeLater(() -> clearInputs());
             SwingUtilities.invokeLater(
                     () -> {
                         JOptionPane.showMessageDialog(
@@ -314,15 +317,14 @@ public class SignUpAuthScene implements Scene {
         /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-        JLabel subtitle =
-                new JLabel(
-                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+        JLabel subtitle = new JLabel(
+                HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
 
         titleContainer.setLayout(
-                new MigLayout("insets 0, gapx 16px, wrap, flowx", "[right][left]", "[center]"));
+                new MigLayout("insets 0, gapx 16px, wrap, flowx", "[right][left]", "[grow,top]"));
 
         titleContainer.add(title);
         titleContainer.add(subtitle);
@@ -333,7 +335,6 @@ public class SignUpAuthScene implements Scene {
         JPanel emailDisplayNameInputContainer = new JPanel();
         JPanel nameInputContainer = new JPanel();
         JPanel passwordInputContainer = new JPanel();
-        JButton submitButton = new JButton("Sign up");
 
         submitButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
 
@@ -402,12 +403,9 @@ public class SignUpAuthScene implements Scene {
 
         /** NAVIGATION * */
         JPanel navigationButtonsContainer = new JPanel();
-        JButton navigateToLoginButton = new JButton("Already have an account");
 
         navigateToLoginButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-
         navigateToLoginButton.setActionCommand(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
-
         navigateToLoginButton.addActionListener(new ButtonSceneNavigationActionListener());
 
         navigationButtonsContainer.setLayout(
@@ -431,10 +429,10 @@ public class SignUpAuthScene implements Scene {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         scrollPaneContent.setLayout(
-                new MigLayout("insets 0 ,gapy 28px, flowy, fillx", "[grow,center]", "[grow,center]"));
+                new MigLayout("insets 0 ,gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
 
         scrollPaneContent.add(titleContainer);
-        scrollPaneContent.add(formContainer, "grow, height :300px:, width ::350px");
+        scrollPaneContent.add(formContainer, "growx, width ::350px");
 
         view.add(scrollPane, "grow");
     }
@@ -450,7 +448,19 @@ public class SignUpAuthScene implements Scene {
     }
 
     @Override
-    public void onDestroy() {}
+    public void onDestroy() {
+        submitButton.removeActionListener(this::handleSubmit);
+        navigateToLoginButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
+
+        firstNameInput.removeKeyListener(inputKeyEnterListener);
+        displayNameInput.removeKeyListener(inputKeyEnterListener);
+        lastNameInput.removeKeyListener(inputKeyEnterListener);
+        emailInput.removeKeyListener(inputKeyEnterListener);
+        passwordInput.removeKeyListener(inputKeyEnterListener);
+        confirmPasswordInput.removeKeyListener(inputKeyEnterListener);
+
+        view.removeAll();
+    }
 
     @Override
     public @NotNull String name() {

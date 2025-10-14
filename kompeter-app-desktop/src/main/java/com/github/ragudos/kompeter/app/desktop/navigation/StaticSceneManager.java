@@ -99,8 +99,6 @@ public class StaticSceneManager implements SceneManager {
         throwIfWrongThread();
 
         if (!sceneEntriesCache.containsKey(name)) {
-            LOGGER.warning("Trying to unregister an unexisting scene: " + name);
-
             return;
         }
 
@@ -108,8 +106,7 @@ public class StaticSceneManager implements SceneManager {
         sceneEntriesCache.remove(name);
 
         LOGGER.info("Scene unregistered: " + name);
-    }
-    ;
+    };
 
     @Override
     public synchronized void destroy() {
@@ -128,8 +125,7 @@ public class StaticSceneManager implements SceneManager {
         view.removeAll();
 
         LOGGER.info("Scene manager destroyed.");
-    }
-    ;
+    };
 
     @Override
     public synchronized void destroyScene(@NotNull Scene scene) {
@@ -155,32 +151,27 @@ public class StaticSceneManager implements SceneManager {
         cardLayout.removeLayoutComponent(sceneView);
         view.remove(sceneView);
         scene.onDestroy();
-    }
-    ;
+    };
 
     @Override
     public @NotNull Scene currentScene() {
         return sceneCache.get(currentSceneName);
-    }
-    ;
+    };
 
     @Override
     public @NotNull String currentSceneName() {
         return currentSceneName;
-    }
-    ;
+    };
 
     @Override
     public @NotNull JPanel view() {
         return view;
-    }
-    ;
+    };
 
     @Override
     public @NotNull Scene scene(@NotNull final String name) {
         return sceneCache.get(name);
-    }
-    ;
+    };
 
     @Override
     public synchronized boolean navigateTo(@NotNull final String name) {
@@ -251,6 +242,5 @@ public class StaticSceneManager implements SceneManager {
 
         LOGGER.info("Navigated to: " + name);
         return true;
-    }
-    ;
+    };
 }

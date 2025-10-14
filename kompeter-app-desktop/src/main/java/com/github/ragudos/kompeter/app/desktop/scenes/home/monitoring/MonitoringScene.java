@@ -1,4 +1,4 @@
-package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale;
+package com.github.ragudos.kompeter.app.desktop.scenes.home.monitoring;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneGuard;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
@@ -6,41 +6,33 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
-import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.CheckoutScene;
-import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.ShopScene;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.monitoring.scenes.MonitoringOverviewScene;
+import com.github.ragudos.kompeter.auth.Session;
+import com.github.ragudos.kompeter.auth.SessionManager;
 
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
-public class PointOfSaleScene implements SceneWithSubScenes {
-    public static final String SCENE_NAME = "point_of_sale";
+public final class MonitoringScene implements SceneWithSubScenes {
+    public static final String SCENE_NAME = "monitoring";
     public static final SceneGuard SCENE_GUARD = new SceneGuard() {
-        @Override
         public boolean canAccess() {
             // Session session = SessionManager.getInstance().session();
 
+            // return session.user().isAdmin() || session.user().isPurchasingOfficer();
+
             return true;
-            // return session.user().isAdmin() || session.user().isClerk();
-        }
+
+        };
     };
 
     private final JPanel view = new JPanel();
 
-    private final SceneManager sceneManager = new StaticSceneManager();
+    private SceneManager sceneManager = new StaticSceneManager();
 
-    public PointOfSaleScene() {
+    public MonitoringScene() {
         onCreate();
-    }
-
-    @Override
-    public void onCreate() {
-        view.setLayout(new MigLayout("insets 0", "[grow, center]", "[grow, center]"));
-
-        view.add(sceneManager.view(), "grow");
-
-        sceneManager.registerScene(ShopScene.SCENE_NAME, () -> new ShopScene());
-        sceneManager.registerScene(CheckoutScene.SCENE_NAME, () -> new CheckoutScene());
     }
 
     @Override
@@ -54,13 +46,23 @@ public class PointOfSaleScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void navigateToDefault() {
-        SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.PointOfSaleScenes.SHOP_SCENE);
+    public void onCreate() {
+        view.setLayout(new MigLayout("insets 0", "[grow, center]", "[grow, center]"));
+
+        view.add(sceneManager.view(), "grow");
+
+        sceneManager.registerScene(
+                MonitoringOverviewScene.SCENE_NAME, () -> new MonitoringOverviewScene());
     }
 
     @Override
     public boolean navigateTo(@NotNull String name) {
         return sceneManager.navigateTo(name);
+    }
+
+    @Override
+    public void navigateToDefault() {
+        SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.MonitoringScenes.OVERVIEW_SCENE);
     }
 
     @Override

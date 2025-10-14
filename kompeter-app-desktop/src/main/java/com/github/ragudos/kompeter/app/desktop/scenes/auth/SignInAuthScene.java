@@ -25,21 +25,23 @@ import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class SignInAuthScene implements Scene {
-    public static final String SCENE_NAME = "sign-in";
+    public static final String SCENE_NAME = "sign_in";
 
-    private final EnterKeyListener inputEnterKeyListener =
-            new EnterKeyListener(this::handleInputEnterKey);
+    private final EnterKeyListener inputEnterKeyListener = new EnterKeyListener(this::handleInputEnterKey);
 
     private final JPanel view = new JPanel();
 
-    private final JTextField emailInput =
-            TextFieldFactory.createTextField("Email", JTextField.CENTER, inputEnterKeyListener);
+    private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER,
+            inputEnterKeyListener);
     private final JLabel emailInputError = new JLabel();
 
-    private final JPasswordField passwordInput =
-            TextFieldFactory.createPasswordField(
-                    "Password", JPasswordField.CENTER, inputEnterKeyListener);
+    private final JPasswordField passwordInput = TextFieldFactory.createPasswordField(
+            "Password", JPasswordField.CENTER, inputEnterKeyListener);
     private final JLabel passwordInputError = new JLabel();
+
+    private final JButton submitButton = new JButton("Sign in");
+
+    private final JButton createAccountButton = new JButton("Create an account");
 
     private final AtomicBoolean busy = new AtomicBoolean(false);
 
@@ -143,6 +145,7 @@ public class SignInAuthScene implements Scene {
             }
 
             // Authentication.signIn(emailInput.getText(), passwordInput.getPassword());
+            SwingUtilities.invokeLater(() -> clearInputs());
             SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.HOME_SCENE);
             /*
              * } catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
@@ -176,15 +179,14 @@ public class SignInAuthScene implements Scene {
         /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-        JLabel subtitle =
-                new JLabel(
-                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+        JLabel subtitle = new JLabel(
+                HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
 
         titleContainer.setLayout(
-                new MigLayout("insets 0, gapx 16px, wrap, flowx", "[right][left]", "[center]"));
+                new MigLayout("insets 0, gapx 16px, wrap, flowx", "[right][left]", "[grow, top]"));
 
         titleContainer.add(title);
         titleContainer.add(subtitle);
@@ -196,10 +198,8 @@ public class SignInAuthScene implements Scene {
         JPanel inputFormContainer = new JPanel();
         JPanel emailInputContainer = new JPanel();
         JPanel passwordInputContainer = new JPanel();
-        JButton submitButton = new JButton("Sign in");
 
         submitButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
-
         submitButton.addActionListener(this::handleSubmit);
 
         emailInput.setHorizontalAlignment(JTextField.CENTER);
@@ -235,12 +235,9 @@ public class SignInAuthScene implements Scene {
 
         /** NAVIGATION * */
         JPanel navigationButtonsContainer = new JPanel();
-        JButton createAccountButton = new JButton("Create an account");
 
         createAccountButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-
         createAccountButton.setActionCommand(SceneNames.AuthScenes.SIGN_UP_AUTH_SCENE);
-
         createAccountButton.addActionListener(new ButtonSceneNavigationActionListener());
 
         navigationButtonsContainer.setLayout(
@@ -262,10 +259,10 @@ public class SignInAuthScene implements Scene {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         scrollPaneContent.setLayout(
-                new MigLayout("insets 0, gapy 28px, flowy, fillx", "[grow,center]", "[grow,center]"));
+                new MigLayout("insets 0, gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
 
         scrollPaneContent.add(titleContainer);
-        scrollPaneContent.add(formContainer, "grow, height :300px:, width ::350px");
+        scrollPaneContent.add(formContainer, "growx, width ::350px");
 
         view.add(scrollPane, "grow");
     }
@@ -286,7 +283,15 @@ public class SignInAuthScene implements Scene {
     }
 
     @Override
-    public void onDestroy() {}
+    public void onDestroy() {
+        submitButton.removeActionListener(this::handleSubmit);
+        createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
+
+        emailInput.removeKeyListener(inputEnterKeyListener);
+        passwordInput.removeKeyListener(inputEnterKeyListener);
+
+        view.removeAll();
+    }
 
     @Override
     public @NotNull String name() {

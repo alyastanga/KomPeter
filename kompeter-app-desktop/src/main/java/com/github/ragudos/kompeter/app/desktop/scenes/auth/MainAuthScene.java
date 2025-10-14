@@ -2,8 +2,11 @@ package com.github.ragudos.kompeter.app.desktop.scenes.auth;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneGuard;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
+import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
+import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +45,12 @@ public class MainAuthScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void onShow() {}
+    public void onShow() {
+    }
 
     @Override
-    public void onHide() {}
+    public void onHide() {
+    }
 
     @Override
     public void onDestroy() {
@@ -64,7 +69,7 @@ public class MainAuthScene implements SceneWithSubScenes {
 
     @Override
     public void navigateToDefault() {
-        sceneManager.navigateTo(WelcomeAuthScreen.SCENE_NAME);
+        SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.WELCOME_AUTH_SCENE);
     }
 
     @Override

@@ -1,12 +1,20 @@
 package com.github.ragudos.kompeter.app.desktop.components;
 
+import com.github.ragudos.kompeter.app.desktop.components.factory.ButtonFactory;
+import com.github.ragudos.kompeter.app.desktop.listeners.ButtonSceneNavigationActionListener;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
+import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.auth.Session;
+import com.github.ragudos.kompeter.auth.SessionManager;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainSidebar implements SceneComponent {
@@ -16,12 +24,80 @@ public class MainSidebar implements SceneComponent {
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
+    private ButtonGroup buttonGroup = new ButtonGroup();
+    private final HashMap<String, JButton> buttons = new HashMap<>();
+
     public MainSidebar() {
         view = new JPanel();
     }
 
     private void navigationListener(final @NotNull String sceneName) {
+        JButton pressedButton = buttons.get(sceneName);
 
+        if (pressedButton == null) {
+            return;
+        }
+
+        buttonGroup.setSelected(pressedButton.getModel(), true);
+    }
+
+    private void createLogisticsOfficerSidebar() {
+        JButton inventoryButton = ButtonFactory.createButton(
+                "Inventory", "package.svg", SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE, "ghost");
+
+        buttons.put(inventoryButton.getActionCommand(), inventoryButton);
+
+        view.add(inventoryButton, "growx,h 48!");
+    }
+
+    private void createPurchasingOfficerSidebar() {
+        JButton inventoryButton = ButtonFactory.createButton(
+                "Inventory", "package.svg", SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE, "ghost");
+        JButton monitoringButton = ButtonFactory.createButton(
+                "Monitoring",
+                "chart-no-axes-combined.svg",
+                SceneNames.HomeScenes.MonitoringScenes.MONITORING_SCENE, "ghost");
+
+        buttons.put(inventoryButton.getActionCommand(), inventoryButton);
+        buttons.put(monitoringButton.getActionCommand(), monitoringButton);
+
+        view.add(inventoryButton, "growx,h 48!");
+        view.add(monitoringButton, "growx,h 48!");
+    }
+
+    private void createClerkSidebar() {
+        JButton pointOfSaleButton = ButtonFactory.createButton(
+                "Point Of Sale",
+                "boxes.svg",
+                SceneNames.HomeScenes.PointOfSaleScenes.POINT_OF_SALE_SCENE, "ghost");
+
+        buttons.put(pointOfSaleButton.getActionCommand(), pointOfSaleButton);
+
+        view.add(pointOfSaleButton, "growx,h 48!");
+    }
+
+    private void createAdminSidebar() {
+        JButton pointOfSaleButton = ButtonFactory.createButton(
+                "Point Of Sale",
+                "boxes.svg",
+                SceneNames.HomeScenes.PointOfSaleScenes.POINT_OF_SALE_SCENE, "ghost");
+        JButton inventoryButton = ButtonFactory.createButton(
+                "Inventory", "package.svg", SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE, "ghost");
+        JButton monitoringButton = ButtonFactory.createButton(
+                "Monitoring",
+                "chart-no-axes-combined.svg",
+                SceneNames.HomeScenes.MonitoringScenes.MONITORING_SCENE, "ghost");
+
+        buttons.put(inventoryButton.getActionCommand(), inventoryButton);
+        buttons.put(monitoringButton.getActionCommand(), monitoringButton);
+        buttons.put(pointOfSaleButton.getActionCommand(), pointOfSaleButton);
+
+        view.add(pointOfSaleButton, "growx,h 48!");
+        view.add(inventoryButton, "growx,h 48!");
+        view.add(monitoringButton, "growx,h 48!");
+    }
+
+    private void createRoleLessSidebar() {
     }
 
     @Override
@@ -31,6 +107,13 @@ public class MainSidebar implements SceneComponent {
         }
 
         SceneNavigator.getInstance().unsubscribe(this::navigationListener);
+        buttons
+                .values()
+                .forEach(
+                        (button) -> button.removeActionListener(ButtonSceneNavigationActionListener.LISTENER));
+        buttons.clear();
+        buttonGroup = new ButtonGroup();
+        view.removeAll();
         initialized.set(false);
     }
 
@@ -41,6 +124,44 @@ public class MainSidebar implements SceneComponent {
         }
 
         SceneNavigator.getInstance().subscribe(this::navigationListener);
+
+        view.setLayout(new MigLayout("fillx, flowy", "[grow, center]", "[top]"));
+
+        Session session = SessionManager.getInstance().session();
+
+        JButton profileButton = ButtonFactory.createButton(
+                "Profile", "user-circle.svg", SceneNames.HomeScenes.ProfileScenes.PROFILE_SCENE, "ghost");
+        JButton settingsButton = ButtonFactory.createButton("Settings", "settings.svg",
+                SceneNames.HomeScenes.SettingsScenes.SETTINGS_SCENE, "ghost");
+
+        buttons.put(profileButton.getActionCommand(), profileButton);
+        buttons.put(settingsButton.getActionCommand(), settingsButton);
+
+        view.add(profileButton, "growx,h 48!");
+
+        if (session == null) {
+            createAdminSidebar();
+        } else if (session.user().isPurchasingOfficer()) {
+            createPurchasingOfficerSidebar();
+        } else if (session.user().isLogistics()) {
+            createLogisticsOfficerSidebar();
+        } else if (session.user().isClerk()) {
+            createClerkSidebar();
+        } else if (session.user().isAdmin()) {
+            createAdminSidebar();
+        } else if (session.user().isRoleLess()) {
+            createRoleLessSidebar();
+        }
+
+        view.add(settingsButton, "growx,h 48!");
+
+        buttons
+                .values()
+                .forEach(
+                        (button) -> {
+                            buttonGroup.add(button);
+                            button.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
+                        });
 
         initialized.set(true);
     }
