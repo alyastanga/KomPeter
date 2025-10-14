@@ -59,6 +59,10 @@ public class UserMetadataDto {
         return email;
     }
 
+    public boolean isRoleLess() {
+        return roles.length == 0;
+    }
+
     public boolean isAdmin() {
         for (String role : roles) {
             if (role.equals("admin")) {
