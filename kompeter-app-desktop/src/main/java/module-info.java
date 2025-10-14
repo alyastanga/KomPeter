@@ -11,6 +11,10 @@ module kompeter.app.desktop {
     requires com.miglayout.swing;
     requires io.github.classgraph;
     requires com.formdev.flatlaf;
+    requires com.github.weisj.jsvg;
+    requires com.github.lgooddatepicker;
+    requires org.jfree.jfreechart;
+    requires org.apache.pdfbox;
     requires com.formdev.flatlaf.extras;
 
     exports com.github.ragudos.kompeter.app.desktop;
