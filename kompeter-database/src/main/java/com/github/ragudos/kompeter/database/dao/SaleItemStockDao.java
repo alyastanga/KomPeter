@@ -6,10 +6,14 @@ import java.util.List;
 
 public interface SaleItemStockDao {
     public List<SaleItemStockDto> getSalesUnit();
+
     public List<SaleItemStockDto> getSalesUnit(Timestamp from);
+
     public List<SaleItemStockDto> getSalesUnit(Timestamp from, Timestamp to);
-    
+
     public List<SaleItemStockDto> getTopSellingItems();
+
     public List<SaleItemStockDto> getTopSellingItems(Timestamp from);
+
     public List<SaleItemStockDto> getTopSellingItems(Timestamp from, Timestamp to);
 }

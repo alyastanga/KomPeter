@@ -5,9 +5,6 @@
 package com.github.ragudos.kompeter.database.sqlite.dao;
 
 /**
- *
  * @author Hanz Mapua
  */
-public class SqliteProfitMetadataDao {
-    
-}
+public class SqliteProfitMetadataDao {}

@@ -5,9 +5,6 @@
 package com.github.ragudos.kompeter.database.dto;
 
 /**
- *
  * @author Hanz Mapua
  */
-public class ProfitMetadataDto {
-    
-}
+public class ProfitMetadataDto {}
