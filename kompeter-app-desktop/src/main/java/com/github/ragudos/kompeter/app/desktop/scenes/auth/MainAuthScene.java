@@ -6,8 +6,8 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import java.awt.BorderLayout;
 import javax.swing.JPanel;
-import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainAuthScene implements SceneWithSubScenes {
@@ -34,9 +34,9 @@ public class MainAuthScene implements SceneWithSubScenes {
 
     @Override
     public void onCreate() {
-        view.setLayout(new MigLayout("insets 0", "[grow,center]", "[grow,center]"));
+        view.setLayout(new BorderLayout());
 
-        view.add(sceneManager.view(), "grow");
+        view.add(sceneManager.view(), BorderLayout.CENTER);
 
         sceneManager.registerScene(WelcomeAuthScreen.SCENE_NAME, () -> new WelcomeAuthScreen());
         sceneManager.registerScene(SignInAuthScene.SCENE_NAME, () -> new SignInAuthScene());

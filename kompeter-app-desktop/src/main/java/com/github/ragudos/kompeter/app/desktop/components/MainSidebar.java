@@ -7,10 +7,8 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.auth.Session;
 import com.github.ragudos.kompeter.auth.SessionManager;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -18,8 +16,6 @@ import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainSidebar implements SceneComponent {
-    private static final Logger LOGGER = KompeterLogger.getLogger(MainSidebar.class);
-
     private final JPanel view;
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -39,6 +35,7 @@ public class MainSidebar implements SceneComponent {
         }
 
         buttonGroup.setSelected(pressedButton.getModel(), true);
+        pressedButton.requestFocusInWindow();
     }
 
     private void createLogisticsOfficerSidebar() {

@@ -14,9 +14,7 @@ public class KompeterDesktopApp {
     public static void main(String[] args) {
         FontSetup.setup();
 
-        boolean lafSetupResult = KompeterLightFlatLaf.setup();
-
-        if (!lafSetupResult) {
+        if (!KompeterLightFlatLaf.setup()) {
             LOGGER.log(Level.SEVERE, "Failed to setup custom L&F");
             LOGGER.log(Level.SEVERE, "Using default L&F");
         }
