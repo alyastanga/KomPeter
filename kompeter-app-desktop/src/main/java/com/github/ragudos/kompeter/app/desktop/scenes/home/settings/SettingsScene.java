@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.scenes.home.settings;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
@@ -33,7 +40,7 @@ public final class SettingsScene implements SceneWithSubScenes {
 
     @Override
     public void onCreate() {
-        view.setLayout(new MigLayout("insets 0", "[grow, center]", "[grow, center]"));
+        view.setLayout(new MigLayout("insets 0", "[grow]", "[grow]"));
 
         view.add(sceneManager.view(), "grow");
 

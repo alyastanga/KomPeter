@@ -1,0 +1,6 @@
+package com.github.ragudos.kompeter.app.desktop.components.modals;
+
+public class SuccessModal extends Modal {
+    public SuccessModal() {
+    }
+}

@@ -1,7 +1,23 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.scenes.home.settings.scenes;
 
+import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.components.factory.ButtonFactory;
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
+import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
+import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.utilities.HtmlUtils;
+import java.awt.event.ActionEvent;
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public final class MainSettingsScene implements Scene {
@@ -9,8 +25,26 @@ public final class MainSettingsScene implements Scene {
 
     private final JPanel view = new JPanel();
 
+    private final JButton logoutButton =
+            ButtonFactory.createButton("Sign out", "logout.svg", "", "ghost");
+
     public MainSettingsScene() {
         onCreate();
+    }
+
+    private void logout(ActionEvent e) {
+        try {
+            // Authentication.signOut();
+            SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
+        } /*
+             * catch (AuthenticationException e1) {
+             * SwingUtilities.invokeLater(() -> {
+             * JOptionPane.showMessageDialog(view, e1.getMessage(), "Failed to logout",
+             * JOptionPane.ERROR_MESSAGE);
+             * });
+             * }
+             */ finally {
+        }
     }
 
     @Override
@@ -24,5 +58,45 @@ public final class MainSettingsScene implements Scene {
     }
 
     @Override
-    public void onCreate() {}
+    public void onCreate() {
+        view.setLayout(new MigLayout("insets 0, flowy, fillx, gapy 9px", "[grow]"));
+
+        JPanel logoutContainer = new JPanel();
+        JPanel textContainer = new JPanel();
+        JLabel title = new JLabel(HtmlUtils.wrapInHtml("Sign out of current session"));
+        JLabel subtitle =
+                new JLabel(
+                        HtmlUtils.wrapInHtml("Signing out will require you to login again in the future."));
+
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h6");
+        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+        subtitle.putClientProperty(FlatClientProperties.STYLE, "font:14 italic medium;");
+
+        logoutContainer.setLayout(new MigLayout("insets 0, flowx, gapx 4px", "[grow]push[]"));
+
+        textContainer.setLayout(new MigLayout("insets 0, flowy, gapy 2px", "[grow]"));
+
+        textContainer.add(title, "growx");
+        textContainer.add(subtitle, "growx");
+
+        logoutContainer.add(textContainer, "growx");
+        logoutContainer.add(logoutButton);
+
+        view.add(logoutContainer, "growx");
+    }
+
+    @Override
+    public void onShow() {
+        logoutButton.addActionListener(this::logout);
+    }
+
+    @Override
+    public void onHide() {
+        logoutButton.removeActionListener(this::logout);
+    }
+
+    @Override
+    public void onDestroy() {
+        view.removeAll();
+    }
 }

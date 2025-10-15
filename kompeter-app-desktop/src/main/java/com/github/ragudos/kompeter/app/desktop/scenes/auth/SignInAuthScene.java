@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.scenes.auth;
 
 import com.formdev.flatlaf.FlatClientProperties;
@@ -33,12 +40,11 @@ public class SignInAuthScene implements Scene {
     private final JPanel view = new JPanel();
 
     private final JTextField emailInput =
-            TextFieldFactory.createTextField("Email", JTextField.CENTER, inputEnterKeyListener);
+            TextFieldFactory.createTextField("Email", JTextField.CENTER);
     private final JLabel emailInputError = new JLabel();
 
     private final JPasswordField passwordInput =
-            TextFieldFactory.createPasswordField(
-                    "Password", JPasswordField.CENTER, inputEnterKeyListener);
+            TextFieldFactory.createPasswordField("Password", JPasswordField.CENTER);
     private final JLabel passwordInputError = new JLabel();
 
     private final JButton submitButton = new JButton("Sign in");
@@ -203,7 +209,6 @@ public class SignInAuthScene implements Scene {
         JPanel passwordInputContainer = new JPanel();
 
         submitButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
-        submitButton.addActionListener(this::handleSubmit);
 
         emailInput.setHorizontalAlignment(JTextField.CENTER);
         emailInput.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Email");
@@ -241,8 +246,6 @@ public class SignInAuthScene implements Scene {
 
         createAccountButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
         createAccountButton.setActionCommand(SceneNames.AuthScenes.SIGN_UP_AUTH_SCENE);
-        createAccountButton.addActionListener(new ButtonSceneNavigationActionListener());
-
         navigationButtonsContainer.setLayout(
                 new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
 
@@ -278,11 +281,21 @@ public class SignInAuthScene implements Scene {
 
     @Override
     public void onShow() {
+        emailInput.addKeyListener(inputEnterKeyListener);
+        passwordInput.addKeyListener(inputEnterKeyListener);
+        createAccountButton.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
+        submitButton.addActionListener(this::handleSubmit);
+
         emailInput.requestFocusInWindow();
     }
 
     @Override
     public void onHide() {
+        emailInput.removeKeyListener(inputEnterKeyListener);
+        passwordInput.removeKeyListener(inputEnterKeyListener);
+        createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
+        submitButton.removeActionListener(this::handleSubmit);
+
         clearInputs();
     }
 

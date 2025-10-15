@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.database.sqlite.dao.user;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;

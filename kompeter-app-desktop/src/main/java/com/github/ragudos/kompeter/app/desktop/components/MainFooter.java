@@ -5,6 +5,6 @@
 * (C) 2025
 *
 */
-package com.github.ragudos.kompeter.database.dao.inventory;
+package com.github.ragudos.kompeter.app.desktop.components;
 
-public interface ItemCategoryDao {}
+public class MainFooter {}

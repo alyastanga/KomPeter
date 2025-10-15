@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.scenes.home;
 
 import com.github.ragudos.kompeter.app.desktop.components.MainHeader;
@@ -103,7 +110,7 @@ public class HomeScene implements SceneWithSubScenes {
 
     @Override
     public void onCreate() {
-        view.setLayout(new MigLayout("", "[grow,center]", "[grow,center]"));
+        view.setLayout(new MigLayout("insets 9", "[grow]", "[grow]"));
 
         view.add(mainHeader.view(), "grow,dock north");
         view.add(mainSidebar.view(), "grow, dock west");

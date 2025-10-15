@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components;
 
 import com.formdev.flatlaf.FlatClientProperties;
@@ -55,7 +62,7 @@ public class MainHeader implements SceneComponent {
             return;
         }
 
-        view.setLayout(new MigLayout("", "[grow, right]", "[grow, center]"));
+        view.setLayout(new MigLayout("insets 9, flowx", "[grow, right]", "[grow, center]"));
 
         view.add(sceneTitle);
 

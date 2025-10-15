@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components;
 
 import com.github.ragudos.kompeter.app.desktop.components.factory.ButtonFactory;
@@ -141,7 +148,7 @@ public class MainSidebar implements SceneComponent {
 
         SceneNavigator.getInstance().subscribe(this::navigationListener);
 
-        view.setLayout(new MigLayout("fillx, flowy", "[grow, center]", "[top]"));
+        view.setLayout(new MigLayout("insets 9, fillx, flowy", "[grow, center]", "[top]"));
 
         Session session = SessionManager.getInstance().session();
 
