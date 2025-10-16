@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public interface ItemCategoryAssignmentDao {
-    //CREATE
+    // CREATE
     void setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException;
-    //READ
-    //UPDATE
-    //DELETE
+    // READ
+    // UPDATE
+    // DELETE
 }

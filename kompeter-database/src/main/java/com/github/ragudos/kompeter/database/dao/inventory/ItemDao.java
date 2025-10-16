@@ -15,13 +15,14 @@ import java.util.List;
 public interface ItemDao {
     // CREATE
     void insertItem(String name, String description) throws SQLException, IOException;
+
     // READ
     List<ItemDto> getAllItems() throws SQLException, IOException;
 
     List<ItemDto> getItemsById(int id) throws SQLException, IOException;
 
     // UPDATE
-    
+
     // DELETE
     void deleteItemById(int id) throws SQLException, IOException;
 }

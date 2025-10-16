@@ -19,11 +19,11 @@ import java.util.List;
 
 public class SqlitePurchaseItemStockDao implements PurchaseItemStockDao {
     private final Connection conn;
-    
-    public SqlitePurchaseItemStockDao(Connection conn){
+
+    public SqlitePurchaseItemStockDao(Connection conn) {
         this.conn = conn;
     }
-    
+
     @Override
     public List<PurchaseItemStockDto> getPurchaseStock() {
         // TODO Auto-generated method stub
@@ -43,21 +43,19 @@ public class SqlitePurchaseItemStockDao implements PurchaseItemStockDao {
     }
 
     @Override
-    public void insertPurchaseItemStock(int purchaseId, int itemStockId, int qty_ordered, int qty_received, double unit_cost_php) throws SQLException, IOException {
-        var query=
+    public void insertPurchaseItemStock(
+            int purchaseId, int itemStockId, int qty_ordered, int qty_received, double unit_cost_php)
+            throws SQLException, IOException {
+        var query =
                 SqliteQueryLoader.getInstance()
-                        .get(
-                        "insert_purchase_item_stock",
-                        "items",
-                        AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try(var stmt = conn.prepareStatement(query);){
+                        .get("insert_purchase_item_stock", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        try (var stmt = conn.prepareStatement(query); ) {
             stmt.setInt(1, purchaseId);
             stmt.setInt(2, itemStockId);
             stmt.setInt(3, qty_ordered);
             stmt.setInt(4, qty_received);
             stmt.setDouble(5, unit_cost_php);
-            
-            
+
             var insert = stmt.executeUpdate();
         }
     }

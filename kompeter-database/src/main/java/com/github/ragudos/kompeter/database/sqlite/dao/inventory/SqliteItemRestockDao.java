@@ -16,25 +16,23 @@ import java.sql.SQLException;
 
 public class SqliteItemRestockDao implements ItemRestockDao {
     private final Connection conn;
-    
-    public SqliteItemRestockDao(Connection conn){
+
+    public SqliteItemRestockDao(Connection conn) {
         this.conn = conn;
     }
-    
+
     @Override
-    public void insertItemRestock(int itemStockId, int qty_before, int qty_after, int qty_added) throws SQLException, IOException {
-        var query=
+    public void insertItemRestock(int itemStockId, int qty_before, int qty_after, int qty_added)
+            throws SQLException, IOException {
+        var query =
                 SqliteQueryLoader.getInstance()
-                        .get(
-                        "insert_item_restock",
-                        "items",
-                        AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try(var stmt = conn.prepareStatement(query);){
+                        .get("insert_item_restock", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        try (var stmt = conn.prepareStatement(query); ) {
             stmt.setInt(1, itemStockId);
             stmt.setInt(2, qty_before);
             stmt.setInt(3, qty_after);
             stmt.setInt(4, qty_added);
-            
+
             var insert = stmt.executeUpdate();
         }
     }

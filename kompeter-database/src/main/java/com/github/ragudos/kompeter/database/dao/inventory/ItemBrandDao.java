@@ -11,10 +11,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public interface ItemBrandDao {
-    //CREATE
+    // CREATE
     void insertItemBrand(String name, String description) throws SQLException, IOException;
-    //READ
-    //UPDATE
-    //DELETE
+    // READ
+    // UPDATE
+    // DELETE
 }
-

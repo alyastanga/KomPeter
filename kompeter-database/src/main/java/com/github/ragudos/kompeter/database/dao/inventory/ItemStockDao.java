@@ -11,9 +11,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public interface ItemStockDao {
-    //CREATE
-    void insertItemStock(int itemId, int itemBrandId, double unit_price, int min_qty) throws SQLException, IOException;
-    //READ
-    //UPDATE
-    //DELETE
+    // CREATE
+    void insertItemStock(int itemId, int itemBrandId, double unit_price, int min_qty)
+            throws SQLException, IOException;
+    // READ
+    // UPDATE
+    // DELETE
 }

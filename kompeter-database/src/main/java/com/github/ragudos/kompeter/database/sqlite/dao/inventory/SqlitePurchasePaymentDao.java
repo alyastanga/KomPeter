@@ -15,11 +15,11 @@ import java.util.List;
 
 public class SqlitePurchasePaymentDao implements PurchasePaymentDao {
     private final Connection conn;
-    
-    public SqlitePurchasePaymentDao(Connection conn){
+
+    public SqlitePurchasePaymentDao(Connection conn) {
         this.conn = conn;
     }
-    
+
     @Override
     public List<PurchaseItemStockDto> getExpenses() {
         // TODO Auto-generated method stub

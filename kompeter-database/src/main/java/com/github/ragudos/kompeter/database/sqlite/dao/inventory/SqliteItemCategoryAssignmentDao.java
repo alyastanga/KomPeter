@@ -16,24 +16,24 @@ import java.sql.SQLException;
 
 public class SqliteItemCategoryAssignmentDao implements ItemCategoryAssignmentDao {
     private final Connection conn;
-    public SqliteItemCategoryAssignmentDao(Connection conn){
+
+    public SqliteItemCategoryAssignmentDao(Connection conn) {
         this.conn = conn;
     }
 
     @Override
     public void setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException {
-        var query=
+        var query =
                 SqliteQueryLoader.getInstance()
                         .get(
-                        "insert_item_category_assignment",
-                        "items",
-                        AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try(var stmt = conn.prepareStatement(query);){
+                                "insert_item_category_assignment",
+                                "items",
+                                AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        try (var stmt = conn.prepareStatement(query); ) {
             stmt.setInt(1, itemId);
             stmt.setInt(2, itemCategoryId);
-            
+
             var insert = stmt.executeUpdate();
-            
         }
     }
 }

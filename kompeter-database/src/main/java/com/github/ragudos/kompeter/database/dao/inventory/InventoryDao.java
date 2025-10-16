@@ -13,22 +13,22 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface InventoryDao {
-//    public enum Location {
-//        KOMPETER_DISPLAY_FLOOR,
-//        WAREHOUSE_A,
-//        WAREHOUSE_B,
-//        RECEIVING_DOCK;
-//
-//        @Override
-//        public String toString() {
-//            return switch (this) {
-//                case KOMPETER_DISPLAY_FLOOR -> "Kompeter Display Floor";
-//                case WAREHOUSE_A -> "Warehouse A";
-//                case WAREHOUSE_B -> "Warehouse B";
-//                case RECEIVING_DOCK -> "Receiving Dock";
-//            };
-//        }
-//    }
+    //    public enum Location {
+    //        KOMPETER_DISPLAY_FLOOR,
+    //        WAREHOUSE_A,
+    //        WAREHOUSE_B,
+    //        RECEIVING_DOCK;
+    //
+    //        @Override
+    //        public String toString() {
+    //            return switch (this) {
+    //                case KOMPETER_DISPLAY_FLOOR -> "Kompeter Display Floor";
+    //                case WAREHOUSE_A -> "Warehouse A";
+    //                case WAREHOUSE_B -> "Warehouse B";
+    //                case RECEIVING_DOCK -> "Receiving Dock";
+    //            };
+    //        }
+    //    }
 
     public enum OrderBy {
         ITEM_NAME,
@@ -58,6 +58,6 @@ public interface InventoryDao {
 
     List<InventoryMetadataDto> getAllData(String search, OrderBy orderBy, Direction direction)
             throws SQLException, IOException;
-//    List<InventoryMetadataDto> find(OrderBy orderBy, Direction direction)
-//            throws SQLException, IOException;
+    //    List<InventoryMetadataDto> find(OrderBy orderBy, Direction direction)
+    //            throws SQLException, IOException;
 }

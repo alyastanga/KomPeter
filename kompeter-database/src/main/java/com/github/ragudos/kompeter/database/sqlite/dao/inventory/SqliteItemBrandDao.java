@@ -23,18 +23,14 @@ public class SqliteItemBrandDao implements ItemBrandDao {
 
     @Override
     public void insertItemBrand(String name, String description) throws SQLException, IOException {
-        var query=
+        var query =
                 SqliteQueryLoader.getInstance()
-                        .get(
-                        "insert_item_brand",
-                        "items",
-                        AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try(var stmt = conn.prepareStatement(query);){
+                        .get("insert_item_brand", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        try (var stmt = conn.prepareStatement(query); ) {
             stmt.setString(1, name);
             stmt.setString(2, description);
-            
+
             var insert = stmt.executeUpdate();
-            
         }
     }
 }
