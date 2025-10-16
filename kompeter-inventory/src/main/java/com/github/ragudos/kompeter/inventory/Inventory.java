@@ -34,11 +34,9 @@ public interface Inventory {
 
     List<InventoryMetadataDto> sortByCategory(); // sort by category
 
-    List<InventoryMetadataDto> sortByPrice(@Nullable Direction direction); 
+    List<InventoryMetadataDto> sortByPrice(@Nullable Direction direction);
 
     List<InventoryMetadataDto> sortByQuantity(@Nullable Direction direction);
-
-
 
     // Create: adding methods
     void addItem(String name, @Nullable String description); // items table only

@@ -7,7 +7,7 @@
 */
 package com.github.ragudos.kompeter.inventory;
 
-import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
+import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao.Direction;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao.OrderBy;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
@@ -16,7 +16,6 @@ import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseDao;
-import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -27,13 +26,16 @@ public class InventoryService implements Inventory {
     private final SqliteInventoryDao sqliteInventoryDao;
     private final SqlitePurchaseDao sqlitePurchaseDao;
 
-    public InventoryService(SqliteItemDao sqliteItemDao, SqliteInventoryDao sqliteInventoryDao, SqlitePurchaseDao sqlitePurchaseDao) {
+    public InventoryService(
+            SqliteItemDao sqliteItemDao,
+            SqliteInventoryDao sqliteInventoryDao,
+            SqlitePurchaseDao sqlitePurchaseDao) {
         this.sqliteItemDao = sqliteItemDao;
         this.sqliteInventoryDao = sqliteInventoryDao;
         this.sqlitePurchaseDao = sqlitePurchaseDao;
     }
-    
-    //sorted by _item_id by default
+
+    // sorted by _item_id by default
     @Override
     public List<InventoryMetadataDto> showInventoryItems() {
         try {
@@ -48,7 +50,7 @@ public class InventoryService implements Inventory {
 
     @Override
     public void deleteItem(int id) {
-         try {
+        try {
             sqliteItemDao.deleteItemById(id);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -64,7 +66,7 @@ public class InventoryService implements Inventory {
     }
 
     @Override
-    public List<InventoryMetadataDto> searchItem(String search){
+    public List<InventoryMetadataDto> searchItem(String search) {
         try {
             return sqliteInventoryDao.getAllData(search, null, null);
         } catch (SQLException e) {
@@ -83,7 +85,7 @@ public class InventoryService implements Inventory {
 
     @Override
     public void addItem(String name, String description) {
-         try {
+        try {
             sqliteItemDao.insertItem(name, description);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -125,14 +127,15 @@ public class InventoryService implements Inventory {
             float vat,
             double discVal,
             DiscountType discType) {
-                    String code = PurchaseCodeGenerator.generateSecureHexToken();
-                         
-        try{
-            sqlitePurchaseDao.insertPurchase(supplierId, purchaseDate,code, deliveryDate, supplierId, supplierId, discType);
-        }catch(SQLException e){
-            
-        }catch(IOException e){
-            
+        String code = PurchaseCodeGenerator.generateSecureHexToken();
+
+        try {
+            sqlitePurchaseDao.insertPurchase(
+                    supplierId, purchaseDate, code, deliveryDate, supplierId, supplierId, discType);
+        } catch (SQLException e) {
+
+        } catch (IOException e) {
+
         }
     }
 
@@ -195,7 +198,7 @@ public class InventoryService implements Inventory {
 
     @Override
     public List<InventoryMetadataDto> sortByName() {
-       try {
+        try {
             return sqliteInventoryDao.getAllData(null, OrderBy.ITEM_NAME, null);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -220,7 +223,7 @@ public class InventoryService implements Inventory {
     @Override
     public List<InventoryMetadataDto> sortByPrice(Direction direction) {
         try {
-            return sqliteInventoryDao.getAllData(null, OrderBy.PRICE,  direction);
+            return sqliteInventoryDao.getAllData(null, OrderBy.PRICE, direction);
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -240,5 +243,4 @@ public class InventoryService implements Inventory {
         }
         return null;
     }
-
 }
