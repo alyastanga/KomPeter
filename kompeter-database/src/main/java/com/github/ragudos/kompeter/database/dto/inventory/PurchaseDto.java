@@ -21,4 +21,4 @@ public record PurchaseDto(
         Timestamp deliveryDate,
         @NotNull BigDecimal vatPercent,
         BigDecimal discountValue,
-        DiscountType discountType) {}
+        DiscountType discountType) {};

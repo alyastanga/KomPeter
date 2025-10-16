@@ -9,11 +9,17 @@ package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import com.github.ragudos.kompeter.database.dao.inventory.PurchasePaymentDao;
 import com.github.ragudos.kompeter.database.dto.inventory.PurchaseItemStockDto;
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.List;
 
 public class SqlitePurchasePaymentDao implements PurchasePaymentDao {
-
+    private final Connection conn;
+    
+    public SqlitePurchasePaymentDao(Connection conn){
+        this.conn = conn;
+    }
+    
     @Override
     public List<PurchaseItemStockDto> getExpenses() {
         // TODO Auto-generated method stub

@@ -7,4 +7,14 @@
 */
 package com.github.ragudos.kompeter.database.dao.inventory;
 
-public interface ItemBrandDao {}
+import java.io.IOException;
+import java.sql.SQLException;
+
+public interface ItemBrandDao {
+    //CREATE
+    void insertItemBrand(String name, String description) throws SQLException, IOException;
+    //READ
+    //UPDATE
+    //DELETE
+}
+

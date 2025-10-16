@@ -78,7 +78,7 @@ public class SqliteItemDao implements ItemDao {
                 SqliteQueryLoader.getInstance().get("delete_item_by_id", "items", SqlQueryType.DELETE);
         try(var stmt= conn.prepareStatement(query);){
             stmt.setInt(1, id);
-            var resUpdate = stmt.executeUpdate();
+            var delete = stmt.executeUpdate();
             
         }
     }
@@ -91,7 +91,7 @@ public class SqliteItemDao implements ItemDao {
             stmt.setString(1, name);
             stmt.setString(2, description);
             
-            var resUpdate = stmt.executeUpdate();
+            var insert = stmt.executeUpdate();
         }
     }
 }

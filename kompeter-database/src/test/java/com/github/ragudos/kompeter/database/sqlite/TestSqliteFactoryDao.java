@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.migrations.Migrator;
+import com.github.ragudos.kompeter.database.seeder.Seeder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -29,8 +30,10 @@ public class TestSqliteFactoryDao {
             AbstractMigratorFactory factory =
                     AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
             Migrator migrator = factory.getMigrator();
+            Seeder seeder = factory.getSeeder();
 
             migrator.migrate();
+            seeder.seed();
         } catch (Exception e) {
             e.printStackTrace();
             assert false : "Migration failed.";
