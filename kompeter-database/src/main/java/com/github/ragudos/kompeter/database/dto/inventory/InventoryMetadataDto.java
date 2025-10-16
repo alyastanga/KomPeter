@@ -29,5 +29,6 @@ public record InventoryMetadataDto(
         @NotNull String brandName,
         @NotNull double itemPricePhp,
         @NotNull int quantity,
-        @NotNull String location) {}
+        @NotNull String location) // do not show this in Jtable, show this in more(3 dots) pop up panel
+{}
 ;
