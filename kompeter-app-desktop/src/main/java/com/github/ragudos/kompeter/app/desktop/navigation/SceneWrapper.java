@@ -10,157 +10,157 @@ package com.github.ragudos.kompeter.app.desktop.navigation;
 import javax.swing.JPanel;
 
 public class SceneWrapper implements Scene {
-	private final Scene scene;
+    private final Scene scene;
 
-	public SceneWrapper(Scene scene) {
-		this.scene = scene;
+    public SceneWrapper(Scene scene) {
+        this.scene = scene;
 
-		onCreate();
-	}
+        onCreate();
+    }
 
-	@Override
-	public boolean canHide() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public boolean canHide() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			return scene.canHide() && currSubScene.canHide();
-		}
+        if (currSubScene != null) {
+            return scene.canHide() && currSubScene.canHide();
+        }
 
-		return scene.canHide();
-	}
+        return scene.canHide();
+    }
 
-	@Override
-	public boolean canShow() {
-		var currSubScene = getCurrentSubScene();
+    @Override
+    public boolean canShow() {
+        var currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			return scene.canShow() && currSubScene.canShow();
-		}
+        if (currSubScene != null) {
+            return scene.canShow() && currSubScene.canShow();
+        }
 
-		return scene.canShow();
-	}
+        return scene.canShow();
+    }
 
-	private Scene getCurrentSubScene() {
-		if (supportsSubScenes()) {
-			SceneManager sceneManager = ((SceneWithSubScenes) scene).sceneManager();
+    private Scene getCurrentSubScene() {
+        if (supportsSubScenes()) {
+            SceneManager sceneManager = ((SceneWithSubScenes) scene).sceneManager();
 
-			if (sceneManager == null) {
-				return null;
-			}
+            if (sceneManager == null) {
+                return null;
+            }
 
-			return sceneManager.currentScene();
-		}
+            return sceneManager.currentScene();
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	@Override
-	public String name() {
-		return scene.name();
-	}
+    @Override
+    public String name() {
+        return scene.name();
+    }
 
-	@Override
-	public JPanel view() {
-		return scene.view();
-	}
+    @Override
+    public JPanel view() {
+        return scene.view();
+    }
 
-	@Override
-	public Scene self() {
-		return scene;
-	}
+    @Override
+    public Scene self() {
+        return scene;
+    }
 
-	@Override
-	public void onBeforeHide() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void onBeforeHide() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.onBeforeHide();
-		}
+        if (currSubScene != null) {
+            currSubScene.onBeforeHide();
+        }
 
-		scene.onBeforeHide();
-	}
+        scene.onBeforeHide();
+    }
 
-	@Override
-	public void onBeforeShow() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void onBeforeShow() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.onBeforeShow();
-		}
+        if (currSubScene != null) {
+            currSubScene.onBeforeShow();
+        }
 
-		scene.onBeforeShow();
-	}
+        scene.onBeforeShow();
+    }
 
-	@Override
-	public void onCannotHide() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void onCannotHide() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.onCannotHide();
-		}
+        if (currSubScene != null) {
+            currSubScene.onCannotHide();
+        }
 
-		scene.onCannotHide();
-	}
+        scene.onCannotHide();
+    }
 
-	@Override
-	public void onCreate() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void onCreate() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.onCreate();
-		}
+        if (currSubScene != null) {
+            currSubScene.onCreate();
+        }
 
-		scene.onCreate();
-	}
+        scene.onCreate();
+    }
 
-	@Override
-	public void onDestroy() {
-		if (supportsSubScenes()) {
-			SceneManager sceneManager = ((SceneWithSubScenes) scene).sceneManager();
+    @Override
+    public void onDestroy() {
+        if (supportsSubScenes()) {
+            SceneManager sceneManager = ((SceneWithSubScenes) scene).sceneManager();
 
-			if (sceneManager != null) {
-				sceneManager.destroy();
-			}
-		}
+            if (sceneManager != null) {
+                sceneManager.destroy();
+            }
+        }
 
-		scene.onDestroy();
-	}
+        scene.onDestroy();
+    }
 
-	@Override
-	public void onHide() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void onHide() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.onHide();
-		}
+        if (currSubScene != null) {
+            currSubScene.onHide();
+        }
 
-		scene.onHide();
-	}
+        scene.onHide();
+    }
 
-	@Override
-	public void onShow() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void onShow() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.onShow();
-		}
+        if (currSubScene != null) {
+            currSubScene.onShow();
+        }
 
-		scene.onShow();
-	}
+        scene.onShow();
+    }
 
-	@Override
-	public void syncLookAndFeel() {
-		Scene currSubScene = getCurrentSubScene();
+    @Override
+    public void syncLookAndFeel() {
+        Scene currSubScene = getCurrentSubScene();
 
-		if (currSubScene != null) {
-			currSubScene.syncLookAndFeel();
-		}
+        if (currSubScene != null) {
+            currSubScene.syncLookAndFeel();
+        }
 
-		scene.syncLookAndFeel();
-	}
+        scene.syncLookAndFeel();
+    }
 
-	@Override
-	public boolean supportsSubScenes() {
-		return scene.supportsSubScenes();
-	}
+    @Override
+    public boolean supportsSubScenes() {
+        return scene.supportsSubScenes();
+    }
 }

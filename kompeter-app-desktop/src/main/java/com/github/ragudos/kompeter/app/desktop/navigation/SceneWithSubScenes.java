@@ -10,64 +10,64 @@ package com.github.ragudos.kompeter.app.desktop.navigation;
 import org.jetbrains.annotations.NotNull;
 
 public interface SceneWithSubScenes extends Scene {
-	boolean navigateTo(@NotNull ParsedSceneName parsedSceneName);
+    boolean navigateTo(@NotNull ParsedSceneName parsedSceneName);
 
-	String getDefaultScene();
+    String getDefaultScene();
 
-	SceneManager sceneManager();
+    SceneManager sceneManager();
 
-	@Override
-	default void onBeforeHide() {
-		if (sceneManager().currentScene() == null) {
-			return;
-		}
+    @Override
+    default void onBeforeHide() {
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
 
-		sceneManager().currentScene().onBeforeHide();
-	}
+        sceneManager().currentScene().onBeforeHide();
+    }
 
-	@Override
-	default void onBeforeShow() {
+    @Override
+    default void onBeforeShow() {
 
-		if (sceneManager().currentScene() == null) {
-			return;
-		}
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
 
-		sceneManager().currentScene().canShow();
-	}
+        sceneManager().currentScene().canShow();
+    }
 
-	@Override
-	default boolean canHide() {
-		if (sceneManager().currentScene() == null) {
-			return true;
-		}
+    @Override
+    default boolean canHide() {
+        if (sceneManager().currentScene() == null) {
+            return true;
+        }
 
-		return sceneManager().currentScene().canHide();
-	}
+        return sceneManager().currentScene().canHide();
+    }
 
-	@Override
-	default boolean canShow() {
-		if (sceneManager().currentScene() == null) {
-			return true;
-		}
+    @Override
+    default boolean canShow() {
+        if (sceneManager().currentScene() == null) {
+            return true;
+        }
 
-		return sceneManager().currentScene().canShow();
-	}
+        return sceneManager().currentScene().canShow();
+    }
 
-	@Override
-	default void onCannotHide() {
-		if (sceneManager().currentScene() == null) {
-			return;
-		}
+    @Override
+    default void onCannotHide() {
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
 
-		sceneManager().currentScene().onCannotHide();
-	}
+        sceneManager().currentScene().onCannotHide();
+    }
 
-	@Override
-	default void onCannotShow() {
-		if (sceneManager().currentScene() == null) {
-			return;
-		}
+    @Override
+    default void onCannotShow() {
+        if (sceneManager().currentScene() == null) {
+            return;
+        }
 
-		sceneManager().currentScene().onCannotShow();
-	}
+        sceneManager().currentScene().onCannotShow();
+    }
 }

@@ -7,22 +7,6 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.auth;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFactory;
 import com.github.ragudos.kompeter.app.desktop.listeners.ButtonSceneNavigationActionListener;
@@ -34,277 +18,309 @@ import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
 import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import net.miginfocom.swing.MigLayout;
+import org.jetbrains.annotations.NotNull;
 
 public class SignInAuthScene implements Scene {
-	public static final String SCENE_NAME = "sign_in";
-
-	private final JPanel view = new JPanel();
-
-	private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER);
-	private final JLabel emailInputError = new JLabel();
-
-	private final JPasswordField passwordInput = TextFieldFactory.createPasswordField("Password",
-			JPasswordField.CENTER);
-	private final JLabel passwordInputError = new JLabel();
-
-	private final JButton submitButton = new JButton("Sign in");
-
-	private final JButton createAccountButton = new JButton("Create an account");
-
-	private final AtomicBoolean busy = new AtomicBoolean(false);
-
-	private final EnterKeyListener inputEnterKeyListener = new EnterKeyListener(new EnterKeyCallback() {
-		@Override
-		public void onPress(KeyEvent e) {
-			if (busy.get()) {
-				return;
-			}
-
-			Object source = e.getSource();
-
-			if (source.equals(emailInput) && validateEmail()) {
-				SwingUtilities.invokeLater(() -> {
-					emailInputError.setText("");
-					emailInput.putClientProperty("JComponent.outline", null);
-				});
-				goToNearestEmptyFieldOrSignIn();
-			} else if (source.equals(passwordInput) && validatePassword()) {
-				SwingUtilities.invokeLater(() -> {
-					passwordInputError.setText("");
-					passwordInput.putClientProperty("JComponent.outline", null);
-				});
-				goToNearestEmptyFieldOrSignIn();
-			}
-		}
-	});
-
-	private final ActionListener handleSubmitActionListener = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			signIn(true);
-		}
-	};
-
-	private void goToNearestEmptyFieldOrSignIn() {
-		JTextField nearestEmtpyField = getNearestEmptyField();
-
-		if (nearestEmtpyField != null) {
-			SwingUtilities.invokeLater(() -> {
-				nearestEmtpyField.requestFocusInWindow();
-			});
-		} else {
-			signIn(false);
-		}
-	}
-
-	private JTextField getNearestEmptyField() {
-		if (emailInput.getText().isEmpty()) {
-			return emailInput;
-		} else if (passwordInput.getPassword().length == 0) {
-			return passwordInput;
-		}
-
-		return null;
-	}
-
-	private boolean validateEmail() {
-		if (!EmailValidator.isEmailValid(emailInput.getText(), EmailValidator.EMAIL_REGEX)) {
-			SwingUtilities.invokeLater(() -> {
-				emailInputError.setText(HtmlUtils.wrapInHtml("Invalid email"));
-				emailInput.putClientProperty("JComponent.outline", "error");
-			});
-
-			return false;
-		}
-
-		return true;
-	}
-
-	private boolean validatePassword() {
-		if (!PasswordValidator.isPasswordValid(passwordInput.getPassword(), PasswordValidator.STRONG_PASSWORD)) {
-			SwingUtilities.invokeLater(() -> {
-				passwordInputError.setText(HtmlUtils.wrapInHtml(PasswordValidator.STRONG_PASSWORD_ERROR_MESSAGE));
-				passwordInput.putClientProperty("JComponent.outline", "error");
-			});
-
-			return false;
-		}
-
-		return true;
-	}
-
-	private void signIn(boolean shouldValidate) {
-		if (busy.get()) {
-			return;
-		}
+    public static final String SCENE_NAME = "sign_in";
+
+    private final JPanel view = new JPanel();
+
+    private final JTextField emailInput =
+            TextFieldFactory.createTextField("Email", JTextField.CENTER);
+    private final JLabel emailInputError = new JLabel();
+
+    private final JPasswordField passwordInput =
+            TextFieldFactory.createPasswordField("Password", JPasswordField.CENTER);
+    private final JLabel passwordInputError = new JLabel();
+
+    private final JButton submitButton = new JButton("Sign in");
+
+    private final JButton createAccountButton = new JButton("Create an account");
+
+    private final AtomicBoolean busy = new AtomicBoolean(false);
+
+    private final EnterKeyListener inputEnterKeyListener =
+            new EnterKeyListener(
+                    new EnterKeyCallback() {
+                        @Override
+                        public void onPress(KeyEvent e) {
+                            if (busy.get()) {
+                                return;
+                            }
+
+                            Object source = e.getSource();
+
+                            if (source.equals(emailInput) && validateEmail()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            emailInputError.setText("");
+                                            emailInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignIn();
+                            } else if (source.equals(passwordInput) && validatePassword()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            passwordInputError.setText("");
+                                            passwordInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignIn();
+                            }
+                        }
+                    });
+
+    private final ActionListener handleSubmitActionListener =
+            new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    signIn(true);
+                }
+            };
+
+    private void goToNearestEmptyFieldOrSignIn() {
+        JTextField nearestEmtpyField = getNearestEmptyField();
+
+        if (nearestEmtpyField != null) {
+            SwingUtilities.invokeLater(
+                    () -> {
+                        nearestEmtpyField.requestFocusInWindow();
+                    });
+        } else {
+            signIn(false);
+        }
+    }
+
+    private JTextField getNearestEmptyField() {
+        if (emailInput.getText().isEmpty()) {
+            return emailInput;
+        } else if (passwordInput.getPassword().length == 0) {
+            return passwordInput;
+        }
+
+        return null;
+    }
+
+    private boolean validateEmail() {
+        if (!EmailValidator.isEmailValid(emailInput.getText(), EmailValidator.EMAIL_REGEX)) {
+            SwingUtilities.invokeLater(
+                    () -> {
+                        emailInputError.setText(HtmlUtils.wrapInHtml("Invalid email"));
+                        emailInput.putClientProperty("JComponent.outline", "error");
+                    });
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validatePassword() {
+        if (!PasswordValidator.isPasswordValid(
+                passwordInput.getPassword(), PasswordValidator.STRONG_PASSWORD)) {
+            SwingUtilities.invokeLater(
+                    () -> {
+                        passwordInputError.setText(
+                                HtmlUtils.wrapInHtml(PasswordValidator.STRONG_PASSWORD_ERROR_MESSAGE));
+                        passwordInput.putClientProperty("JComponent.outline", "error");
+                    });
 
-		SwingUtilities.invokeLater(this::clearErrors);
+            return false;
+        }
 
-		busy.set(true);
+        return true;
+    }
 
-		try {
-			if (shouldValidate && (!validateEmail() | !validatePassword())) {
-				return;
-			}
+    private void signIn(boolean shouldValidate) {
+        if (busy.get()) {
+            return;
+        }
 
-			// Authentication.signIn(emailInput.getText(), passwordInput.getPassword());
-			SwingUtilities.invokeLater(() -> clearInputs());
-			SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.HOME_SCENE);
-			/*
-			 * } catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
-			 * JOptionPane.showMessageDialog(view,
-			 * "We cannot sign you in at this moment. Sorry.", e1.getMessage(),
-			 * JOptionPane.ERROR_MESSAGE); });
-			 */
-		} finally {
-			busy.set(false);
-		}
-	}
+        SwingUtilities.invokeLater(this::clearErrors);
 
-	private void clearErrors() {
-		emailInputError.setText("");
-		emailInput.putClientProperty("JComponent.outline", null);
-		passwordInput.putClientProperty("JComponent.outline", null);
-		passwordInputError.setText("");
-	}
+        busy.set(true);
 
-	private void clearInputs() {
-		emailInput.setText("");
-		passwordInput.setText("");
+        try {
+            if (shouldValidate && (!validateEmail() | !validatePassword())) {
+                return;
+            }
 
-		clearErrors();
-	}
+            // Authentication.signIn(emailInput.getText(), passwordInput.getPassword());
+            SwingUtilities.invokeLater(() -> clearInputs());
+            SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.HOME_SCENE);
+            /*
+             * } catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
+             * JOptionPane.showMessageDialog(view,
+             * "We cannot sign you in at this moment. Sorry.", e1.getMessage(),
+             * JOptionPane.ERROR_MESSAGE); });
+             */
+        } finally {
+            busy.set(false);
+        }
+    }
 
-	@Override
-	public void onCreate() {
-		view.setLayout(new MigLayout("insets 0", "[grow,center]", "[grow,center]"));
+    private void clearErrors() {
+        emailInputError.setText("");
+        emailInput.putClientProperty("JComponent.outline", null);
+        passwordInput.putClientProperty("JComponent.outline", null);
+        passwordInputError.setText("");
+    }
 
-		/** TITLE * */
-		JPanel titleContainer = new JPanel();
-		JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-		JLabel subtitle = new JLabel(HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+    private void clearInputs() {
+        emailInput.setText("");
+        passwordInput.setText("");
 
-		title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
-		subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
+        clearErrors();
+    }
 
-		titleContainer.setLayout(new MigLayout("insets 0, gapx 16px, wrap, flowx", "[right][left]", "[grow, top]"));
+    @Override
+    public void onCreate() {
+        view.setLayout(new MigLayout("insets 0", "[grow,center]", "[grow,center]"));
 
-		titleContainer.add(title);
-		titleContainer.add(subtitle);
+        /** TITLE * */
+        JPanel titleContainer = new JPanel();
+        JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
+        JLabel subtitle =
+                new JLabel(
+                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
-		/** FORM * */
-		JPanel formContainer = new JPanel();
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
+        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
 
-		/** INPUT * */
-		JPanel inputFormContainer = new JPanel();
-		JPanel emailInputContainer = new JPanel();
-		JPanel passwordInputContainer = new JPanel();
+        titleContainer.setLayout(
+                new MigLayout("insets 0, gapx 16px, wrap, flowx", "[right][left]", "[grow, top]"));
 
-		submitButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+        titleContainer.add(title);
+        titleContainer.add(subtitle);
 
-		emailInput.setHorizontalAlignment(JTextField.CENTER);
-		emailInput.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Email");
-		// emailInput.addKeyListener(emailInputEnterKeyListener);
+        /** FORM * */
+        JPanel formContainer = new JPanel();
 
-		emailInputError.setHorizontalAlignment(JLabel.CENTER);
+        /** INPUT * */
+        JPanel inputFormContainer = new JPanel();
+        JPanel emailInputContainer = new JPanel();
+        JPanel passwordInputContainer = new JPanel();
 
-		passwordInput.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Password");
-		passwordInput.setHorizontalAlignment(JTextField.CENTER);
-		// passwordInput.addKeyListener(passwordInputEnterKeyListener);
+        submitButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
 
-		passwordInputError.setHorizontalAlignment(JLabel.CENTER);
+        emailInput.setHorizontalAlignment(JTextField.CENTER);
+        emailInput.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Email");
+        // emailInput.addKeyListener(emailInputEnterKeyListener);
 
-		emailInputContainer.setLayout(new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
+        emailInputError.setHorizontalAlignment(JLabel.CENTER);
 
-		emailInputContainer.add(emailInput, "growx");
-		emailInputContainer.add(emailInputError);
+        passwordInput.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Password");
+        passwordInput.setHorizontalAlignment(JTextField.CENTER);
+        // passwordInput.addKeyListener(passwordInputEnterKeyListener);
 
-		passwordInputContainer.setLayout(new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
+        passwordInputError.setHorizontalAlignment(JLabel.CENTER);
 
-		passwordInputContainer.add(passwordInput, "growx");
-		passwordInputContainer.add(passwordInputError);
+        emailInputContainer.setLayout(
+                new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
 
-		inputFormContainer.setLayout(new MigLayout("insets 0, gapy 9px, flowy, fillx", "[grow,center]", "[center]"));
+        emailInputContainer.add(emailInput, "growx");
+        emailInputContainer.add(emailInputError);
 
-		inputFormContainer.add(emailInputContainer, "growx");
-		inputFormContainer.add(passwordInputContainer, "growx");
-		inputFormContainer.add(submitButton, "growx");
+        passwordInputContainer.setLayout(
+                new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
 
-		/** NAVIGATION * */
-		JPanel navigationButtonsContainer = new JPanel();
+        passwordInputContainer.add(passwordInput, "growx");
+        passwordInputContainer.add(passwordInputError);
 
-		createAccountButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-		createAccountButton.setActionCommand(SceneNames.AuthScenes.SIGN_UP_AUTH_SCENE);
-		navigationButtonsContainer.setLayout(new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
+        inputFormContainer.setLayout(
+                new MigLayout("insets 0, gapy 9px, flowy, fillx", "[grow,center]", "[center]"));
 
-		navigationButtonsContainer.add(createAccountButton, "growx");
+        inputFormContainer.add(emailInputContainer, "growx");
+        inputFormContainer.add(passwordInputContainer, "growx");
+        inputFormContainer.add(submitButton, "growx");
 
-		formContainer.setLayout(new MigLayout("insets 0, gapy 21px, flowy, fillx", "[grow,center]", "[center]"));
+        /** NAVIGATION * */
+        JPanel navigationButtonsContainer = new JPanel();
 
-		formContainer.add(inputFormContainer, "growx");
-		formContainer.add(createAccountButton, "growx");
+        createAccountButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+        createAccountButton.setActionCommand(SceneNames.AuthScenes.SIGN_UP_AUTH_SCENE);
+        navigationButtonsContainer.setLayout(
+                new MigLayout("insets 0, flowy, fillx", "[grow,center]", "[center]"));
 
-		JPanel scrollPaneContent = new JPanel();
-		JScrollPane scrollPane = new JScrollPane(scrollPaneContent);
+        navigationButtonsContainer.add(createAccountButton, "growx");
 
-		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-		scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        formContainer.setLayout(
+                new MigLayout("insets 0, gapy 21px, flowy, fillx", "[grow,center]", "[center]"));
 
-		scrollPaneContent.setLayout(
-				new MigLayout("insets 0, gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
+        formContainer.add(inputFormContainer, "growx");
+        formContainer.add(createAccountButton, "growx");
 
-		scrollPaneContent.add(titleContainer);
-		scrollPaneContent.add(formContainer, "growx, width ::350px");
+        JPanel scrollPaneContent = new JPanel();
+        JScrollPane scrollPane = new JScrollPane(scrollPaneContent);
 
-		view.add(scrollPane, "grow");
-	}
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
-	@Override
-	public boolean canHide() {
-		return !busy.get();
-	}
+        scrollPaneContent.setLayout(
+                new MigLayout(
+                        "insets 0, gapy 28px, flowy, fillx", "[grow,center]", "[grow,bottom][grow,top]"));
 
-	@Override
-	public void onShow() {
-		emailInput.addKeyListener(inputEnterKeyListener);
-		passwordInput.addKeyListener(inputEnterKeyListener);
-		createAccountButton.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
-		submitButton.addActionListener(handleSubmitActionListener);
+        scrollPaneContent.add(titleContainer);
+        scrollPaneContent.add(formContainer, "growx, width ::350px");
 
-		emailInput.requestFocusInWindow();
-	}
+        view.add(scrollPane, "grow");
+    }
 
-	@Override
-	public void onHide() {
-		emailInput.removeKeyListener(inputEnterKeyListener);
-		passwordInput.removeKeyListener(inputEnterKeyListener);
-		createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
-		submitButton.removeActionListener(handleSubmitActionListener);
+    @Override
+    public boolean canHide() {
+        return !busy.get();
+    }
 
-		clearInputs();
-	}
+    @Override
+    public void onShow() {
+        emailInput.addKeyListener(inputEnterKeyListener);
+        passwordInput.addKeyListener(inputEnterKeyListener);
+        createAccountButton.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
+        submitButton.addActionListener(handleSubmitActionListener);
 
-	@Override
-	public void onDestroy() {
-		submitButton.removeActionListener(handleSubmitActionListener);
-		createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
+        emailInput.requestFocusInWindow();
+    }
 
-		emailInput.removeKeyListener(inputEnterKeyListener);
-		passwordInput.removeKeyListener(inputEnterKeyListener);
+    @Override
+    public void onHide() {
+        emailInput.removeKeyListener(inputEnterKeyListener);
+        passwordInput.removeKeyListener(inputEnterKeyListener);
+        createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
+        submitButton.removeActionListener(handleSubmitActionListener);
 
-		view.removeAll();
-	}
+        clearInputs();
+    }
 
-	@Override
-	public @NotNull String name() {
-		return SCENE_NAME;
-	}
+    @Override
+    public void onDestroy() {
+        submitButton.removeActionListener(handleSubmitActionListener);
+        createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
 
-	@Override
-	public @NotNull JPanel view() {
-		return view;
-	}
+        emailInput.removeKeyListener(inputEnterKeyListener);
+        passwordInput.removeKeyListener(inputEnterKeyListener);
+
+        view.removeAll();
+    }
+
+    @Override
+    public @NotNull String name() {
+        return SCENE_NAME;
+    }
+
+    @Override
+    public @NotNull JPanel view() {
+        return view;
+    }
 }
