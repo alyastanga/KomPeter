@@ -7,255 +7,254 @@
 */
 package com.github.ragudos.kompeter.app.desktop.navigation;
 
-import com.github.ragudos.kompeter.utilities.cache.ObserverLRU;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.awt.CardLayout;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
 import javax.swing.JPanel;
+import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.github.ragudos.kompeter.utilities.cache.ObserverLRU;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+
 public class StaticSceneManager implements SceneManager {
-    private Logger LOGGER = KompeterLogger.getLogger(StaticSceneManager.class);
+	private Logger LOGGER = KompeterLogger.getLogger(StaticSceneManager.class);
 
-    private final HashMap<String, SceneEntry> sceneEntriesCache = new HashMap<>();
-    private final ObserverLRU<String, Scene> sceneCache = new ObserverLRU<>(5);
-    private String currentSceneName;
+	private final HashMap<String, SceneEntry> sceneEntriesCache = new HashMap<>();
+	private final ObserverLRU<String, Scene> sceneCache = new ObserverLRU<>(5);
+	private String currentSceneName;
 
-    private JPanel view = new JPanel();
-    private CardLayout cardLayout = new CardLayout();
+	private JPanel view = new JPanel();
+	private CardLayout cardLayout = new CardLayout();
 
-    public StaticSceneManager() {
-        view.setLayout(cardLayout);
+	private LookAndFeel oldLookAndFeel = UIManager.getLookAndFeel();
 
-        sceneCache.subscribe(this::lruListener);
-    }
+	public StaticSceneManager() {
+		view.setLayout(cardLayout);
 
-    private void throwIfWrongThread() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            throw new WrongThreadException("Method must be called on the EDT.");
-        }
-    }
+		sceneCache.subscribe(this::lruListener);
+	}
 
-    private void lruListener(Scene removedScene) {
-        SwingUtilities.invokeLater(() -> destroyScene(removedScene));
-    }
+	private void throwIfWrongThread() {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			throw new WrongThreadException("Method must be called on the EDT.");
+		}
+	}
 
-    private Scene loadOrCreateScene(
-            @NotNull final ParsedSceneName parsedSceneName, @NotNull final SceneEntry entry) {
-        String parentName = parsedSceneName.parentSceneName();
-        Scene parentScene = scene(parentName);
+	private void lruListener(Scene removedScene) {
+		SwingUtilities.invokeLater(() -> destroyScene(removedScene));
+	}
 
-        if (parentScene == null) {
-            parentScene = entry.sceneFactory().createScene();
+	private Scene loadOrCreateScene(@NotNull final ParsedSceneName parsedSceneName, @NotNull final SceneEntry entry) {
+		String parentName = parsedSceneName.parentSceneName();
+		Scene parentScene = scene(parentName);
 
-            if (parentScene == null) {
-                LOGGER.severe("Received null from factory: " + parentName);
-            }
+		if (parentScene == null) {
+			parentScene = entry.sceneFactory().createScene();
 
-            if (!parentScene.name().equals(parentName)) {
-                LOGGER.severe("Scene names do not match " + parentName + "!=" + parentScene.name() + ".");
-            }
+			if (parentScene == null) {
+				LOGGER.severe("Received null from factory: " + parentName);
+			}
 
-            parentScene = new SceneWrapper(parentScene);
+			if (!parentScene.name().equals(parentName)) {
+				LOGGER.severe("Scene names do not match " + parentName + "!=" + parentScene.name() + ".");
+			}
 
-            JPanel parentSceneView = parentScene.view();
+			parentScene = new SceneWrapper(parentScene);
 
-            view.add(parentSceneView, parentName);
-            cardLayout.addLayoutComponent(parentSceneView, parentName);
+			JPanel parentSceneView = parentScene.view();
 
-            // Show scene's default sub scene if it is a parent of scenes
-            if (parsedSceneName.subSceneName() == null || parsedSceneName.subSceneName().isBlank()) {
-                if (parentScene.supportsSubScenes()) {
-                    final Scene copyOfParentScene = parentScene;
+			view.add(parentSceneView, parentName);
+			cardLayout.addLayoutComponent(parentSceneView, parentName);
 
-                    SwingUtilities.invokeLater(
-                            () -> {
-                                ((SceneWithSubScenes) copyOfParentScene.self()).navigateToDefault();
-                            });
-                }
-            }
-        }
+			// Show scene's default sub scene if it is a parent of scenes
+			if (parsedSceneName.subSceneName() == null || parsedSceneName.subSceneName().isBlank()) {
+				if (parentScene.supportsSubScenes()) {
+					final Scene copyOfParentScene = parentScene;
 
-        sceneCache.update(parentName, parentScene);
+					SwingUtilities.invokeLater(() -> {
+						((SceneWithSubScenes) copyOfParentScene.self()).navigateToDefault();
+					});
+				}
+			}
+		}
 
-        return parentScene;
-    }
+		sceneCache.update(parentName, parentScene);
 
-    @Override
-    public synchronized void registerScene(@NotNull String name, @NotNull SceneFactory factory) {
-        registerScene(name, factory, () -> true);
-    }
+		return parentScene;
+	}
 
-    @Override
-    public synchronized void registerScene(
-            @NotNull String name, @NotNull SceneFactory factory, @NotNull SceneGuard guard) {
-        if (sceneEntriesCache.containsKey(name)) {
-            LOGGER.warning("Trying to register an existing scene: " + name);
+	@Override
+	public synchronized void registerScene(@NotNull String name, @NotNull SceneFactory factory) {
+		registerScene(name, factory, () -> true);
+	}
 
-            return;
-        }
+	@Override
+	public synchronized void registerScene(@NotNull String name, @NotNull SceneFactory factory,
+			@NotNull SceneGuard guard) {
+		if (sceneEntriesCache.containsKey(name)) {
+			LOGGER.warning("Trying to register an existing scene: " + name);
 
-        sceneEntriesCache.put(name, new SceneEntry(factory, guard));
-        LOGGER.info("Scene registered: " + name);
-    }
+			return;
+		}
 
-    @Override
-    public synchronized void unregisterScene(@NotNull final String name) {
-        throwIfWrongThread();
+		sceneEntriesCache.put(name, new SceneEntry(factory, guard));
+		LOGGER.info("Scene registered: " + name);
+	}
 
-        if (!sceneEntriesCache.containsKey(name)) {
-            return;
-        }
+	@Override
+	public synchronized void unregisterScene(@NotNull final String name) {
+		throwIfWrongThread();
 
-        destroyScene(scene(name));
-        sceneEntriesCache.remove(name);
+		if (!sceneEntriesCache.containsKey(name)) {
+			return;
+		}
 
-        LOGGER.info("Scene unregistered: " + name);
-    }
-    ;
+		destroyScene(scene(name));
+		sceneEntriesCache.remove(name);
 
-    @Override
-    public synchronized void destroy() {
-        throwIfWrongThread();
+		LOGGER.info("Scene unregistered: " + name);
+	};
 
-        sceneCache.unsubscribe(this::lruListener);
+	@Override
+	public synchronized void destroy() {
+		throwIfWrongThread();
 
-        for (var scene : sceneCache.values()) {
-            destroyScene(scene);
-        }
+		sceneCache.unsubscribe(this::lruListener);
 
-        sceneEntriesCache.clear();
-        sceneCache.clear();
-        currentSceneName = null;
+		for (var scene : sceneCache.values()) {
+			destroyScene(scene);
+		}
 
-        view.removeAll();
+		sceneEntriesCache.clear();
+		sceneCache.clear();
+		currentSceneName = null;
 
-        LOGGER.info("Scene manager destroyed.");
-    }
-    ;
+		view.removeAll();
 
-    @Override
-    public synchronized void destroyScene(@NotNull Scene scene) {
-        if (scene == null) {
-            return;
-        }
+		LOGGER.info("Scene manager destroyed.");
+	};
 
-        throwIfWrongThread();
+	@Override
+	public synchronized void destroyScene(@NotNull Scene scene) {
+		if (scene == null) {
+			return;
+		}
 
-        JPanel sceneView = scene.view();
+		throwIfWrongThread();
 
-        if (scene instanceof SceneWithSubScenes) {
-            ((SceneWithSubScenes) scene).sceneManager().destroy();
-        }
+		JPanel sceneView = scene.view();
 
-        if (sceneView != null) {
-            view.remove(sceneView);
-        } else {
-            LOGGER.warning("Scene view is null before scene destruction: " + scene.name());
-        }
+		if (scene instanceof SceneWithSubScenes) {
+			((SceneWithSubScenes) scene).sceneManager().destroy();
+		}
 
-        sceneCache.remove(scene.name(), false);
-        cardLayout.removeLayoutComponent(sceneView);
-        view.remove(sceneView);
-        scene.onDestroy();
-    }
-    ;
+		if (sceneView != null) {
+			view.remove(sceneView);
+		} else {
+			LOGGER.warning("Scene view is null before scene destruction: " + scene.name());
+		}
 
-    @Override
-    public @NotNull Scene currentScene() {
-        return sceneCache.get(currentSceneName);
-    }
-    ;
+		sceneCache.remove(scene.name(), false);
+		cardLayout.removeLayoutComponent(sceneView);
+		view.remove(sceneView);
+		scene.onDestroy();
+	};
 
-    @Override
-    public @NotNull String currentSceneName() {
-        return currentSceneName;
-    }
-    ;
+	@Override
+	public @NotNull Scene currentScene() {
+		return sceneCache.get(currentSceneName);
+	};
 
-    @Override
-    public @NotNull JPanel view() {
-        return view;
-    }
-    ;
+	@Override
+	public @NotNull String currentSceneName() {
+		return currentSceneName;
+	};
 
-    @Override
-    public @NotNull Scene scene(@NotNull final String name) {
-        return sceneCache.get(name);
-    }
-    ;
+	@Override
+	public @NotNull JPanel view() {
+		return view;
+	};
 
-    @Override
-    public synchronized boolean navigateTo(@NotNull final String name) {
-        throwIfWrongThread();
+	@Override
+	public @NotNull Scene scene(@NotNull final String name) {
+		return sceneCache.get(name);
+	};
 
-        ParsedSceneName parsedSceneName = ParsedSceneName.parse(name);
+	@Override
+	public synchronized boolean navigateTo(@NotNull final String name) {
+		throwIfWrongThread();
 
-        if (!parsedSceneName.parentSceneName().equals(currentSceneName)) {
-            Scene currentScene = currentScene();
-            SceneEntry sceneEntry = sceneEntriesCache.get(parsedSceneName.parentSceneName());
+		ParsedSceneName parsedSceneName = ParsedSceneName.parse(name);
 
-            if (sceneEntry == null || !sceneEntry.sceneGuard().canAccess()) {
-                return false;
-            }
+		if (!parsedSceneName.parentSceneName().equals(currentSceneName)) {
+			Scene currentScene = currentScene();
+			SceneEntry sceneEntry = sceneEntriesCache.get(parsedSceneName.parentSceneName());
 
-            if (currentScene != null && !currentScene.canHide()) {
-                currentScene.onCannotHide();
+			if (sceneEntry == null || !sceneEntry.sceneGuard().canAccess()) {
+				return false;
+			}
 
-                return false;
-            }
+			if (currentScene != null && !currentScene.canHide()) {
+				currentScene.onCannotHide();
 
-            Scene newScene = loadOrCreateScene(parsedSceneName, sceneEntry);
+				return false;
+			}
 
-            if (!newScene.canShow()) {
-                newScene.onCannotShow();
+			Scene newScene = loadOrCreateScene(parsedSceneName, sceneEntry);
 
-                return false;
-            }
+			if (oldLookAndFeel != UIManager.getLookAndFeel()) {
+				newScene.syncLookAndFeel();
+			}
 
-            // swap
-            String newSceneName = newScene.name();
+			if (!newScene.canShow()) {
+				newScene.onCannotShow();
 
-            if (currentScene != null) {
-                currentScene.onBeforeHide();
-            }
+				return false;
+			}
 
-            newScene.onBeforeShow();
-            cardLayout.show(view, newSceneName);
+			// swap
+			String newSceneName = newScene.name();
 
-            if (currentScene != null) {
-                currentScene.onHide();
-            }
+			if (currentScene != null) {
+				currentScene.onBeforeHide();
+			}
 
-            newScene.onShow();
+			newScene.onBeforeShow();
+			cardLayout.show(view, newSceneName);
 
-            currentSceneName = newSceneName;
-        }
+			if (currentScene != null) {
+				currentScene.onHide();
+			}
 
-        if (parsedSceneName.subSceneName() != null && !parsedSceneName.subSceneName().isBlank()) {
-            // refresh just in case parent scene was swapped
-            Scene currentScene = currentScene();
+			newScene.onShow();
 
-            if (!currentScene.supportsSubScenes()) {
-                return false;
-            }
+			currentSceneName = newSceneName;
+		}
 
-            SceneWithSubScenes subScene = (SceneWithSubScenes) currentScene.self();
-            SceneManager subSceneManager = subScene.sceneManager();
+		if (parsedSceneName.subSceneName() != null && !parsedSceneName.subSceneName().isBlank()) {
+			// refresh just in case parent scene was swapped
+			Scene currentScene = currentScene();
 
-            if (subSceneManager != null
-                    && subSceneManager.currentSceneName() != null
-                    && subSceneManager.currentSceneName().equals(parsedSceneName.subSceneName())) {
-                return false;
-            }
+			if (!currentScene.supportsSubScenes()) {
+				return false;
+			}
 
-            return subSceneManager.navigateTo(parsedSceneName.subSceneName());
-        }
+			SceneWithSubScenes subScene = (SceneWithSubScenes) currentScene.self();
+			SceneManager subSceneManager = subScene.sceneManager();
 
-        LOGGER.info("Navigated to: " + name);
-        return true;
-    }
-    ;
+			if (subSceneManager != null && subSceneManager.currentSceneName() != null
+					&& subSceneManager.currentSceneName().equals(parsedSceneName.subSceneName())) {
+				return false;
+			}
+
+			return subSceneManager.navigateTo(parsedSceneName.subSceneName());
+		}
+
+		return true;
+	};
 }
