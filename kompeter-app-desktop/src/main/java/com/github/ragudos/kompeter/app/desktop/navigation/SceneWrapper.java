@@ -14,6 +14,8 @@ public class SceneWrapper implements Scene {
 
 	public SceneWrapper(Scene scene) {
 		this.scene = scene;
+
+		onCreate();
 	}
 
 	@Override

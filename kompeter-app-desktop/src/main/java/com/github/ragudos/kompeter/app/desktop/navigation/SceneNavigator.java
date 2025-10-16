@@ -100,15 +100,17 @@ public class SceneNavigator implements Observer<String> {
 		}
 
 		SwingUtilities.invokeLater(() -> {
-			if (!sceneManager.navigateTo(sceneName)) {
+			ParsedSceneName parsedSceneName = new ParsedSceneName(sceneName);
+
+			if (!sceneManager.navigateTo(parsedSceneName)) {
 				return;
 			}
 
-			LOGGER.info("Navigated to scene: " + sceneName);
+			LOGGER.info("Navigated to scene: " + parsedSceneName.fullPath());
 
-			synchronized (sceneName) {
-				currentFullSceneName = sceneName;
-				notifySubscribers(sceneName);
+			synchronized (parsedSceneName) {
+				currentFullSceneName = parsedSceneName.fullPath();
+				notifySubscribers(parsedSceneName.fullPath());
 			}
 		});
 	}

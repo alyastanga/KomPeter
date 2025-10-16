@@ -5,43 +5,44 @@
 * (C) 2025
 *
 */
-package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.components;
+package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components;
 
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.swing.JPanel;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
+
 public class ProductList implements SceneComponent {
-    private final JPanel view = new JPanel();
+	private final JPanel view = new JPanel();
 
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
+	private final AtomicBoolean initialized = new AtomicBoolean(false);
 
-    public ProductList() {}
+	@Override
+	public void initialize() {
+		if (initialized.get()) {
+			return;
+		}
 
-    @Override
-    public void initialize() {
-        if (initialized.get()) {
-            return;
-        }
+		initialized.set(true);
+	}
 
-        initialized.set(true);
-    }
+	@Override
+	public void destroy() {
+		view.removeAll();
 
-    @Override
-    public void destroy() {
-        view.removeAll();
+		initialized.set(false);
+	}
 
-        initialized.set(false);
-    }
+	@Override
+	public boolean isInitialized() {
+		return initialized.get();
+	}
 
-    @Override
-    public boolean isInitialized() {
-        return initialized.get();
-    }
-
-    @Override
-    public @NotNull JPanel view() {
-        return view;
-    }
+	@Override
+	public @NotNull JPanel view() {
+		return view;
+	}
 }
