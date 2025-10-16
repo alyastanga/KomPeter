@@ -1,0 +1,1 @@
+SELECT * FROM suppliers WHERE suppliers._supplier_id = ?;
