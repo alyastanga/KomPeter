@@ -26,10 +26,6 @@ public class WelcomeAuthScreen implements Scene {
     private final JButton signInButton = new JButton("Sign In");
     private final JButton signUpButton = new JButton("Sign Up");
 
-    public WelcomeAuthScreen() {
-        onCreate();
-    }
-
     @Override
     public void onCreate() {
         view.setLayout(new MigLayout("", "[grow,center]", "[grow,bottom][grow,top]"));

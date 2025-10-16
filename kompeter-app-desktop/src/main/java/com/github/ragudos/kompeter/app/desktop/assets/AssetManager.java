@@ -7,7 +7,6 @@
 */
 package com.github.ragudos.kompeter.app.desktop.assets;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.ragudos.kompeter.utilities.cache.LRU;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.awt.Image;
@@ -21,20 +20,25 @@ public class AssetManager {
     private static final Logger LOGGER = KompeterLogger.getLogger(AssetManager.class);
 
     private static final LRU<String, Image> IMAGES = new LRU<>(50);
-    private static final LRU<String, FlatSVGIcon> icons = new LRU<>(50);
+    private static final LRU<String, SVGIconUIColor> icons = new LRU<>(50);
+    private static final String ICONS_BASE_PATH =
+            AssetManager.class.getPackageName().replace('.', '/');
 
-    private static FlatSVGIcon loadIcon(@NotNull final String path) {
-        return new FlatSVGIcon(AssetManager.class.getResource(path));
+    private static SVGIconUIColor loadIcon(
+            @NotNull final String path, float scale, @NotNull String colorKey) {
+        System.out.println(ICONS_BASE_PATH + "/icons/" + path);
+        return new SVGIconUIColor(ICONS_BASE_PATH + "/icons/" + path, scale, colorKey);
     }
 
-    public static FlatSVGIcon getOrLoadIcon(@NotNull final String path) {
-        var icon = icons.get(path);
+    public static SVGIconUIColor getOrLoadIcon(
+            @NotNull final String path, float scale, @NotNull String colorKey) {
+        var icon = icons.get(path + String.format("%s", scale) + colorKey);
 
         if (icon == null) {
-            icon = loadIcon(path);
+            icon = loadIcon(path, scale, colorKey);
         }
 
-        icons.update(path, icon);
+        icons.update(path + String.format("%s", scale) + colorKey, icon);
 
         return icon;
     }

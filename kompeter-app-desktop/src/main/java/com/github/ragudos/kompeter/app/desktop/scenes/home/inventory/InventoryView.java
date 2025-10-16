@@ -29,10 +29,6 @@ public class InventoryView extends JPanel implements Scene {
     private JPanel editPnl;
     private JLabel title;
 
-    public InventoryView() {
-        onCreate();
-    }
-
     @Override
     public void onCreate() {
         initialize();

@@ -16,10 +16,6 @@ public final class MonitoringOverviewScene implements Scene {
 
     private final JPanel view = new JPanel();
 
-    public MonitoringOverviewScene() {
-        onCreate();
-    }
-
     @Override
     public @NotNull String name() {
         return SCENE_NAME;

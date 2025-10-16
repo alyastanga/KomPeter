@@ -23,7 +23,9 @@ public class MainFrame extends JFrame {
     private class MainFrameWindowListener extends WindowAdapter {
         @Override
         public void windowClosing(WindowEvent e) {
-            // TODO: Cleanup operations
+            SceneNavigator.getInstance().destroy();
+
+            removeWindowListener(this);
             dispose();
         }
     }
@@ -46,7 +48,8 @@ public class MainFrame extends JFrame {
         sceneManager.registerScene(
                 MainAuthScene.SCENE_NAME, () -> new MainAuthScene(), MainAuthScene.SCENE_GUARD);
         sceneManager.registerScene(HomeScene.SCENE_NAME, () -> new HomeScene(), HomeScene.SCENE_GUARD);
-        sceneManager.navigateTo(MainAuthScene.SCENE_NAME);
+
+        sceneNavigator.navigateTo(MainAuthScene.SCENE_NAME);
 
         setPreferredSize(new Dimension(1280, 720));
         setSize(getPreferredSize());

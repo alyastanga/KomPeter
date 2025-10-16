@@ -5,7 +5,7 @@
 * (C) 2025
 *
 */
-package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.components;
+package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,8 +16,6 @@ public class ProductList implements SceneComponent {
     private final JPanel view = new JPanel();
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
-
-    public ProductList() {}
 
     @Override
     public void initialize() {

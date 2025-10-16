@@ -11,6 +11,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFactory;
 import com.github.ragudos.kompeter.app.desktop.listeners.ButtonSceneNavigationActionListener;
 import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener;
+import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener.EnterKeyCallback;
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
@@ -18,6 +19,7 @@ import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
 import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.BorderFactory;
@@ -33,9 +35,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class SignInAuthScene implements Scene {
     public static final String SCENE_NAME = "sign_in";
-
-    private final EnterKeyListener inputEnterKeyListener =
-            new EnterKeyListener(this::handleInputEnterKey);
 
     private final JPanel view = new JPanel();
 
@@ -53,37 +52,42 @@ public class SignInAuthScene implements Scene {
 
     private final AtomicBoolean busy = new AtomicBoolean(false);
 
-    public SignInAuthScene() {
-        onCreate();
-    }
+    private final EnterKeyListener inputEnterKeyListener =
+            new EnterKeyListener(
+                    new EnterKeyCallback() {
+                        @Override
+                        public void onPress(KeyEvent e) {
+                            if (busy.get()) {
+                                return;
+                            }
 
-    private void handleSubmit(ActionEvent e) {
-        signIn(true);
-    }
+                            Object source = e.getSource();
 
-    private void handleInputEnterKey(KeyEvent e) {
-        if (busy.get()) {
-            return;
-        }
-
-        Object source = e.getSource();
-
-        if (source.equals(emailInput) && validateEmail()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        emailInputError.setText("");
-                        emailInput.putClientProperty("JComponent.outline", null);
+                            if (source.equals(emailInput) && validateEmail()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            emailInputError.setText("");
+                                            emailInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignIn();
+                            } else if (source.equals(passwordInput) && validatePassword()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            passwordInputError.setText("");
+                                            passwordInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignIn();
+                            }
+                        }
                     });
-            goToNearestEmptyFieldOrSignIn();
-        } else if (source.equals(passwordInput) && validatePassword()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        passwordInputError.setText("");
-                        passwordInput.putClientProperty("JComponent.outline", null);
-                    });
-            goToNearestEmptyFieldOrSignIn();
-        }
-    }
+
+    private final ActionListener handleSubmitActionListener =
+            new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    signIn(true);
+                }
+            };
 
     private void goToNearestEmptyFieldOrSignIn() {
         JTextField nearestEmtpyField = getNearestEmptyField();
@@ -174,7 +178,7 @@ public class SignInAuthScene implements Scene {
     }
 
     private void clearInputs() {
-        emailInputError.setText("");
+        emailInput.setText("");
         passwordInput.setText("");
 
         clearErrors();
@@ -284,7 +288,7 @@ public class SignInAuthScene implements Scene {
         emailInput.addKeyListener(inputEnterKeyListener);
         passwordInput.addKeyListener(inputEnterKeyListener);
         createAccountButton.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
-        submitButton.addActionListener(this::handleSubmit);
+        submitButton.addActionListener(handleSubmitActionListener);
 
         emailInput.requestFocusInWindow();
     }
@@ -294,14 +298,14 @@ public class SignInAuthScene implements Scene {
         emailInput.removeKeyListener(inputEnterKeyListener);
         passwordInput.removeKeyListener(inputEnterKeyListener);
         createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
-        submitButton.removeActionListener(this::handleSubmit);
+        submitButton.removeActionListener(handleSubmitActionListener);
 
         clearInputs();
     }
 
     @Override
     public void onDestroy() {
-        submitButton.removeActionListener(this::handleSubmit);
+        submitButton.removeActionListener(handleSubmitActionListener);
         createAccountButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
 
         emailInput.removeKeyListener(inputEnterKeyListener);

@@ -16,10 +16,6 @@ public final class ProductListScene implements Scene {
 
     private final JPanel view = new JPanel();
 
-    public ProductListScene() {
-        onCreate();
-    }
-
     @Override
     public @NotNull String name() {
         return SCENE_NAME;

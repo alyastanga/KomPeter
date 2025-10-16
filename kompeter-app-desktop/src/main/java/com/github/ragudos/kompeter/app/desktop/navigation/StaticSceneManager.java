@@ -11,9 +11,12 @@ import com.github.ragudos.kompeter.utilities.cache.ObserverLRU;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.awt.CardLayout;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 
 public class StaticSceneManager implements SceneManager {
@@ -25,6 +28,8 @@ public class StaticSceneManager implements SceneManager {
 
     private JPanel view = new JPanel();
     private CardLayout cardLayout = new CardLayout();
+
+    private LookAndFeel oldLookAndFeel = UIManager.getLookAndFeel();
 
     public StaticSceneManager() {
         view.setLayout(cardLayout);
@@ -43,42 +48,32 @@ public class StaticSceneManager implements SceneManager {
     }
 
     private Scene loadOrCreateScene(
-            @NotNull final ParsedSceneName parsedSceneName, @NotNull final SceneEntry entry) {
-        String parentName = parsedSceneName.parentSceneName();
-        Scene parentScene = scene(parentName);
+            @NotNull ParsedSceneName parsedSceneName,
+            String currentName,
+            Iterator<String> iterator,
+            @NotNull final SceneEntry entry) {
+        Scene parentScene = scene(currentName);
 
         if (parentScene == null) {
             parentScene = entry.sceneFactory().createScene();
 
             if (parentScene == null) {
-                LOGGER.severe("Received null from factory: " + parentName);
+                LOGGER.severe("Received null from factory: " + currentName);
             }
 
-            if (!parentScene.name().equals(parentName)) {
-                LOGGER.severe("Scene names do not match " + parentName + "!=" + parentScene.name() + ".");
+            if (!parentScene.name().equals(currentName)) {
+                LOGGER.severe("Scene names do not match " + currentName + "!=" + parentScene.name() + ".");
             }
 
             parentScene = new SceneWrapper(parentScene);
 
             JPanel parentSceneView = parentScene.view();
 
-            view.add(parentSceneView, parentName);
-            cardLayout.addLayoutComponent(parentSceneView, parentName);
-
-            // Show scene's default sub scene if it is a parent of scenes
-            if (parsedSceneName.subSceneName() == null || parsedSceneName.subSceneName().isBlank()) {
-                if (parentScene.supportsSubScenes()) {
-                    final Scene copyOfParentScene = parentScene;
-
-                    SwingUtilities.invokeLater(
-                            () -> {
-                                ((SceneWithSubScenes) copyOfParentScene.self()).navigateToDefault();
-                            });
-                }
-            }
+            view.add(parentSceneView, currentName);
+            cardLayout.addLayoutComponent(parentSceneView, currentName);
         }
 
-        sceneCache.update(parentName, parentScene);
+        sceneCache.update(currentName, parentScene);
 
         return parentScene;
     }
@@ -188,14 +183,15 @@ public class StaticSceneManager implements SceneManager {
     ;
 
     @Override
-    public synchronized boolean navigateTo(@NotNull final String name) {
+    public synchronized boolean navigateTo(@NotNull final ParsedSceneName parsedSceneName) {
         throwIfWrongThread();
 
-        ParsedSceneName parsedSceneName = ParsedSceneName.parse(name);
+        Iterator<String> iterator = parsedSceneName.iterator();
+        String current = iterator.next();
 
-        if (!parsedSceneName.parentSceneName().equals(currentSceneName)) {
+        if (!current.equals(currentSceneName)) {
             Scene currentScene = currentScene();
-            SceneEntry sceneEntry = sceneEntriesCache.get(parsedSceneName.parentSceneName());
+            SceneEntry sceneEntry = sceneEntriesCache.get(current);
 
             if (sceneEntry == null || !sceneEntry.sceneGuard().canAccess()) {
                 return false;
@@ -207,7 +203,11 @@ public class StaticSceneManager implements SceneManager {
                 return false;
             }
 
-            Scene newScene = loadOrCreateScene(parsedSceneName, sceneEntry);
+            Scene newScene = loadOrCreateScene(parsedSceneName, current, iterator, sceneEntry);
+
+            if (oldLookAndFeel != UIManager.getLookAndFeel()) {
+                newScene.syncLookAndFeel();
+            }
 
             if (!newScene.canShow()) {
                 newScene.onCannotShow();
@@ -234,28 +234,29 @@ public class StaticSceneManager implements SceneManager {
             currentSceneName = newSceneName;
         }
 
-        if (parsedSceneName.subSceneName() != null && !parsedSceneName.subSceneName().isBlank()) {
-            // refresh just in case parent scene was swapped
-            Scene currentScene = currentScene();
+        // refresh just in case parent scene was swapped
+        Scene currentScene = currentScene();
 
-            if (!currentScene.supportsSubScenes()) {
-                return false;
-            }
-
-            SceneWithSubScenes subScene = (SceneWithSubScenes) currentScene.self();
-            SceneManager subSceneManager = subScene.sceneManager();
-
-            if (subSceneManager != null
-                    && subSceneManager.currentSceneName() != null
-                    && subSceneManager.currentSceneName().equals(parsedSceneName.subSceneName())) {
-                return false;
-            }
-
-            return subSceneManager.navigateTo(parsedSceneName.subSceneName());
+        if (!currentScene.supportsSubScenes()) {
+            return true;
         }
 
-        LOGGER.info("Navigated to: " + name);
-        return true;
+        if (!iterator.hasNext()) {
+            if (currentScene.supportsSubScenes()) {
+                SceneWithSubScenes scene = (SceneWithSubScenes) currentScene.self();
+                parsedSceneName.appendToFullPath(scene.getDefaultScene());
+            }
+        }
+
+        SceneWithSubScenes subScene = (SceneWithSubScenes) currentScene.self();
+        SceneManager subSceneManager = subScene.sceneManager();
+
+        return subSceneManager.navigateTo(
+                new ParsedSceneName(
+                        parsedSceneName
+                                .thisFullPath()
+                                .substring(parsedSceneName.thisFullPath().indexOf(ParsedSceneName.SEPARATOR) + 1),
+                        parsedSceneName));
     }
     ;
 }

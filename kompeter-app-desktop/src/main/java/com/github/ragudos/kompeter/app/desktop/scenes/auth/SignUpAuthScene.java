@@ -11,6 +11,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFactory;
 import com.github.ragudos.kompeter.app.desktop.listeners.ButtonSceneNavigationActionListener;
 import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener;
+import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener.EnterKeyCallback;
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
@@ -19,6 +20,7 @@ import com.github.ragudos.kompeter.utilities.constants.StringLimits;
 import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
 import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.BorderFactory;
@@ -37,8 +39,6 @@ public class SignUpAuthScene implements Scene {
     public static final String SCENE_NAME = "sign-up";
 
     private final JPanel view = new JPanel();
-
-    private EnterKeyListener inputKeyEnterListener = new EnterKeyListener(this::handleInputEnterKey);
 
     private final JTextField emailInput =
             TextFieldFactory.createTextField("Email", JTextField.CENTER);
@@ -70,61 +70,66 @@ public class SignUpAuthScene implements Scene {
 
     private final AtomicBoolean busy = new AtomicBoolean(false);
 
-    public SignUpAuthScene() {
-        onCreate();
-    }
+    private final ActionListener handleSubmitActionListener =
+            new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    signUp(true);
+                }
+            };
 
-    private void handleSubmit(ActionEvent ev) {
-        signUp(true);
-    }
+    private EnterKeyListener inputKeyEnterListener =
+            new EnterKeyListener(
+                    new EnterKeyCallback() {
+                        @Override
+                        public void onPress(KeyEvent e) {
+                            Object source = e.getSource();
 
-    private void handleInputEnterKey(KeyEvent e) {
-        Object source = e.getSource();
-
-        if (source.equals(emailInput) && validateEmail()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        emailInputError.setText("");
-                        emailInput.putClientProperty("JComponent.outline", null);
+                            if (source.equals(emailInput) && validateEmail()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            emailInputError.setText("");
+                                            emailInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignUp();
+                            } else if (source.equals(displayNameInput) && validateDisplayName()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            displayNameInputError.setText("");
+                                            displayNameInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignUp();
+                            } else if (source.equals(firstNameInput) && validateFirstName()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            firstNameInputError.setText("");
+                                            firstNameInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignUp();
+                            } else if (source.equals(lastNameInput) && validateLastName()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            lastNameInputError.setText("");
+                                            lastNameInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignUp();
+                            } else if (source.equals(passwordInput) && validatePassword()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            passwordInputError.setText("");
+                                            passwordInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignUp();
+                            } else if (source.equals(confirmPasswordInput)) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            confirmPasswordInputError.setText("");
+                                            confirmPasswordInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignUp();
+                            }
+                        }
                     });
-            goToNearestEmptyFieldOrSignUp();
-        } else if (source.equals(displayNameInput) && validateDisplayName()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        displayNameInputError.setText("");
-                        displayNameInput.putClientProperty("JComponent.outline", null);
-                    });
-            goToNearestEmptyFieldOrSignUp();
-        } else if (source.equals(firstNameInput) && validateFirstName()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        firstNameInputError.setText("");
-                        firstNameInput.putClientProperty("JComponent.outline", null);
-                    });
-            goToNearestEmptyFieldOrSignUp();
-        } else if (source.equals(lastNameInput) && validateLastName()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        lastNameInputError.setText("");
-                        lastNameInput.putClientProperty("JComponent.outline", null);
-                    });
-            goToNearestEmptyFieldOrSignUp();
-        } else if (source.equals(passwordInput) && validatePassword()) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        passwordInputError.setText("");
-                        passwordInput.putClientProperty("JComponent.outline", null);
-                    });
-            goToNearestEmptyFieldOrSignUp();
-        } else if (source.equals(confirmPasswordInput)) {
-            SwingUtilities.invokeLater(
-                    () -> {
-                        confirmPasswordInputError.setText("");
-                        confirmPasswordInput.putClientProperty("JComponent.outline", null);
-                    });
-            goToNearestEmptyFieldOrSignUp();
-        }
-    }
 
     private void goToNearestEmptyFieldOrSignUp() {
         JTextField nearestEmtpyField = getNearestEmptyField();
@@ -453,7 +458,7 @@ public class SignUpAuthScene implements Scene {
         lastNameInput.addKeyListener(inputKeyEnterListener);
         passwordInput.addKeyListener(inputKeyEnterListener);
         confirmPasswordInput.addKeyListener(inputKeyEnterListener);
-        submitButton.addActionListener(this::handleSubmit);
+        submitButton.addActionListener(handleSubmitActionListener);
         navigateToLoginButton.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
     }
 
@@ -467,13 +472,13 @@ public class SignUpAuthScene implements Scene {
         lastNameInput.removeKeyListener(inputKeyEnterListener);
         passwordInput.removeKeyListener(inputKeyEnterListener);
         confirmPasswordInput.removeKeyListener(inputKeyEnterListener);
-        submitButton.removeActionListener(this::handleSubmit);
+        submitButton.removeActionListener(handleSubmitActionListener);
         navigateToLoginButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
     }
 
     @Override
     public void onDestroy() {
-        submitButton.removeActionListener(this::handleSubmit);
+        submitButton.removeActionListener(handleSubmitActionListener);
         navigateToLoginButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
 
         firstNameInput.removeKeyListener(inputKeyEnterListener);

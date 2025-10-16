@@ -14,6 +14,7 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,24 +29,21 @@ public final class MainSettingsScene implements Scene {
     private final JButton logoutButton =
             ButtonFactory.createButton("Sign out", "logout.svg", "", "ghost");
 
-    public MainSettingsScene() {
-        onCreate();
-    }
-
-    private void logout(ActionEvent e) {
-        try {
-            // Authentication.signOut();
-            SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
-        } /*
-             * catch (AuthenticationException e1) {
-             * SwingUtilities.invokeLater(() -> {
-             * JOptionPane.showMessageDialog(view, e1.getMessage(), "Failed to logout",
-             * JOptionPane.ERROR_MESSAGE);
-             * });
-             * }
-             */ finally {
-        }
-    }
+    private final ActionListener logoutActionListener =
+            new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        // Authentication.signOut();
+                        SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
+                    } /*
+                         * catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
+                         * JOptionPane.showMessageDialog(view, e1.getMessage(), "Failed to logout",
+                         * JOptionPane.ERROR_MESSAGE); }); }
+                         */ finally {
+                    }
+                }
+            };
 
     @Override
     public @NotNull String name() {
@@ -87,16 +85,17 @@ public final class MainSettingsScene implements Scene {
 
     @Override
     public void onShow() {
-        logoutButton.addActionListener(this::logout);
+        logoutButton.addActionListener(logoutActionListener);
     }
 
     @Override
     public void onHide() {
-        logoutButton.removeActionListener(this::logout);
+        logoutButton.removeActionListener(logoutActionListener);
     }
 
     @Override
     public void onDestroy() {
+        logoutButton.removeActionListener(logoutActionListener);
         view.removeAll();
     }
 }

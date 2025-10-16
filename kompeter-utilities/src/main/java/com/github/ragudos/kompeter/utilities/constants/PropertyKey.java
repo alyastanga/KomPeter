@@ -25,6 +25,11 @@ public final class PropertyKey {
         public static final String UID = "session.uid";
     }
 
+    public static final class Search {
+        public static final String RECENT_FAVORITE = "search.recent.favorite";
+        public static final String RECENT = "search.recent.default";
+    }
+
     private PropertyKey() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }

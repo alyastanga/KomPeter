@@ -7,11 +7,10 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home.profile;
 
+import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
-import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.profile.scenes.EditProfileScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.profile.scenes.ReadProfileScene;
 import javax.swing.JPanel;
@@ -24,10 +23,6 @@ public class ProfileScene implements SceneWithSubScenes {
     private final JPanel view = new JPanel();
 
     private final SceneManager sceneManager = new StaticSceneManager();
-
-    public ProfileScene() {
-        onCreate();
-    }
 
     @Override
     public @NotNull String name() {
@@ -50,13 +45,13 @@ public class ProfileScene implements SceneWithSubScenes {
     }
 
     @Override
-    public boolean navigateTo(@NotNull String name) {
-        return sceneManager.navigateTo(name);
+    public boolean navigateTo(@NotNull ParsedSceneName parsedSceneName) {
+        return sceneManager.navigateTo(parsedSceneName);
     }
 
     @Override
-    public void navigateToDefault() {
-        SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.ProfileScenes.READ_PROFILE_SCENE);
+    public String getDefaultScene() {
+        return ReadProfileScene.SCENE_NAME;
     }
 
     @Override

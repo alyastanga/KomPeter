@@ -14,6 +14,8 @@ public class SceneWrapper implements Scene {
 
     public SceneWrapper(Scene scene) {
         this.scene = scene;
+
+        onCreate();
     }
 
     @Override
@@ -144,6 +146,17 @@ public class SceneWrapper implements Scene {
         }
 
         scene.onShow();
+    }
+
+    @Override
+    public void syncLookAndFeel() {
+        Scene currSubScene = getCurrentSubScene();
+
+        if (currSubScene != null) {
+            currSubScene.syncLookAndFeel();
+        }
+
+        scene.syncLookAndFeel();
     }
 
     @Override

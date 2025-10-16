@@ -10,9 +10,9 @@ package com.github.ragudos.kompeter.app.desktop.navigation;
 import org.jetbrains.annotations.NotNull;
 
 public interface SceneWithSubScenes extends Scene {
-    boolean navigateTo(@NotNull String name);
+    boolean navigateTo(@NotNull ParsedSceneName parsedSceneName);
 
-    void navigateToDefault();
+    String getDefaultScene();
 
     SceneManager sceneManager();
 
