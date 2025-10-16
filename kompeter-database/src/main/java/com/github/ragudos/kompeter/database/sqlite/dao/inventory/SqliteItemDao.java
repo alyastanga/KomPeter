@@ -71,4 +71,27 @@ public class SqliteItemDao implements ItemDao {
         }
         return items;
     }
+
+    @Override
+    public void deleteItemById(int id) throws SQLException, IOException {
+        var query = 
+                SqliteQueryLoader.getInstance().get("delete_item_by_id", "items", SqlQueryType.DELETE);
+        try(var stmt= conn.prepareStatement(query);){
+            stmt.setInt(1, id);
+            var resUpdate = stmt.executeUpdate();
+            
+        }
+    }
+
+    @Override
+    public void insertItem(String name, String description) throws SQLException, IOException {
+        var query=
+                SqliteQueryLoader.getInstance().get("insert_item", "items", SqlQueryType.INSERT);
+        try(var stmt = conn.prepareStatement(query);){
+            stmt.setString(1, name);
+            stmt.setString(2, description);
+            
+            var resUpdate = stmt.executeUpdate();
+        }
+    }
 }
