@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.inventory;
 
+import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao.Direction;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
@@ -18,30 +19,26 @@ public interface Inventory {
     // required methods
     List<InventoryMetadataDto> showInventoryItems(); // show inventory metadata
 
-    void deleteItem(); // delete item in items table
+    void deleteItem(int id); // delete item in items table
 
-    void updateItem(); // editing item
+    void updateItem(int id); // editing item
 
-    void searchItem(); // search
+    List<InventoryMetadataDto> searchItem(String search); // search
 
     void refresh(); // refresh trigger
 
     // sorting methods
-    List<InventoryMetadataDto> sortByDateAdded(); // sort by date
+    List<InventoryMetadataDto> sortByDateAdded(@Nullable Direction direction); // sort by date
 
-    List<InventoryMetadataDto> sortAlphabetically(); // sort by names
+    List<InventoryMetadataDto> sortByName(); // sort by names
 
     List<InventoryMetadataDto> sortByCategory(); // sort by category
 
-    List<InventoryMetadataDto> sortByItemId(); // sort by item id
+    List<InventoryMetadataDto> sortByPrice(@Nullable Direction direction); 
 
-    List<InventoryMetadataDto> sortByAscPrice(); // min to max
+    List<InventoryMetadataDto> sortByQuantity(@Nullable Direction direction);
 
-    List<InventoryMetadataDto> sortByDescPrice(); // max to min
 
-    List<InventoryMetadataDto> sortByAscQuantity();
-
-    List<InventoryMetadataDto> sortByDescQuantity();
 
     // Create: adding methods
     void addItem(String name, @Nullable String description); // items table only
@@ -63,9 +60,8 @@ public interface Inventory {
     void addPurchaseItem(
             int supplierId,
             Timestamp purchaseDate,
-            String code,
             @Nullable Timestamp deliveryDate,
-            double vat,
+            float vat,
             double discVal,
             DiscountType discType);
 
