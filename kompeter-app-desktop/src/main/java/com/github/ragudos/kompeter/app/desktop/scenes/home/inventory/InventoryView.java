@@ -1,7 +1,13 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.scenes.home.inventory;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
-import com.github.ragudos.kompeter.utilities.helper.Palette;
 import java.awt.Font;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -34,7 +40,6 @@ public class InventoryView extends JPanel implements Scene {
 
     public void initialize() {
         setLayout(new MigLayout("", "[grow]", "[100]10[grow]"));
-        setBackground(Palette.BACKGROUND_COLOR);
         add(header(), "cell 0 0, grow");
         add(content(), "cell 0 1, grow");
     }
@@ -42,7 +47,6 @@ public class InventoryView extends JPanel implements Scene {
     private JPanel content() {
         content = new JPanel();
         content.setLayout(new MigLayout("insets 10", "grow", ""));
-        content.setBackground(Palette.WHITE);
         tableScrollPane = new JScrollPane(table());
         content.add(tableScrollPane, "cell 0 0, grow");
         return content;

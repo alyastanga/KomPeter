@@ -1,11 +1,18 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.inventory;
 
-import com.github.ragudos.kompeter.database.dao.InventoryDao;
-import com.github.ragudos.kompeter.database.dto.InventoryMetadataDto;
+import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteInventoryDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemDao;
+import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -145,7 +152,7 @@ public class InventoryService implements Inventory {
     @Override
     public List<InventoryMetadataDto> sortByDateAdded() {
         try {
-            return sqliteInventoryDao.getAllData(null, InventoryDao.OrderBy.DATE_ADDED, null);
+            return sqliteInventoryDao.getAllData(null, InventoryDao.OrderBy.DATE, null);
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (IOException e) {

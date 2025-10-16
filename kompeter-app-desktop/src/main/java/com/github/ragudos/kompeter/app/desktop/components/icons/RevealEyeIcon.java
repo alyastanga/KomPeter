@@ -1,9 +1,17 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components.icons;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter;
 import com.formdev.flatlaf.util.AnimatedIcon;
 import com.formdev.flatlaf.util.UIScale;
+import com.github.ragudos.kompeter.app.desktop.assets.AssetManager;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -19,7 +27,7 @@ public class RevealEyeIcon implements AnimatedIcon {
     private final int space;
 
     public RevealEyeIcon() {
-        this(new FlatSVGIcon("com/github/ragudos/kompeter/app/desktop/assets/icons/eye.svg", 0.75f), 3);
+        this(new FlatSVGIcon(AssetManager.class.getResource("icons/eye.svg")), 3);
     }
 
     public RevealEyeIcon(@NotNull FlatSVGIcon icon, int space) {

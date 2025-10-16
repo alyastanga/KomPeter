@@ -1,6 +1,13 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.auth;
 
-import com.github.ragudos.kompeter.database.dto.UserMetadataDto;
+import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;

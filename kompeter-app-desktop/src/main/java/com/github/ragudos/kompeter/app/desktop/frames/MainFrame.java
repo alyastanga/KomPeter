@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.frames;
 
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
@@ -6,11 +13,11 @@ import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.auth.MainAuthScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.HomeScene;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
-import net.miginfocom.swing.MigLayout;
 
 public class MainFrame extends JFrame {
     private class MainFrameWindowListener extends WindowAdapter {
@@ -32,8 +39,8 @@ public class MainFrame extends JFrame {
         SceneManager sceneManager = new StaticSceneManager();
         SceneNavigator sceneNavigator = SceneNavigator.getInstance();
 
-        setLayout(new MigLayout("insets 0", "[grow,center]", "[grow,center]"));
-        add(sceneManager.view(), "grow");
+        setLayout(new BorderLayout());
+        add(sceneManager.view(), BorderLayout.CENTER);
 
         sceneNavigator.initialize(sceneManager);
         sceneManager.registerScene(

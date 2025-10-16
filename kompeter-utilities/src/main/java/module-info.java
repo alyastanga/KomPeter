@@ -4,7 +4,6 @@ module kompeter.utilities {
     requires static org.jetbrains.annotations;
 
     exports com.github.ragudos.kompeter.utilities;
-    exports com.github.ragudos.kompeter.utilities.helper;
     exports com.github.ragudos.kompeter.utilities.logger;
     exports com.github.ragudos.kompeter.utilities.validator;
     exports com.github.ragudos.kompeter.utilities.io;
