@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.app.desktop.navigation;
 
+import java.awt.CardLayout;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,7 +71,7 @@ public interface SceneManager {
      *               <li>Retrieves the view from the {@link Scene} and adds it to the root container
      *                   and {@link CardLayout} manager.
      *               <li>If the {@link Scene} is a {@link SubSceneSupport}, then it calls the {@link
-     *                   SubSceneSupport#navigateToDefault()} method.
+     *                   SubSceneSupport#getDefaultScene()} method.
      *               <li>Updates the cache with the {@link Scene} using the parent scene name.
      *             </ul>
      *       </ul>
@@ -84,7 +85,7 @@ public interface SceneManager {
      *
      * @param sceneName
      */
-    boolean navigateTo(@NotNull final String name);
+    boolean navigateTo(@NotNull final ParsedSceneName parsedSceneName);
 
     void registerScene(@NotNull final String name, @NotNull final SceneFactory factory);
 

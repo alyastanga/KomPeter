@@ -45,6 +45,7 @@ import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteSessionDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserRoleDao;
 import com.github.ragudos.kompeter.utilities.constants.Directories;
+import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.File;
@@ -60,7 +61,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     private static SqliteFactoryDao instance = null;
 
     public static final String MAIN_DB_FILE_NAME =
-            Directories.SQLITE_DIRECTORY + File.separator + "main.db";
+            Directories.SQLITE_DIRECTORY + File.separator + "main-" + Metadata.APP_ENV + ".db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
 
     public static final int POOL_CONNECTION_COUNT = 1;
@@ -139,12 +140,12 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull ItemBrandDao getItemBrandDao() {
-        return new SqliteItemBrandDao();
+        return new SqliteItemBrandDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
     public @NotNull ItemCategoryAssignmentDao getItemCategoryAssignmentDao() {
-        return new SqliteItemCategoryAssignmentDao();
+        return new SqliteItemCategoryAssignmentDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
@@ -154,27 +155,27 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull ItemRestockDao getItemRestockDao() {
-        return new SqliteItemRestockDao();
+        return new SqliteItemRestockDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
     public @NotNull ItemStockDao getItemStockDao() {
-        return new SqliteItemStockDao();
+        return new SqliteItemStockDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
     public @NotNull PurchaseDao getPurchaseDao() {
-        return new SqlitePurchaseDao();
+        return new SqlitePurchaseDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
     public @NotNull PurchaseItemStockDao getPurchaseItemStockDao() {
-        return new SqlitePurchaseItemStockDao();
+        return new SqlitePurchaseItemStockDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
     public @NotNull PurchasePaymentDao getPurchasePaymentDao() {
-        return new SqlitePurchasePaymentDao();
+        return new SqlitePurchasePaymentDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override
@@ -199,7 +200,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull SupplierDao getSupplierDao() {
-        return new SqliteSupplierDao();
+        return new SqliteSupplierDao(SqliteFactoryDao.getInstance().getConnection());
     }
 
     @Override

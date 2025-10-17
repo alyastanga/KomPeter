@@ -7,14 +7,14 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home;
 
+import com.github.ragudos.kompeter.app.desktop.components.MainFooter;
 import com.github.ragudos.kompeter.app.desktop.components.MainHeader;
 import com.github.ragudos.kompeter.app.desktop.components.MainSidebar;
+import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneGuard;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
-import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.inventory.InventoryScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.monitoring.MonitoringScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.PointOfSaleScene;
@@ -40,23 +40,16 @@ public class HomeScene implements SceneWithSubScenes {
 
     private final SceneManager sceneManager = new StaticSceneManager();
 
-    private final JPanel view = new JPanel();
+    private final JPanel view = new JPanel(new MigLayout("insets 9", "[grow, fill]", "[grow, fill]"));
     private final MainHeader mainHeader = new MainHeader();
     private final MainSidebar mainSidebar = new MainSidebar();
-
-    public HomeScene() {
-        onCreate();
-    }
+    private final MainFooter mainFooter = new MainFooter();
 
     private void registerDynamicScenes() {
         Session session = SessionManager.getInstance().session();
 
         // testing purposes (no sign in yet)
         if (session == null) {
-            sceneManager.unregisterScene(PointOfSaleScene.SCENE_NAME);
-            sceneManager.unregisterScene(MonitoringScene.SCENE_NAME);
-            sceneManager.unregisterScene(InventoryScene.SCENE_NAME);
-
             sceneManager.registerScene(
                     PointOfSaleScene.SCENE_NAME, () -> new PointOfSaleScene(), PointOfSaleScene.SCENE_GUARD);
             sceneManager.registerScene(MonitoringScene.SCENE_NAME, () -> new MonitoringScene());
@@ -68,29 +61,24 @@ public class HomeScene implements SceneWithSubScenes {
         if (session.user().isPurchasingOfficer()
                 || session.user().isLogistics()
                 || session.user().isAdmin()) {
-            sceneManager.unregisterScene(PointOfSaleScene.SCENE_NAME);
-
             sceneManager.registerScene(MonitoringScene.SCENE_NAME, () -> new MonitoringScene());
             sceneManager.registerScene(InventoryScene.SCENE_NAME, () -> new InventoryScene());
         }
 
         if (session.user().isClerk() || session.user().isAdmin()) {
-            sceneManager.unregisterScene(MonitoringScene.SCENE_NAME);
-            sceneManager.unregisterScene(InventoryScene.SCENE_NAME);
-
             sceneManager.registerScene(
                     PointOfSaleScene.SCENE_NAME, () -> new PointOfSaleScene(), PointOfSaleScene.SCENE_GUARD);
         }
     }
 
     @Override
-    public boolean navigateTo(@NotNull String name) {
-        return sceneManager.navigateTo(name);
+    public boolean navigateTo(@NotNull ParsedSceneName parsedSceneName) {
+        return sceneManager.navigateTo(parsedSceneName);
     }
 
     @Override
-    public void navigateToDefault() {
-        SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.ProfileScenes.PROFILE_SCENE);
+    public String getDefaultScene() {
+        return ProfileScene.SCENE_NAME;
     }
 
     @Override
@@ -110,23 +98,20 @@ public class HomeScene implements SceneWithSubScenes {
 
     @Override
     public void onCreate() {
-        view.setLayout(new MigLayout("insets 9", "[grow]", "[grow]"));
-
-        view.add(mainHeader.view(), "grow,dock north");
+        view.add(mainHeader.view(), "grow, dock north");
+        view.add(mainFooter.view(), "grow, dock south");
         view.add(mainSidebar.view(), "grow, dock west");
         view.add(sceneManager.view(), "grow");
-
-        mainSidebar.initialize();
-        mainHeader.initialize();
-
-        sceneManager.registerScene(ProfileScene.SCENE_NAME, () -> new ProfileScene());
-        sceneManager.registerScene(SettingsScene.SCENE_NAME, () -> new SettingsScene());
     }
 
     @Override
     public void onShow() {
         mainSidebar.initialize();
         mainHeader.initialize();
+        mainFooter.initialize();
+
+        sceneManager.registerScene(ProfileScene.SCENE_NAME, () -> new ProfileScene());
+        sceneManager.registerScene(SettingsScene.SCENE_NAME, () -> new SettingsScene());
 
         registerDynamicScenes();
     }
@@ -135,5 +120,18 @@ public class HomeScene implements SceneWithSubScenes {
     public void onHide() {
         mainHeader.destroy();
         mainSidebar.destroy();
+        mainFooter.destroy();
+
+        // destroy because if we navigate away from home, means we are going to auth
+        sceneManager.destroy();
+    }
+
+    @Override
+    public void onDestroy() {
+        mainHeader.destroy();
+        mainSidebar.destroy();
+        mainFooter.destroy();
+
+        sceneManager.destroy();
     }
 }

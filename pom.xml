@@ -31,6 +31,9 @@
             <properties>
                 <env>production</env>
             </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
         </profile>
     </profiles>
 

@@ -7,12 +7,11 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home.inventory;
 
+import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneGuard;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
-import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.inventory.scenes.ProductListScene;
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
@@ -22,6 +21,7 @@ public class InventoryScene implements SceneWithSubScenes {
     public static final String SCENE_NAME = "inventory";
     public static final SceneGuard SCENE_GUARD =
             new SceneGuard() {
+                @Override
                 public boolean canAccess() {
                     // Session session = SessionManager.getInstance().session();
 
@@ -35,10 +35,6 @@ public class InventoryScene implements SceneWithSubScenes {
     private final JPanel view = new JPanel();
 
     private final SceneManager sceneManager = new StaticSceneManager();
-
-    public InventoryScene() {
-        onCreate();
-    }
 
     @Override
     public @NotNull String name() {
@@ -60,14 +56,13 @@ public class InventoryScene implements SceneWithSubScenes {
     }
 
     @Override
-    public void navigateToDefault() {
-        SceneNavigator.getInstance()
-                .navigateTo(SceneNames.HomeScenes.InventoryScenes.PRODUCT_LIST_SCENE);
+    public String getDefaultScene() {
+        return ProductListScene.SCENE_NAME;
     }
 
     @Override
-    public boolean navigateTo(@NotNull String name) {
-        return sceneManager.navigateTo(name);
+    public boolean navigateTo(@NotNull ParsedSceneName parsedSceneName) {
+        return sceneManager.navigateTo(parsedSceneName);
     }
 
     @Override

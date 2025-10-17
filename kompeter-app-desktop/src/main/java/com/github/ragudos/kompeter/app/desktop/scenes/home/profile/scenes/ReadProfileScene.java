@@ -16,10 +16,6 @@ public final class ReadProfileScene implements Scene {
 
     private final JPanel view = new JPanel();
 
-    public ReadProfileScene() {
-        onCreate();
-    }
-
     @Override
     public @NotNull String name() {
         return SCENE_NAME;

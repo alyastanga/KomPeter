@@ -7,11 +7,10 @@
 */
 package com.github.ragudos.kompeter.app.desktop.components.icons;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter;
 import com.formdev.flatlaf.util.AnimatedIcon;
 import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetManager;
+import com.github.ragudos.kompeter.app.desktop.assets.SVGIconUIColor;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -23,14 +22,14 @@ import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
 
 public class RevealEyeIcon implements AnimatedIcon {
-    private final @NotNull FlatSVGIcon icon;
+    private final @NotNull SVGIconUIColor icon;
     private final int space;
 
     public RevealEyeIcon() {
-        this(new FlatSVGIcon(AssetManager.class.getResource("icons/eye.svg")), 3);
+        this(AssetManager.getOrLoadIcon("eye.svg", 0.75f, "TextField.placeholderForeground"), 5);
     }
 
-    public RevealEyeIcon(@NotNull FlatSVGIcon icon, int space) {
+    public RevealEyeIcon(@NotNull SVGIconUIColor icon, int space) {
         this.icon = icon;
         this.space = space;
     }
@@ -51,8 +50,6 @@ public class RevealEyeIcon implements AnimatedIcon {
         int s = UIScale.scale(space);
 
         icon.paintIcon(c, g2, x, y);
-
-        icon.setColorFilter(new ColorFilter((color) -> c.getForeground()));
 
         if (animatedValue > 0) {
             float startX = x + s;

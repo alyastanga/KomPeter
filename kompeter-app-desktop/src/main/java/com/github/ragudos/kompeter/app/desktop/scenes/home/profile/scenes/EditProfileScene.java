@@ -16,10 +16,6 @@ public final class EditProfileScene implements Scene {
 
     private final JPanel view = new JPanel();
 
-    public EditProfileScene() {
-        onCreate();
-    }
-
     @Override
     public @NotNull String name() {
         return SCENE_NAME;

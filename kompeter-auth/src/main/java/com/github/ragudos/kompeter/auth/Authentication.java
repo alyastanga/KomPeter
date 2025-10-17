@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -165,7 +166,8 @@ public final class Authentication {
             conn.setAutoCommit(false);
 
             try {
-                int _sessionId = sessionDao.createSession(conn, userDto._userId());
+                int _sessionId =
+                        sessionDao.createSession(conn, userDto._userId(), UUID.randomUUID().toString());
 
                 if (_sessionId == -1) {
                     throw new AuthenticationException(AuthenticationErrors.SOMETHING_WENT_WRONG);
@@ -173,6 +175,8 @@ public final class Authentication {
 
                 SessionDto sessionDto =
                         sessionDao.getSessionById(conn, _sessionId).orElseThrow(AuthenticationException::new);
+
+                System.out.println("\n\n\t " + sessionDto.expiresAt().toString() + " \n\n");
 
                 UserMetadataDto userMetadataDto =
                         new UserMetadataDto(

@@ -20,13 +20,13 @@ INSERT INTO users (_user_id, display_name, first_name, last_name) VALUES
 (4, 'Aaron', 'Aaron', 'Cruz'),
 (5, 'Kurt', 'Kurt', 'Cobain');
 
--- Accounts (5 rows)
+-- Accounts (5 rows) Admin@123
 INSERT INTO accounts (_account_id, _user_id, password_hash, password_salt, email) VALUES
-(1, 1, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'peter.admin@example.com'),
-(2, 2, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'hanz.manager@example.com'),
-(3, 3, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'jerick.cashier@example.com'),
-(4, 4, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'aaron.clerk@example.com'),
-(5, 5, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'kurt.auditor@example.com');
+(1, 1, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'peter.admin@example.com'),
+(2, 2, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'hanz.manager@example.com'),
+(3, 3, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'jerick.cashier@example.com'),
+(4, 4, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'aaron.clerk@example.com'),
+(5, 5, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'kurt.auditor@example.com');
 
 -- User Roles (5 rows)
 INSERT INTO user_roles (_user_role_id, _user_id, _role_id) VALUES
@@ -36,18 +36,11 @@ INSERT INTO user_roles (_user_role_id, _user_id, _role_id) VALUES
 (4, 4, 4), 
 (5, 5, 5); 
 
--- Sessions (4 rows)
-INSERT INTO sessions (_user_id, session_token, ip_address) VALUES
-(1, 'token-peter-admin-001', '192.168.1.10'),
-(2, 'token-hanz-manager-002', '192.168.1.11'),
-(3, 'token-jerick-cashier-003', '10.0.0.5'),
-(4, 'token-aaron-clerk-004', '10.0.0.6');
-
 -- ===============================================
 -- 2. INVENTORY SETUP & STORAGE (70 Items, 10 Brands, 4 Locations)
 -- ===============================================
 
--- Storage Locations (4 rows - NEW TABLE)
+-- Storage Locations (4 rows)
 INSERT INTO storage_locations (_storage_location_id, name, description) VALUES
 (1, 'Kompeter Display Floor', 'High visibility area for quick sales items.'),
 (2, 'Warehouse A', 'PC components - Primary storage for large components and bulk items.'),
@@ -168,7 +161,6 @@ INSERT INTO item_stock_storage_locations (_item_stock_storage_location_id, _item
 (99, 60, 1, 80), (100, 60, 2, 40), (101, 61, 1, 70), (102, 61, 2, 40), (103, 62, 1, 200), (104, 62, 2, 100), (105, 63, 1, 100), (106, 63, 2, 50), 
 (107, 64, 1, 75), (108, 64, 2, 25), (109, 65, 1, 20), (110, 65, 2, 30), (111, 66, 1, 15), (112, 66, 2, 25), (113, 67, 1, 40), (114, 67, 2, 20), 
 (115, 68, 1, 50), (116, 68, 2, 20), (117, 69, 1, 60), (118, 69, 2, 30), (119, 70, 1, 25), (120, 70, 3, 25);
-
 
 -- Item Restocks (4 rows - Initial stock added)
 INSERT INTO item_restocks (_item_restock_id, _item_stock_id, quantity_before, quantity_after, quantity_added) VALUES

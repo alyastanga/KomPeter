@@ -23,20 +23,28 @@ import org.jetbrains.annotations.Range;
 
 public class SqliteSessionDao implements SessionDao {
     @Override
-    public int createSession(@NotNull Connection conn, @Range(from = 0, to = 2147483647) int _userId)
+    public int createSession(
+            @NotNull Connection conn,
+            @Range(from = 0, to = 2147483647) int _userId,
+            @NotNull String sessionToken)
             throws SQLException, IOException {
-        return createSession(conn, _userId, null);
+        return createSession(conn, _userId, sessionToken, null);
     }
 
     @Override
     public int createSession(
-            @NotNull Connection conn, @Range(from = 0, to = 2147483647) int _userId, String ipAddress)
+            @NotNull Connection conn,
+            @Range(from = 0, to = 2147483647) int _userId,
+            @NotNull String sessionToken,
+            String ipAddress)
             throws SQLException, IOException {
         try (PreparedStatement stmnt =
                 conn.prepareStatement(
                         SqliteQueryLoader.getInstance().get("create_session", "sessions", SqlQueryType.INSERT),
                         Statement.RETURN_GENERATED_KEYS)) {
             stmnt.setInt(1, _userId);
+            stmnt.setString(2, sessionToken);
+            stmnt.setString(3, ipAddress);
 
             stmnt.executeUpdate();
 

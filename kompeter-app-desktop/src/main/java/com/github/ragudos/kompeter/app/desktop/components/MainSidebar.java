@@ -9,13 +9,16 @@ package com.github.ragudos.kompeter.app.desktop.components;
 
 import com.github.ragudos.kompeter.app.desktop.components.factory.ButtonFactory;
 import com.github.ragudos.kompeter.app.desktop.listeners.ButtonSceneNavigationActionListener;
+import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.app.desktop.utilities.KompeterSwingUtilities;
 import com.github.ragudos.kompeter.auth.Session;
 import com.github.ragudos.kompeter.auth.SessionManager;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -29,20 +32,31 @@ public class MainSidebar implements SceneComponent {
 
     private ButtonGroup buttonGroup = new ButtonGroup();
     private final HashMap<String, JButton> buttons = new HashMap<>();
+    private final Consumer<String> navigationListenerClass =
+            new Consumer<String>() {
+                @Override
+                public void accept(String sceneName) {
+                    int firstSeparatorOccurence = sceneName.indexOf(ParsedSceneName.SEPARATOR);
+                    int secondSeparatorOcurrence =
+                            sceneName.indexOf(ParsedSceneName.SEPARATOR, firstSeparatorOccurence + 1);
+
+                    JButton pressedButton =
+                            buttons.get(
+                                    secondSeparatorOcurrence == -1
+                                            ? sceneName
+                                            : sceneName.subSequence(0, secondSeparatorOcurrence));
+
+                    if (pressedButton == null) {
+                        return;
+                    }
+
+                    buttonGroup.setSelected(pressedButton.getModel(), true);
+                    pressedButton.requestFocusInWindow();
+                }
+            };
 
     public MainSidebar() {
         view = new JPanel();
-    }
-
-    private void navigationListener(final @NotNull String sceneName) {
-        JButton pressedButton = buttons.get(sceneName);
-
-        if (pressedButton == null) {
-            return;
-        }
-
-        buttonGroup.setSelected(pressedButton.getModel(), true);
-        pressedButton.requestFocusInWindow();
     }
 
     private void createLogisticsOfficerSidebar() {
@@ -129,11 +143,9 @@ public class MainSidebar implements SceneComponent {
             return;
         }
 
-        SceneNavigator.getInstance().unsubscribe(this::navigationListener);
-        buttons
-                .values()
-                .forEach(
-                        (button) -> button.removeActionListener(ButtonSceneNavigationActionListener.LISTENER));
+        SceneNavigator.getInstance().unsubscribe(navigationListenerClass);
+        buttonGroup.clearSelection();
+        buttons.values().forEach((button) -> KompeterSwingUtilities.removeAllListeners(button));
         buttons.clear();
         buttonGroup = new ButtonGroup();
         view.removeAll();
@@ -146,7 +158,7 @@ public class MainSidebar implements SceneComponent {
             return;
         }
 
-        SceneNavigator.getInstance().subscribe(this::navigationListener);
+        SceneNavigator.getInstance().subscribe(navigationListenerClass);
 
         view.setLayout(new MigLayout("insets 9, fillx, flowy", "[grow, center]", "[top]"));
 

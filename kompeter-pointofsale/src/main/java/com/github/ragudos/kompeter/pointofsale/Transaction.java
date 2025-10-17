@@ -33,7 +33,7 @@ class Transaction {
         this.saleDao = saleDao;
         this.TransID = ++transCounter;
         this.TimeStamp = LocalDateTime.now();
-        for (CartItem item : cart.cI) {
+        for (CartItem item : cart.items) {
             CartItem copy = new CartItem(item.productID(), item.productName(), item.qty(), item.price());
             cartItems.add(copy);
         } /// Copies all the transaction and stores in a differnt array

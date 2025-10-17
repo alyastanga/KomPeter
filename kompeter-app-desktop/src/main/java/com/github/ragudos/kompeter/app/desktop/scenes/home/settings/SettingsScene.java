@@ -7,11 +7,10 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home.settings;
 
+import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
-import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.settings.scenes.MainSettingsScene;
 import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
@@ -23,10 +22,6 @@ public final class SettingsScene implements SceneWithSubScenes {
     private final JPanel view = new JPanel();
 
     private final SceneManager sceneManager = new StaticSceneManager();
-
-    public SettingsScene() {
-        onCreate();
-    }
 
     @Override
     public @NotNull String name() {
@@ -48,14 +43,13 @@ public final class SettingsScene implements SceneWithSubScenes {
     }
 
     @Override
-    public boolean navigateTo(@NotNull String name) {
-        return sceneManager.navigateTo(name);
+    public boolean navigateTo(@NotNull ParsedSceneName parsedSceneName) {
+        return sceneManager.navigateTo(parsedSceneName);
     }
 
     @Override
-    public void navigateToDefault() {
-        SceneNavigator.getInstance()
-                .navigateTo(SceneNames.HomeScenes.SettingsScenes.MAIN_SETTINGS_SCENE);
+    public String getDefaultScene() {
+        return MainSettingsScene.SCENE_NAME;
     }
 
     @Override

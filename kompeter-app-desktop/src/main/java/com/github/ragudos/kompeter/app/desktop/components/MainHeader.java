@@ -12,36 +12,40 @@ import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
+import java.util.function.Consumer;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainHeader implements SceneComponent {
-    private static final Logger LOGGER = KompeterLogger.getLogger(MainHeader.class);
-
-    private final JPanel view = new JPanel();
+    private final JPanel view = new JPanel(new MigLayout("flowy", "fill", "[grow]"));
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private final JLabel sceneTitle = new JLabel();
+    private final RefreshLine refreshLine = new RefreshLine();
+
+    private final Consumer<String> navigationListenerClassConsumer =
+            new Consumer<String>() {
+                @Override
+                public void accept(String sceneName) {
+                    String[] splitName = sceneName.split(ParsedSceneName.SEPARATOR);
+
+                    if (splitName.length <= 1) {
+                        return;
+                    }
+
+                    refreshLine.refresh();
+                    sceneTitle.setText(SceneNames.toReadable(splitName[1]));
+                }
+            };
 
     public MainHeader() {
         sceneTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1");
         sceneTitle.setHorizontalAlignment(JLabel.RIGHT);
-    }
-
-    private void navigationListener(@NotNull String sceneName) {
-        String[] splitName = sceneName.split(ParsedSceneName.SEPARATOR);
-
-        if (splitName.length <= 1) {
-            return;
-        }
-
-        sceneTitle.setText(SceneNames.toReadable(splitName[1]));
     }
 
     @Override
@@ -50,7 +54,7 @@ public class MainHeader implements SceneComponent {
             return;
         }
 
-        SceneNavigator.getInstance().unsubscribe(this::navigationListener);
+        SceneNavigator.getInstance().unsubscribe(navigationListenerClassConsumer);
         view.removeAll();
         sceneTitle.setText("");
         initialized.set(false);
@@ -62,11 +66,17 @@ public class MainHeader implements SceneComponent {
             return;
         }
 
-        view.setLayout(new MigLayout("insets 9, flowx", "[grow, right]", "[grow, center]"));
+        JPanel container = new JPanel(new MigLayout("insets 0", "[]push[]", "[grow, center]"));
 
-        view.add(sceneTitle);
+        view.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 5%);");
 
-        SceneNavigator.getInstance().subscribe(this::navigationListener);
+        container.add(sceneTitle);
+
+        view.add(container, "grow");
+        view.add(new JSeparator(JSeparator.HORIZONTAL), "grow, height 2!");
+        view.add(refreshLine, "grow, height 2!");
+
+        SceneNavigator.getInstance().subscribe(navigationListenerClassConsumer);
         initialized.set(true);
     }
 
