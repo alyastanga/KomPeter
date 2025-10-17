@@ -163,7 +163,7 @@ CREATE TABLE
       payment_method IN ('cash', 'gcash', 'bank_transfer')
     ),
     amount_php REAL NOT NULL,
-    FOREIGN KEY (_purchse_id) REFERENCES purchases (_purchase_id) ON DELETE CASCADE
+    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
