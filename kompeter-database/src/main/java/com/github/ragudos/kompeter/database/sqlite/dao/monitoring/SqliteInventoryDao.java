@@ -104,16 +104,53 @@ public class SqliteInventoryDao implements InventoryDao {
     @Override
     public List<InventoryValueDto> getInventoryValue(Timestamp from, Timestamp to)
             throws SQLException {
-        String query;
+        List<InventoryValueDto> results = new ArrayList<>();
 
+        String sqlFileName;
         if (from == null && to == null) {
-            query = "";
-        } else if (from != null && to == null) {
-            query = "";
+            sqlFileName = "inventory_value_all";
+        } else if (from == null) {
+            sqlFileName = "inventory_value_to";
         } else {
-            query = "";
+            sqlFileName = "inventory_value_range";
         }
 
-        return null;
+        String query;
+        try {
+            query =
+                    SqliteQueryLoader.getInstance()
+                            .get(
+                                    sqlFileName, // filename without .sql
+                                    "items", // folder name under /select/
+                                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        } catch (IOException e) {
+            throw new SQLException("Failed to load SQL file for inventory count", e);
+        }
+
+        try (Connection conn = SqliteFactoryDao.getInstance().getConnection();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            int paramIndex = 1;
+            if (from != null) {
+                stmt.setTimestamp(paramIndex++, from);
+            }
+            if (to != null) {
+                stmt.setTimestamp(paramIndex, to);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    InventoryValueDto dto =
+                            new InventoryValueDto(
+                                    rs.getTimestamp("date"),
+                                    rs.getInt("total_inventory_value"),
+                                    rs.getInt("total_purchased_value"),
+                                    rs.getInt("total_sales_value"));
+                    results.add(KompeterLogger.log(dto));
+                }
+            }
+        }
+
+        return results;
     }
 }
