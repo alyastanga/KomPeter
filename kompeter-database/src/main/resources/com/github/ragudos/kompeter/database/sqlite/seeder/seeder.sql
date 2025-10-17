@@ -36,13 +36,6 @@ INSERT INTO user_roles (_user_role_id, _user_id, _role_id) VALUES
 (4, 4, 4), 
 (5, 5, 5); 
 
--- Sessions (4 rows)
-INSERT INTO sessions (_user_id, session_token, ip_address) VALUES
-(1, 'token-peter-admin-001', '192.168.1.10'),
-(2, 'token-hanz-manager-002', '192.168.1.11'),
-(3, 'token-jerick-cashier-003', '10.0.0.5'),
-(4, 'token-aaron-clerk-004', '10.0.0.6');
-
 -- ===============================================
 -- 2. INVENTORY SETUP & STORAGE (70 Items, 10 Brands, 4 Locations)
 -- ===============================================

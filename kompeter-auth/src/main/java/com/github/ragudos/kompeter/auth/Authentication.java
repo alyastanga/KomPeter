@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +84,20 @@ public final class Authentication {
             if (Session.isExpired(sessionDto.expiresAt())) {
                 sessionDao.removeSessionByToken(conn, sessionToken);
                 ApplicationConfig.getInstance().getConfig().remove(PropertyKey.Session.UID);
+
+                return;
             }
+
+            UserMetadataDto userMetadataDto =
+                    factory
+                            .getUserMetadataDao()
+                            .getUserMetadata(conn, sessionDto._userId())
+                            .orElseThrow(AuthenticationException::new);
+
+            SessionManager.getInstance()
+                    .setSession(
+                            new Session(
+                                    userMetadataDto, sessionToken, sessionDto.expiresAt(), sessionDto.ipAddress()));
         } catch (SQLException | IOException err) {
             LOGGER.log(Level.SEVERE, "Cannot sign in from stored session token", err);
             throw new AuthenticationException(AuthenticationErrors.SOMETHING_WENT_WRONG);
@@ -165,7 +179,8 @@ public final class Authentication {
             conn.setAutoCommit(false);
 
             try {
-                int _sessionId = sessionDao.createSession(conn, userDto._userId());
+                int _sessionId =
+                        sessionDao.createSession(conn, userDto._userId(), UUID.randomUUID().toString());
 
                 if (_sessionId == -1) {
                     throw new AuthenticationException(AuthenticationErrors.SOMETHING_WENT_WRONG);

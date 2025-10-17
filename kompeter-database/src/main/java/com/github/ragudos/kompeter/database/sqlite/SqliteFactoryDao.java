@@ -25,6 +25,7 @@ import com.github.ragudos.kompeter.database.dao.user.AccountDao;
 import com.github.ragudos.kompeter.database.dao.user.RoleDao;
 import com.github.ragudos.kompeter.database.dao.user.SessionDao;
 import com.github.ragudos.kompeter.database.dao.user.UserDao;
+import com.github.ragudos.kompeter.database.dao.user.UserMetadataDao;
 import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemBrandDao;
@@ -43,6 +44,7 @@ import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteAccountDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteSessionDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserMetadataDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserRoleDao;
 import com.github.ragudos.kompeter.utilities.constants.Directories;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
@@ -52,7 +54,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,26 +65,11 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
             Directories.SQLITE_DIRECTORY + File.separator + "main-" + Metadata.APP_ENV + ".db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
 
-    public static final int POOL_CONNECTION_COUNT = 1;
-
     private SqliteFactoryDao() {
         super();
 
         FileUtils.createDirectoryIfNotExists(Directories.SQLITE_DIRECTORY);
         FileUtils.createFileIfNotExists(MAIN_DB_FILE_NAME);
-
-        writeLock.lock();
-
-        try {
-            for (int i = 0; i < POOL_CONNECTION_COUNT; ++i) {
-                pooledConnections.add(createProxy(createConnection()));
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Failed to create connections", e);
-            throw new RuntimeException("Failed to initialize FactoryDao");
-        } finally {
-            writeLock.unlock();
-        }
     }
 
     public static synchronized @NotNull SqliteFactoryDao getInstance() {
@@ -106,16 +92,8 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     }
 
     @Override
-    public void shutdown() throws SQLException {
-        super.shutdown();
-
-        writeLock.lock();
-
-        try {
-            instance = null;
-        } finally {
-            writeLock.unlock();
-        }
+    public @NotNull UserMetadataDao getUserMetadataDao() {
+        return new SqliteUserMetadataDao();
     }
 
     @Override

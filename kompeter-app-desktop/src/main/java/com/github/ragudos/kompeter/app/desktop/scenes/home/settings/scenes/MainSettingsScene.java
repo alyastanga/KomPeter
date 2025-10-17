@@ -12,12 +12,16 @@ import com.github.ragudos.kompeter.app.desktop.components.factory.ButtonFactory;
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.auth.Authentication;
+import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,13 +38,14 @@ public final class MainSettingsScene implements Scene {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        // Authentication.signOut();
+                        Authentication.signOut();
                         SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
-                    } /*
-                         * catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
-                         * JOptionPane.showMessageDialog(view, e1.getMessage(), "Failed to logout",
-                         * JOptionPane.ERROR_MESSAGE); }); }
-                         */ finally {
+                    } catch (AuthenticationException e1) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    JOptionPane.showMessageDialog(
+                                            view, e1.getMessage(), "Failed to logout", JOptionPane.ERROR_MESSAGE);
+                                });
                     }
                 }
             };
