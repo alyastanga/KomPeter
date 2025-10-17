@@ -863,7 +863,7 @@ BEGIN
         'purchase_payments', 'INSERT', NEW._purchase_payment_id,
         json_object(
             '_purchase_payment_id', NEW._purchase_payment_id,
-            '_purchse_id', NEW._purchse_id,
+            '_purchase_id', NEW._purchase_id,
             '_created_at', NEW._created_at,
             'payment_date', NEW.payment_date,
             'reference_number', NEW.reference_number,
@@ -881,14 +881,14 @@ BEGIN
     VALUES (
         'purchase_payments', 'UPDATE', OLD._purchase_payment_id,
         json_patch('{}',
-            CASE WHEN OLD._purchse_id IS NOT NEW._purchse_id THEN json_object('_purchse_id', OLD._purchse_id) ELSE '{}' END,
+            CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN json_object('_purchase_id', OLD._purchase_id) ELSE '{}' END,
             CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN json_object('payment_date', OLD.payment_date) ELSE '{}' END,
             CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN json_object('reference_number', OLD.reference_number) ELSE '{}' END,
             CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN json_object('payment_method', OLD.payment_method) ELSE '{}' END,
             CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN json_object('amount_php', OLD.amount_php) ELSE '{}' END
         ),
         json_patch('{}',
-            CASE WHEN OLD._purchse_id IS NOT NEW._purchse_id THEN json_object('_purchse_id', NEW._purchse_id) ELSE '{}' END,
+            CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN json_object('_purchase_id', NEW._purchase_id) ELSE '{}' END,
             CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN json_object('payment_date', NEW.payment_date) ELSE '{}' END,
             CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN json_object('reference_number', NEW.reference_number) ELSE '{}' END,
             CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN json_object('payment_method', NEW.payment_method) ELSE '{}' END,
@@ -906,7 +906,7 @@ BEGIN
         'purchase_payments', 'DELETE', OLD._purchase_payment_id,
         json_object(
             '_purchase_payment_id', OLD._purchase_payment_id,
-            '_purchse_id', OLD._purchse_id,
+            '_purchase_id', OLD._purchase_id,
             '_created_at', OLD._created_at,
             'payment_date', OLD.payment_date,
             'reference_number', OLD.reference_number,
