@@ -25,22 +25,21 @@ public class RefreshLine extends JPanel {
     private float animate;
 
     public RefreshLine() {
-        animator =
-                new Animator(
-                        500,
-                        new Animator.TimingTarget() {
-                            @Override
-                            public void timingEvent(float v) {
-                                animate = v;
-                                RefreshLine.this.repaint();
-                            }
+        animator = new Animator(
+                500,
+                new Animator.TimingTarget() {
+                    @Override
+                    public void timingEvent(float v) {
+                        animate = v;
+                        RefreshLine.this.repaint();
+                    }
 
-                            @Override
-                            public void end() {
-                                animate = 0f;
-                                repaint();
-                            }
-                        });
+                    @Override
+                    public void end() {
+                        animate = 0f;
+                        repaint();
+                    }
+                });
 
         animator.setInterpolator(CubicBezierEasing.EASE_OUT);
     }

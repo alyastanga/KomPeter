@@ -84,7 +84,20 @@ public final class Authentication {
             if (Session.isExpired(sessionDto.expiresAt())) {
                 sessionDao.removeSessionByToken(conn, sessionToken);
                 ApplicationConfig.getInstance().getConfig().remove(PropertyKey.Session.UID);
+
+                return;
             }
+
+            UserMetadataDto userMetadataDto =
+                    factory
+                            .getUserMetadataDao()
+                            .getUserMetadata(conn, sessionDto._userId())
+                            .orElseThrow(AuthenticationException::new);
+
+            SessionManager.getInstance()
+                    .setSession(
+                            new Session(
+                                    userMetadataDto, sessionToken, sessionDto.expiresAt(), sessionDto.ipAddress()));
         } catch (SQLException | IOException err) {
             LOGGER.log(Level.SEVERE, "Cannot sign in from stored session token", err);
             throw new AuthenticationException(AuthenticationErrors.SOMETHING_WENT_WRONG);
@@ -175,8 +188,6 @@ public final class Authentication {
 
                 SessionDto sessionDto =
                         sessionDao.getSessionById(conn, _sessionId).orElseThrow(AuthenticationException::new);
-
-                System.out.println("\n\n\t " + sessionDto.expiresAt().toString() + " \n\n");
 
                 UserMetadataDto userMetadataDto =
                         new UserMetadataDto(

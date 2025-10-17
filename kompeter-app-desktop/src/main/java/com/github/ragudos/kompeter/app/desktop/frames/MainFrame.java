@@ -12,6 +12,7 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
 import com.github.ragudos.kompeter.app.desktop.scenes.auth.MainAuthScene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.HomeScene;
+import com.github.ragudos.kompeter.auth.SessionManager;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -49,7 +50,11 @@ public class MainFrame extends JFrame {
                 MainAuthScene.SCENE_NAME, () -> new MainAuthScene(), MainAuthScene.SCENE_GUARD);
         sceneManager.registerScene(HomeScene.SCENE_NAME, () -> new HomeScene(), HomeScene.SCENE_GUARD);
 
-        sceneNavigator.navigateTo(MainAuthScene.SCENE_NAME);
+        if (SessionManager.getInstance().session() == null) {
+            sceneNavigator.navigateTo(MainAuthScene.SCENE_NAME);
+        } else {
+            sceneNavigator.navigateTo(HomeScene.SCENE_NAME);
+        }
 
         setPreferredSize(new Dimension(1280, 720));
         setSize(getPreferredSize());

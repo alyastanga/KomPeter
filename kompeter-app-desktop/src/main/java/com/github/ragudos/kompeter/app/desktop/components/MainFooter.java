@@ -28,15 +28,15 @@ public class MainFooter implements SceneComponent {
     private final JLabel breadcrumbsPathJLabel = new JLabel();
     private final MemoryBar memoryBar = new MemoryBar();
 
-    private final Consumer<String> navigationListenerClass =
-            new Consumer<String>() {
-                @Override
-                public void accept(String sceneName) {
-                    breadcrumbsPathJLabel.setText(sceneName);
-                }
-            };
+    private final Consumer<String> navigationListenerClass = new Consumer<String>() {
+        @Override
+        public void accept(String sceneName) {
+            breadcrumbsPathJLabel.setText(sceneName);
+        }
+    };
 
-    public MainFooter() {}
+    public MainFooter() {
+    }
 
     @Override
     public void initialize() {
@@ -46,12 +46,11 @@ public class MainFooter implements SceneComponent {
 
         memoryBar.installMemoryBar();
 
-        JPanel container =
-                new JPanel(
-                        new MigLayout(
-                                "gapx 10px,insets 3 n 3 n, al trailing center, height 32!",
-                                "[]push[]push[][][]",
-                                "fill"));
+        JPanel container = new JPanel(
+                new MigLayout(
+                        "gapx 10px,insets 3 n 3 n, al trailing center, height 32!",
+                        "[]push[]push[][][]",
+                        "fill"));
 
         JLabel appVersionJLabel = new JLabel(Metadata.APP_TITLE + ": v" + Metadata.APP_VERSION);
         String javaString = SystemInfo.JAVA_VENDOR + " v" + SystemInfo.JAVA_VERSION;
@@ -63,9 +62,9 @@ public class MainFooter implements SceneComponent {
         appVersionJLabel.setIcon(
                 AssetManager.getOrLoadIcon("git-commit-horizontal.svg", 1f, "color.muted"));
         javaLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-        javaLabel.setIcon(AssetManager.getOrLoadIcon("git-commit-horizontal.svg", 1f, "color.muted"));
+        javaLabel.setIcon(AssetManager.getOrLoadIcon("coffee.svg", 1f, "color.muted"));
         osLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-        osLabel.setIcon(AssetManager.getOrLoadIcon("git-commit-horizontal.svg", 1f, "color.muted"));
+        osLabel.setIcon(AssetManager.getOrLoadIcon("cpu.svg", 1f, "color.muted"));
 
         view.add(new JSeparator(JSeparator.HORIZONTAL), "grow");
 
