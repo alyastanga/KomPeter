@@ -7,14 +7,14 @@
 */
 package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.dao.monitoring.InventoryDao;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryCountDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryValueDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
+import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,26 +43,25 @@ public class SqliteInventoryDao implements InventoryDao {
             throws SQLException {
         List<InventoryCountDto> results = new ArrayList<>();
 
-        String sqlFile;
+        String sqlFileName;
         if (from == null && to == null) {
-            sqlFile = "inventory_count_all.sql";
+            sqlFileName = "inventory_count_all";
         } else if (from == null) {
-            sqlFile = "inventory_count_to.sql";
+            sqlFileName = "inventory_count_to";
         } else {
-            sqlFile = "inventory_count_range.sql";
+            sqlFileName = "inventory_count_range";
         }
 
-        String resourcePath =
-                "/com/github/ragudos/kompeter/database/sql/sqlite/select/InventorySQLs/" + sqlFile;
         String query;
-
-        try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
-            if (is == null) {
-                throw new SQLException("SQL resource not found on classpath: " + resourcePath);
-            }
-            query = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        try {
+            query =
+                    SqliteQueryLoader.getInstance()
+                            .get(
+                                    sqlFileName, // filename without .sql
+                                    "items", // folder name under /select/
+                                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
-            throw new SQLException("Error reading SQL resource: " + resourcePath, e);
+            throw new SQLException("Failed to load SQL file for inventory count", e);
         }
 
         try (Connection conn = SqliteFactoryDao.getInstance().getConnection();
