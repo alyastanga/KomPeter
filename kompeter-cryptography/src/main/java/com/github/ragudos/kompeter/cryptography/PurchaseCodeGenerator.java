@@ -13,7 +13,6 @@ package com.github.ragudos.kompeter.cryptography;
 import java.security.SecureRandom;
 
 public class PurchaseCodeGenerator {
-
     public static String generateSecureHexToken() {
         SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[32];

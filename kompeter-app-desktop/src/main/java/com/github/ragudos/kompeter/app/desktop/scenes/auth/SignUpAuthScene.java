@@ -15,6 +15,8 @@ import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener.EnterK
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.auth.Authentication;
+import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.constants.StringLimits;
 import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
@@ -40,28 +42,24 @@ public class SignUpAuthScene implements Scene {
 
     private final JPanel view = new JPanel();
 
-    private final JTextField emailInput =
-            TextFieldFactory.createTextField("Email", JTextField.CENTER);
+    private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER);
     private final JLabel emailInputError = new JLabel();
 
-    private final JTextField displayNameInput =
-            TextFieldFactory.createTextField("Display Name", JTextField.CENTER);
+    private final JTextField displayNameInput = TextFieldFactory.createTextField("Display Name", JTextField.CENTER);
     private final JLabel displayNameInputError = new JLabel();
 
-    private final JTextField firstNameInput =
-            TextFieldFactory.createTextField("First Name", JTextField.CENTER);
+    private final JTextField firstNameInput = TextFieldFactory.createTextField("First Name", JTextField.CENTER);
     private final JLabel firstNameInputError = new JLabel();
 
-    private final JTextField lastNameInput =
-            TextFieldFactory.createTextField("Last Name", JTextField.CENTER);
+    private final JTextField lastNameInput = TextFieldFactory.createTextField("Last Name", JTextField.CENTER);
     private final JLabel lastNameInputError = new JLabel();
 
-    private final JPasswordField passwordInput =
-            TextFieldFactory.createPasswordField("Password", JPasswordField.CENTER);
+    private final JPasswordField passwordInput = TextFieldFactory.createPasswordField("Password",
+            JPasswordField.CENTER);
     private final JLabel passwordInputError = new JLabel();
 
-    private final JPasswordField confirmPasswordInput =
-            TextFieldFactory.createPasswordField("Confirm Password", JPasswordField.CENTER);
+    private final JPasswordField confirmPasswordInput = TextFieldFactory.createPasswordField("Confirm Password",
+            JPasswordField.CENTER);
     private final JLabel confirmPasswordInputError = new JLabel();
 
     private final JButton submitButton = new JButton("Sign up");
@@ -70,66 +68,64 @@ public class SignUpAuthScene implements Scene {
 
     private final AtomicBoolean busy = new AtomicBoolean(false);
 
-    private final ActionListener handleSubmitActionListener =
-            new ActionListener() {
+    private final ActionListener handleSubmitActionListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            signUp(true);
+        }
+    };
+
+    private EnterKeyListener inputKeyEnterListener = new EnterKeyListener(
+            new EnterKeyCallback() {
                 @Override
-                public void actionPerformed(ActionEvent e) {
-                    signUp(true);
+                public void onPress(KeyEvent e) {
+                    Object source = e.getSource();
+
+                    if (source.equals(emailInput) && validateEmail()) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    emailInputError.setText("");
+                                    emailInput.putClientProperty("JComponent.outline", null);
+                                });
+                        goToNearestEmptyFieldOrSignUp();
+                    } else if (source.equals(displayNameInput) && validateDisplayName()) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    displayNameInputError.setText("");
+                                    displayNameInput.putClientProperty("JComponent.outline", null);
+                                });
+                        goToNearestEmptyFieldOrSignUp();
+                    } else if (source.equals(firstNameInput) && validateFirstName()) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    firstNameInputError.setText("");
+                                    firstNameInput.putClientProperty("JComponent.outline", null);
+                                });
+                        goToNearestEmptyFieldOrSignUp();
+                    } else if (source.equals(lastNameInput) && validateLastName()) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    lastNameInputError.setText("");
+                                    lastNameInput.putClientProperty("JComponent.outline", null);
+                                });
+                        goToNearestEmptyFieldOrSignUp();
+                    } else if (source.equals(passwordInput) && validatePassword()) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    passwordInputError.setText("");
+                                    passwordInput.putClientProperty("JComponent.outline", null);
+                                });
+                        goToNearestEmptyFieldOrSignUp();
+                    } else if (source.equals(confirmPasswordInput)) {
+                        SwingUtilities.invokeLater(
+                                () -> {
+                                    confirmPasswordInputError.setText("");
+                                    confirmPasswordInput.putClientProperty("JComponent.outline", null);
+                                });
+                        goToNearestEmptyFieldOrSignUp();
+                    }
                 }
-            };
-
-    private EnterKeyListener inputKeyEnterListener =
-            new EnterKeyListener(
-                    new EnterKeyCallback() {
-                        @Override
-                        public void onPress(KeyEvent e) {
-                            Object source = e.getSource();
-
-                            if (source.equals(emailInput) && validateEmail()) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            emailInputError.setText("");
-                                            emailInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            } else if (source.equals(displayNameInput) && validateDisplayName()) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            displayNameInputError.setText("");
-                                            displayNameInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            } else if (source.equals(firstNameInput) && validateFirstName()) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            firstNameInputError.setText("");
-                                            firstNameInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            } else if (source.equals(lastNameInput) && validateLastName()) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            lastNameInputError.setText("");
-                                            lastNameInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            } else if (source.equals(passwordInput) && validatePassword()) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            passwordInputError.setText("");
-                                            passwordInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            } else if (source.equals(confirmPasswordInput)) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            confirmPasswordInputError.setText("");
-                                            confirmPasswordInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            }
-                        }
-                    });
+            });
 
     private void goToNearestEmptyFieldOrSignUp() {
         JTextField nearestEmtpyField = getNearestEmptyField();
@@ -268,11 +264,11 @@ public class SignUpAuthScene implements Scene {
                 return;
             }
 
-            /*
-             * Authentication.signUp(displayNameInput.getText(), firstNameInput.getText(),
-             * lastNameInput.getText(), emailInput.getText(), passwordInput.getPassword(),
-             * confirmPasswordInput.getPassword()); ;
-             */
+            Authentication.signUp(displayNameInput.getText(), firstNameInput.getText(),
+                    lastNameInput.getText(), emailInput.getText(), passwordInput.getPassword(),
+                    confirmPasswordInput.getPassword());
+            ;
+
             SwingUtilities.invokeLater(() -> clearInputs());
             SwingUtilities.invokeLater(
                     () -> {
@@ -284,12 +280,14 @@ public class SignUpAuthScene implements Scene {
                     });
 
             SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
-            /*
-             * } catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
-             * JOptionPane.showMessageDialog(view,
-             * "We cannot sign you in at this moment. Sorry.", e1.getMessage(),
-             * JOptionPane.ERROR_MESSAGE); });
-             */
+
+        } catch (AuthenticationException e1) {
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(view,
+                        "We cannot sign you in at this moment. Sorry. \n\tReason:\n\n" + e1.getMessage(),
+                        "failed to sign up",
+                        JOptionPane.ERROR_MESSAGE);
+            });
         } finally {
             busy.set(false);
         }
@@ -329,9 +327,8 @@ public class SignUpAuthScene implements Scene {
         /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-        JLabel subtitle =
-                new JLabel(
-                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+        JLabel subtitle = new JLabel(
+                HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
