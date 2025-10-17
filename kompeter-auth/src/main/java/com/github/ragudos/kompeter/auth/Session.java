@@ -10,6 +10,7 @@ package com.github.ragudos.kompeter.auth;
 import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.jetbrains.annotations.NotNull;
 
 public class Session {
@@ -31,7 +32,7 @@ public class Session {
     }
 
     public static boolean isExpired(final @NotNull Timestamp ts) {
-        return ts.before(Timestamp.valueOf(LocalDateTime.now()));
+        return ts.before(Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)));
     }
 
     public boolean isExpired() {

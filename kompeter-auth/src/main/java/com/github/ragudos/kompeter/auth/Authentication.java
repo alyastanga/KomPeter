@@ -176,6 +176,8 @@ public final class Authentication {
                 SessionDto sessionDto =
                         sessionDao.getSessionById(conn, _sessionId).orElseThrow(AuthenticationException::new);
 
+                System.out.println("\n\n\t " + sessionDto.expiresAt().toString() + " \n\n");
+
                 UserMetadataDto userMetadataDto =
                         new UserMetadataDto(
                                 userDto._userId(),
