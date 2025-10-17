@@ -1,5 +1,6 @@
 INSERT INTO
-    sessions(_user_id, ip_address, session_token)
+    sessions(_user_id, session_token, ip_address)
 VALUES
     (?, ?, ?);
+
 

@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.utilities.io;
 
+import com.github.ragudos.kompeter.utilities.constants.Directories;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FileUtils {
     private static final Logger LOGGER = KompeterLogger.getLogger(FileUtils.class);
+
+    public static final void setupConfig() {
+        createDirectoryIfNotExists(Directories.LOGS_DIRECTORY);
+        createDirectoryIfNotExists(Directories.CONFIG_DIRECTORY);
+    }
 
     public static final void createDirectoryIfNotExists(@NotNull final String directoryPath) {
         var directory = new File(directoryPath);

@@ -11,6 +11,7 @@ import com.github.ragudos.kompeter.app.desktop.exceptions.GlobalUncaughtExceptio
 import com.github.ragudos.kompeter.app.desktop.frames.MainFrame;
 import com.github.ragudos.kompeter.app.desktop.laf.KompeterLightFlatLaf;
 import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
+import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,7 @@ public class KompeterDesktopApp {
     private static final Logger LOGGER = KompeterLogger.getLogger(KompeterDesktopApp.class);
 
     public static void main(String[] args) {
+        FileUtils.setupConfig();
         AbstractMigratorFactory.setupSqlite();
         FontSetup.setup();
 

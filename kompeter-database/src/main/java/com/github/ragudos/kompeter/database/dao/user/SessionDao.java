@@ -16,12 +16,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 public interface SessionDao {
-    int createSession(@NotNull Connection conn, @Range(from = 0, to = Integer.MAX_VALUE) int _userId)
+    int createSession(
+            @NotNull Connection conn,
+            @Range(from = 0, to = Integer.MAX_VALUE) int _userId,
+            @NotNull String sessionToken)
             throws SQLException, IOException;
 
     int createSession(
             @NotNull Connection conn,
             @Range(from = 0, to = Integer.MAX_VALUE) int _userId,
+            @NotNull String sessionToken,
             String ipAddress)
             throws SQLException, IOException;
 
