@@ -86,8 +86,8 @@ public class SqliteMigrator implements Migrator {
                         try (PreparedStatement rawSqlQueryStatement = conn.prepareStatement(trimmed)) {
                             SqlStatement parsedSqlStatement = SqlScriptParser.parseSqlStatement(trimmed);
 
-                            LOGGER.log(Level.INFO, "Type: {0} | Name: {1}",
-                                    new Object[] { parsedSqlStatement.type(), queryMigration.name() });
+                            LOGGER.log(Level.INFO, "Type: {0} | Name: {1}\n\n-----\n {2} \n-----\n\n",
+                                    new Object[] { parsedSqlStatement.type(), queryMigration.name(), trimmed });
 
                             rawSqlQueryStatement.execute();
                         }
