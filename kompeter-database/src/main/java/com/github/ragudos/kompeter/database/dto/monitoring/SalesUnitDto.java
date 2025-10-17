@@ -5,9 +5,9 @@
 * (C) 2025
 *
 */
-package com.github.ragudos.kompeter.database.dto.sales;
+package com.github.ragudos.kompeter.database.dto.monitoring;
 
 /**
  * @author Hanz Mapua
  */
-public class ProfitMetadataDto {}
+public class SalesUnitDto {}
