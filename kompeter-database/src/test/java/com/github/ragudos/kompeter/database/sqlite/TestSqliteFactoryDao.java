@@ -44,6 +44,7 @@ public class TestSqliteFactoryDao {
     static void cleanup() {
         try {
             Files.delete(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
+            Files.delete(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME + "-shm"));
         } catch (Exception e) {
             e.printStackTrace();
         }

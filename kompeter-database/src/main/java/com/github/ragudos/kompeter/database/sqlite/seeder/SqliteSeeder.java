@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.sqlite.SQLiteException;
@@ -38,19 +39,20 @@ public class SqliteSeeder implements Seeder {
                 LOGGER.info("Seeding... \n\n-----\n" + queries[i] + "\n-----\n\n");
 
                 stmnt.execute(queries[i]);
-            }
-
-            try {
-                conn.commit();
-            } catch (SQLException e) {
                 try {
-                    conn.rollback();
-                } catch (SQLiteException e2) {
-                    e.addSuppressed(e2);
-                }
+                    conn.commit();
+                } catch (SQLException e) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLiteException e2) {
+                        e.addSuppressed(e2);
+                    }
 
-                throw e;
+                    LOGGER.log(Level.SEVERE, "Failed to seed table!", e);
+
+                }
             }
+
         }
     }
 }
