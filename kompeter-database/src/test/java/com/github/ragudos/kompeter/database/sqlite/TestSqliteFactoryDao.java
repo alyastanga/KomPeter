@@ -15,7 +15,6 @@ import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.migrations.Migrator;
 import com.github.ragudos.kompeter.database.seeder.Seeder;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -28,7 +27,8 @@ public class TestSqliteFactoryDao {
     @BeforeAll
     static void testMigration() {
         try {
-            AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+            AbstractMigratorFactory factory =
+                    AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
             Migrator migrator = factory.getMigrator();
             Seeder seeder = factory.getSeeder();
 
@@ -53,7 +53,8 @@ public class TestSqliteFactoryDao {
     @Test
     @DisplayName("Test connection pooling")
     void testConnectionPooling() {
-        AbstractSqlFactoryDao factory = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        AbstractSqlFactoryDao factory =
+                AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
         Connection c1 = factory.getConnection();
         assertNotNull(c1);

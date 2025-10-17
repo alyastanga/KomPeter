@@ -33,16 +33,16 @@ public class SqliteMigratorFactory extends AbstractMigratorFactory {
     /**
      * Can be refactored but it doesn't really matter.
      *
-     * @return A list of migration sql queries arranged by the order of file
-     *         versions.
+     * @return A list of migration sql queries arranged by the order of file versions.
      */
     public static @NotNull ArrayList<ParsedSqlMigration> getMigrationQueries() {
         LOGGER.info("Loading sql migrations...");
 
-        try (ScanResult scanResult = new ClassGraph()
-                .acceptPackages(SqliteMigrator.class.getPackageName())
-                .acceptPaths("META-INF/sqlite/migrations")
-                .scan()) {
+        try (ScanResult scanResult =
+                new ClassGraph()
+                        .acceptPackages(SqliteMigrator.class.getPackageName())
+                        .acceptPaths("META-INF/sqlite/migrations")
+                        .scan()) {
             var queries = new ArrayList<SqlMigration>();
             var pattern = Pattern.compile("^V(\\d+)__(.+)\\.(\\w+)$");
 

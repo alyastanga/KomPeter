@@ -16,11 +16,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainHeader implements SceneComponent {
-    private final JPanel view = new JPanel(new MigLayout("insets 9", "[]push[]", "[grow, center][]"));
+    private final JPanel view = new JPanel(new MigLayout("flowy", "fill", "[grow]"));
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
@@ -65,9 +66,15 @@ public class MainHeader implements SceneComponent {
             return;
         }
 
+        JPanel container = new JPanel(new MigLayout("insets 0", "[]push[]", "[grow, center]"));
+
         view.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 5%);");
-        view.add(sceneTitle);
-        view.add(refreshLine, "wrap,grow, height 3!");
+
+        container.add(sceneTitle);
+
+        view.add(container, "grow");
+        view.add(new JSeparator(JSeparator.HORIZONTAL), "grow, height 2!");
+        view.add(refreshLine, "grow, height 2!");
 
         SceneNavigator.getInstance().subscribe(navigationListenerClassConsumer);
         initialized.set(true);

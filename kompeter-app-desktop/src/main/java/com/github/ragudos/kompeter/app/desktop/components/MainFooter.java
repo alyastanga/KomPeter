@@ -22,7 +22,7 @@ import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainFooter implements SceneComponent {
-    private final JPanel view = new JPanel(new MigLayout("flowy", "fill"));
+    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[grow]"));
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private final JLabel breadcrumbsPathJLabel = new JLabel();
@@ -67,7 +67,7 @@ public class MainFooter implements SceneComponent {
         osLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
         osLabel.setIcon(AssetManager.getOrLoadIcon("git-commit-horizontal.svg", 1f, "color.muted"));
 
-        view.add(new JSeparator(JSeparator.HORIZONTAL));
+        view.add(new JSeparator(JSeparator.HORIZONTAL), "grow");
 
         container.add(appVersionJLabel);
         container.add(breadcrumbsPathJLabel);
@@ -79,7 +79,7 @@ public class MainFooter implements SceneComponent {
 
         SceneNavigator.getInstance().subscribe(navigationListenerClass);
 
-        view.add(container);
+        view.add(container, "grow");
 
         initialized.set(true);
     }

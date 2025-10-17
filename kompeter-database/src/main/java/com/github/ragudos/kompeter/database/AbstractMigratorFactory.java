@@ -11,7 +11,6 @@ import com.github.ragudos.kompeter.database.migrations.Migrator;
 import com.github.ragudos.kompeter.database.seeder.Seeder;
 import com.github.ragudos.kompeter.database.sqlite.migrations.SqliteMigratorFactory;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +27,8 @@ public abstract class AbstractMigratorFactory {
     }
 
     public static void setupSqlite() {
-        AbstractMigratorFactory migratorFactory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+        AbstractMigratorFactory migratorFactory =
+                AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
 
         try {
             migratorFactory.getMigrator().migrate();

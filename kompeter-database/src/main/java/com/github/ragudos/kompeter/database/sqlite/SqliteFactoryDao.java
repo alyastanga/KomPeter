@@ -60,8 +60,8 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
     private static SqliteFactoryDao instance = null;
 
-    public static final String MAIN_DB_FILE_NAME = Directories.SQLITE_DIRECTORY + File.separator + "main-"
-            + Metadata.APP_ENV + ".db";
+    public static final String MAIN_DB_FILE_NAME =
+            Directories.SQLITE_DIRECTORY + File.separator + "main-" + Metadata.APP_ENV + ".db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
 
     public static final int POOL_CONNECTION_COUNT = 1;
