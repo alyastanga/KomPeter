@@ -41,11 +41,12 @@ public class SignInAuthScene implements Scene {
 
     private final JPanel view = new JPanel();
 
-    private final JTextField emailInput = TextFieldFactory.createTextField("Email", JTextField.CENTER);
+    private final JTextField emailInput =
+            TextFieldFactory.createTextField("Email", JTextField.CENTER);
     private final JLabel emailInputError = new JLabel();
 
-    private final JPasswordField passwordInput = TextFieldFactory.createPasswordField("Password",
-            JPasswordField.CENTER);
+    private final JPasswordField passwordInput =
+            TextFieldFactory.createPasswordField("Password", JPasswordField.CENTER);
     private final JLabel passwordInputError = new JLabel();
 
     private final JButton submitButton = new JButton("Sign in");
@@ -54,40 +55,42 @@ public class SignInAuthScene implements Scene {
 
     private final AtomicBoolean busy = new AtomicBoolean(false);
 
-    private final EnterKeyListener inputEnterKeyListener = new EnterKeyListener(
-            new EnterKeyCallback() {
+    private final EnterKeyListener inputEnterKeyListener =
+            new EnterKeyListener(
+                    new EnterKeyCallback() {
+                        @Override
+                        public void onPress(KeyEvent e) {
+                            if (busy.get()) {
+                                return;
+                            }
+
+                            Object source = e.getSource();
+
+                            if (source.equals(emailInput) && validateEmail()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            emailInputError.setText("");
+                                            emailInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignIn();
+                            } else if (source.equals(passwordInput) && validatePassword()) {
+                                SwingUtilities.invokeLater(
+                                        () -> {
+                                            passwordInputError.setText("");
+                                            passwordInput.putClientProperty("JComponent.outline", null);
+                                        });
+                                goToNearestEmptyFieldOrSignIn();
+                            }
+                        }
+                    });
+
+    private final ActionListener handleSubmitActionListener =
+            new ActionListener() {
                 @Override
-                public void onPress(KeyEvent e) {
-                    if (busy.get()) {
-                        return;
-                    }
-
-                    Object source = e.getSource();
-
-                    if (source.equals(emailInput) && validateEmail()) {
-                        SwingUtilities.invokeLater(
-                                () -> {
-                                    emailInputError.setText("");
-                                    emailInput.putClientProperty("JComponent.outline", null);
-                                });
-                        goToNearestEmptyFieldOrSignIn();
-                    } else if (source.equals(passwordInput) && validatePassword()) {
-                        SwingUtilities.invokeLater(
-                                () -> {
-                                    passwordInputError.setText("");
-                                    passwordInput.putClientProperty("JComponent.outline", null);
-                                });
-                        goToNearestEmptyFieldOrSignIn();
-                    }
+                public void actionPerformed(ActionEvent e) {
+                    signIn(true);
                 }
-            });
-
-    private final ActionListener handleSubmitActionListener = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            signIn(true);
-        }
-    };
+            };
 
     private void goToNearestEmptyFieldOrSignIn() {
         JTextField nearestEmtpyField = getNearestEmptyField();
@@ -160,12 +163,14 @@ public class SignInAuthScene implements Scene {
             SwingUtilities.invokeLater(() -> clearInputs());
             SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.HOME_SCENE);
         } catch (AuthenticationException e1) {
-            SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(view,
-                        "We cannot sign you in at this moment. Sorry. \n\tReason:\n\n " + e1.getMessage(),
-                        "Failed to sign in",
-                        JOptionPane.ERROR_MESSAGE);
-            });
+            SwingUtilities.invokeLater(
+                    () -> {
+                        JOptionPane.showMessageDialog(
+                                view,
+                                "We cannot sign you in at this moment. Sorry. \n\tReason:\n\n " + e1.getMessage(),
+                                "Failed to sign in",
+                                JOptionPane.ERROR_MESSAGE);
+                    });
         } finally {
             busy.set(false);
         }
@@ -192,8 +197,9 @@ public class SignInAuthScene implements Scene {
         /** TITLE * */
         JPanel titleContainer = new JPanel();
         JLabel title = new JLabel(HtmlUtils.wrapInHtml("<h1>KOMPETER</h1>"));
-        JLabel subtitle = new JLabel(
-                HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
+        JLabel subtitle =
+                new JLabel(
+                        HtmlUtils.wrapInHtml("<h2 align=\"justify\">Computer Parts<br>& Accesories</h2>"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h0");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");

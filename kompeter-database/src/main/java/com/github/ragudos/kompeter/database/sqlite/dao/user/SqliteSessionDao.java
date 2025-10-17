@@ -32,9 +32,10 @@ public class SqliteSessionDao implements SessionDao {
     public int createSession(
             @NotNull Connection conn, @Range(from = 0, to = 2147483647) int _userId, String ipAddress)
             throws SQLException, IOException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance().get("create_session", "sessions", SqlQueryType.INSERT),
-                Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance().get("create_session", "sessions", SqlQueryType.INSERT),
+                        Statement.RETURN_GENERATED_KEYS)) {
             stmnt.setInt(1, _userId);
             stmnt.setString(2, ipAddress);
             stmnt.setString(3, "");
@@ -51,9 +52,10 @@ public class SqliteSessionDao implements SessionDao {
     public Optional<SessionDto> getSessionById(
             @NotNull Connection conn, @Range(from = 0, to = 2147483647) int _sessionId)
             throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance()
-                        .get("select_session_by_id", "sessions", SqlQueryType.SELECT))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_session_by_id", "sessions", SqlQueryType.SELECT))) {
             stmnt.setInt(1, _sessionId);
 
             ResultSet rs = stmnt.executeQuery();
@@ -74,9 +76,10 @@ public class SqliteSessionDao implements SessionDao {
     @Override
     public Optional<SessionDto> getSessionByToken(
             @NotNull Connection conn, @NotNull String sessionToken) throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance()
-                        .get("select_session_by_token", "sessions", SqlQueryType.SELECT))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_session_by_token", "sessions", SqlQueryType.SELECT))) {
             stmnt.setString(1, sessionToken);
 
             ResultSet rs = stmnt.executeQuery();
@@ -98,9 +101,10 @@ public class SqliteSessionDao implements SessionDao {
     public Optional<SessionDto> getSessionByUserId(
             @NotNull Connection conn, @Range(from = 0, to = 2147483647) int _userId)
             throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance()
-                        .get("select_session_by_user_id", "sessions", SqlQueryType.SELECT))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("select_session_by_user_id", "sessions", SqlQueryType.SELECT))) {
             stmnt.setInt(1, _userId);
 
             ResultSet rs = stmnt.executeQuery();
@@ -121,9 +125,10 @@ public class SqliteSessionDao implements SessionDao {
     @Override
     public void removeSessionByToken(@NotNull Connection conn, @NotNull String sessionToken)
             throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance()
-                        .get("delete_session_by_token", "sessions", SqlQueryType.DELETE))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("delete_session_by_token", "sessions", SqlQueryType.DELETE))) {
             stmnt.setString(1, sessionToken);
 
             stmnt.executeUpdate();
@@ -133,9 +138,10 @@ public class SqliteSessionDao implements SessionDao {
     @Override
     public boolean sessionExists(@NotNull Connection conn, @NotNull String sessionToken)
             throws IOException, SQLException {
-        try (PreparedStatement stmnt = conn.prepareStatement(
-                SqliteQueryLoader.getInstance()
-                        .get("session_exists", "sessions", SqlQueryType.SELECT))) {
+        try (PreparedStatement stmnt =
+                conn.prepareStatement(
+                        SqliteQueryLoader.getInstance()
+                                .get("session_exists", "sessions", SqlQueryType.SELECT))) {
             stmnt.setString(1, sessionToken);
 
             ResultSet rs = stmnt.executeQuery();
