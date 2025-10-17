@@ -33,8 +33,7 @@ public class HomeScene implements SceneWithSubScenes {
             new SceneGuard() {
                 @Override
                 public boolean canAccess() {
-                    return true;
-                    // return SessionManager.getInstance().session() != null;
+                    return SessionManager.getInstance().session() != null;
                 }
             };
 

@@ -16,4 +16,7 @@ public record SessionDto(
         @NotNull Timestamp expiresAt,
         int _userId,
         @NotNull String sessionToken,
-        String ipAddress) {}
+        String ipAddress) {
+
+    public static Object us;
+}
