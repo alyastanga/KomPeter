@@ -47,7 +47,7 @@ INSERT INTO sessions (_user_id, session_token, ip_address) VALUES
 -- 2. INVENTORY SETUP & STORAGE (70 Items, 10 Brands, 4 Locations)
 -- ===============================================
 
--- Storage Locations (4 rows - NEW TABLE)
+-- Storage Locations (4 rows)
 INSERT INTO storage_locations (_storage_location_id, name, description) VALUES
 (1, 'Kompeter Display Floor', 'High visibility area for quick sales items.'),
 (2, 'Warehouse A', 'PC components - Primary storage for large components and bulk items.'),
@@ -168,7 +168,6 @@ INSERT INTO item_stock_storage_locations (_item_stock_storage_location_id, _item
 (99, 60, 1, 80), (100, 60, 2, 40), (101, 61, 1, 70), (102, 61, 2, 40), (103, 62, 1, 200), (104, 62, 2, 100), (105, 63, 1, 100), (106, 63, 2, 50), 
 (107, 64, 1, 75), (108, 64, 2, 25), (109, 65, 1, 20), (110, 65, 2, 30), (111, 66, 1, 15), (112, 66, 2, 25), (113, 67, 1, 40), (114, 67, 2, 20), 
 (115, 68, 1, 50), (116, 68, 2, 20), (117, 69, 1, 60), (118, 69, 2, 30), (119, 70, 1, 25), (120, 70, 3, 25);
-
 
 -- Item Restocks (4 rows - Initial stock added)
 INSERT INTO item_restocks (_item_restock_id, _item_stock_id, quantity_before, quantity_after, quantity_added) VALUES

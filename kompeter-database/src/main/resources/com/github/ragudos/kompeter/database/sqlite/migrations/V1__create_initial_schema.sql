@@ -124,8 +124,6 @@ CREATE TABLE
     quantity_added INTEGER NOT NULL,
     FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE
   );
-  
-  
 
 CREATE TABLE
   suppliers (

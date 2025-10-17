@@ -45,6 +45,7 @@ import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteSessionDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserRoleDao;
 import com.github.ragudos.kompeter.utilities.constants.Directories;
+import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.File;
@@ -59,8 +60,8 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
     private static SqliteFactoryDao instance = null;
 
-    public static final String MAIN_DB_FILE_NAME =
-            Directories.SQLITE_DIRECTORY + File.separator + "main.db";
+    public static final String MAIN_DB_FILE_NAME = Directories.SQLITE_DIRECTORY + File.separator + "main-"
+            + Metadata.APP_ENV + ".db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
 
     public static final int POOL_CONNECTION_COUNT = 1;
