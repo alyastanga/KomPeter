@@ -1,23 +1,30 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.database;
 
-import com.github.ragudos.kompeter.database.dao.AccountDao;
-import com.github.ragudos.kompeter.database.dao.InventoryDao;
-import com.github.ragudos.kompeter.database.dao.ItemBrandDao;
-import com.github.ragudos.kompeter.database.dao.ItemCategoryAssignmentDao;
-import com.github.ragudos.kompeter.database.dao.ItemDao;
-import com.github.ragudos.kompeter.database.dao.ItemRestockDao;
-import com.github.ragudos.kompeter.database.dao.ItemStockDao;
-import com.github.ragudos.kompeter.database.dao.PurchaseDao;
-import com.github.ragudos.kompeter.database.dao.PurchaseItemStockDao;
-import com.github.ragudos.kompeter.database.dao.PurchasePaymentDao;
-import com.github.ragudos.kompeter.database.dao.RoleDao;
-import com.github.ragudos.kompeter.database.dao.SaleDao;
-import com.github.ragudos.kompeter.database.dao.SaleItemStockDao;
-import com.github.ragudos.kompeter.database.dao.SalePaymentDao;
-import com.github.ragudos.kompeter.database.dao.SessionDao;
-import com.github.ragudos.kompeter.database.dao.SupplierDao;
-import com.github.ragudos.kompeter.database.dao.UserDao;
-import com.github.ragudos.kompeter.database.dao.UserRoleDao;
+import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemRestockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.PurchaseDao;
+import com.github.ragudos.kompeter.database.dao.inventory.PurchaseItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.PurchasePaymentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.SupplierDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
+import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
+import com.github.ragudos.kompeter.database.dao.user.AccountDao;
+import com.github.ragudos.kompeter.database.dao.user.RoleDao;
+import com.github.ragudos.kompeter.database.dao.user.SessionDao;
+import com.github.ragudos.kompeter.database.dao.user.UserDao;
+import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.lang.reflect.InvocationHandler;

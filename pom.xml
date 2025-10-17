@@ -205,6 +205,17 @@
                                 <spaces>true</spaces>
                                 <spacesPerTab>4</spacesPerTab>
                             </indent>
+                            <licenseHeader>
+                                <content>
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) $YEAR
+*
+*/
+                                </content>  <!-- or <file>${project.basedir}/license-header</file> -->
+                            </licenseHeader>
                         </java>
                     </configuration>
                 </plugin>

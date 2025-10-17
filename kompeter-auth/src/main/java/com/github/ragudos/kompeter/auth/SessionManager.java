@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.auth;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +26,7 @@ public final class SessionManager {
         // Private constructor to prevent instantiation
     }
 
-    public Session getSession() {
+    public Session session() {
         return session;
     }
 

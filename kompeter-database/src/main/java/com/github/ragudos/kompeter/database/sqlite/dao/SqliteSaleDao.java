@@ -1,8 +1,8 @@
 package com.github.ragudos.kompeter.database.sqlite.dao;
-
+/*
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
-import com.github.ragudos.kompeter.database.dao.SaleDao;
-import com.github.ragudos.kompeter.database.dto.SaleDto;
+import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import java.sql.*;
 import java.util.ArrayList;
@@ -101,5 +101,5 @@ public class SqliteSaleDao implements SaleDao {
         }
         return list;
     }
-}
+}*/
 

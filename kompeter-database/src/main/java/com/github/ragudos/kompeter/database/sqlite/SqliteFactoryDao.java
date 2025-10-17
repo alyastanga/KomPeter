@@ -1,42 +1,49 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.database.sqlite;
 
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
-import com.github.ragudos.kompeter.database.dao.AccountDao;
-import com.github.ragudos.kompeter.database.dao.InventoryDao;
-import com.github.ragudos.kompeter.database.dao.ItemBrandDao;
-import com.github.ragudos.kompeter.database.dao.ItemCategoryAssignmentDao;
-import com.github.ragudos.kompeter.database.dao.ItemDao;
-import com.github.ragudos.kompeter.database.dao.ItemRestockDao;
-import com.github.ragudos.kompeter.database.dao.ItemStockDao;
-import com.github.ragudos.kompeter.database.dao.PurchaseDao;
-import com.github.ragudos.kompeter.database.dao.PurchaseItemStockDao;
-import com.github.ragudos.kompeter.database.dao.PurchasePaymentDao;
-import com.github.ragudos.kompeter.database.dao.RoleDao;
-import com.github.ragudos.kompeter.database.dao.SaleDao;
-import com.github.ragudos.kompeter.database.dao.SaleItemStockDao;
-import com.github.ragudos.kompeter.database.dao.SalePaymentDao;
-import com.github.ragudos.kompeter.database.dao.SessionDao;
-import com.github.ragudos.kompeter.database.dao.SupplierDao;
-import com.github.ragudos.kompeter.database.dao.UserDao;
-import com.github.ragudos.kompeter.database.dao.UserRoleDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteAccountDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteInventoryDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemBrandDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemCategoryAssignmentDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemRestockDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteItemStockDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqlitePurchaseDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqlitePurchaseItemStockDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqlitePurchasePaymentDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteRoleDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteSaleDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteSaleItemStockDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteSalePaymentDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteSessionDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteSupplierDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteUserDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.SqliteUserRoleDao;
+import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemRestockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.PurchaseDao;
+import com.github.ragudos.kompeter.database.dao.inventory.PurchaseItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.PurchasePaymentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.SupplierDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
+import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
+import com.github.ragudos.kompeter.database.dao.user.AccountDao;
+import com.github.ragudos.kompeter.database.dao.user.RoleDao;
+import com.github.ragudos.kompeter.database.dao.user.SessionDao;
+import com.github.ragudos.kompeter.database.dao.user.UserDao;
+import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemBrandDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemRestockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseItemStockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchasePaymentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteSupplierDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleItemStockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSalePaymentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteAccountDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteRoleDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteSessionDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserRoleDao;
 import com.github.ragudos.kompeter.utilities.constants.Directories;
 import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;

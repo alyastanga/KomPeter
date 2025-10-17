@@ -1,5 +1,6 @@
 module kompeter.app.desktop {
     requires java.desktop;
+    requires kompeter.auth;
     requires kompeter.configuration;
     requires kompeter.utilities;
     requires kompeter.cryptography;
@@ -10,8 +11,11 @@ module kompeter.app.desktop {
     requires com.miglayout.swing;
     requires io.github.classgraph;
     requires com.formdev.flatlaf;
+    requires com.github.lgooddatepicker;
+    requires org.jfree.jfreechart;
+    requires org.apache.pdfbox;
     requires com.formdev.flatlaf.extras;
+    requires swingx.all;
 
     exports com.github.ragudos.kompeter.app.desktop;
-    exports com.github.ragudos.kompeter.app.desktop.scenes.inventory;
 }

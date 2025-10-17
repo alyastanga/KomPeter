@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.auth;
 
 import com.github.ragudos.kompeter.configurations.ApplicationConfig;
@@ -5,14 +12,14 @@ import com.github.ragudos.kompeter.cryptography.HashedStringWithSalt;
 import com.github.ragudos.kompeter.cryptography.Hasher;
 import com.github.ragudos.kompeter.cryptography.Salt;
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
-import com.github.ragudos.kompeter.database.dao.AccountDao;
-import com.github.ragudos.kompeter.database.dao.SessionDao;
-import com.github.ragudos.kompeter.database.dao.UserDao;
-import com.github.ragudos.kompeter.database.dao.UserRoleDao;
-import com.github.ragudos.kompeter.database.dto.AccountDto.AccountPassword;
-import com.github.ragudos.kompeter.database.dto.SessionDto;
-import com.github.ragudos.kompeter.database.dto.UserDto;
-import com.github.ragudos.kompeter.database.dto.UserMetadataDto;
+import com.github.ragudos.kompeter.database.dao.user.AccountDao;
+import com.github.ragudos.kompeter.database.dao.user.SessionDao;
+import com.github.ragudos.kompeter.database.dao.user.UserDao;
+import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
+import com.github.ragudos.kompeter.database.dto.user.AccountDto.AccountPassword;
+import com.github.ragudos.kompeter.database.dto.user.SessionDto;
+import com.github.ragudos.kompeter.database.dto.user.UserDto;
+import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
 import com.github.ragudos.kompeter.utilities.CharUtils;
 import com.github.ragudos.kompeter.utilities.constants.PropertyKey;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -84,7 +91,7 @@ public final class Authentication {
     }
 
     public static void signOut() throws AuthenticationException {
-        String sessionToken = SessionManager.getInstance().getSession().sessionToken();
+        String sessionToken = SessionManager.getInstance().session().sessionToken();
         AbstractSqlFactoryDao factory =
                 AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
