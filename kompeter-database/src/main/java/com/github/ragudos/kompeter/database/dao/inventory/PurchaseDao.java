@@ -7,4 +7,27 @@
 */
 package com.github.ragudos.kompeter.database.dao.inventory;
 
-public interface PurchaseDao {}
+import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
+import com.github.ragudos.kompeter.database.dto.inventory.PurchaseDto;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
+
+public interface PurchaseDao {
+    // CREATE
+    void insertPurchase(
+            int suppID,
+            Timestamp purchase_date,
+            String purch_code,
+            Timestamp deliverydate,
+            float vat_percentage,
+            float disc_val,
+            DiscountType discountType)
+            throws SQLException, IOException;
+
+    // READ
+    List<PurchaseDto> getAllPurchase() throws SQLException, IOException;
+    // UPDATE
+    // DELETE
+}

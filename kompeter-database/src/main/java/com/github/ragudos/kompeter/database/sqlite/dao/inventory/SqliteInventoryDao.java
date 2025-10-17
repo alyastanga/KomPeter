@@ -25,8 +25,8 @@ public class SqliteInventoryDao implements InventoryDao {
     }
 
     @Override
-    public List<InventoryMetadataDto> getAllData(
-            Location location, OrderBy orderBy, Direction direction) throws SQLException, IOException {
+    public List<InventoryMetadataDto> getAllData(String search, OrderBy orderBy, Direction direction)
+            throws SQLException, IOException {
         List<InventoryMetadataDto> inventory = new ArrayList<>();
         var query =
                 SqliteQueryLoader.getInstance()
@@ -35,19 +35,35 @@ public class SqliteInventoryDao implements InventoryDao {
                                 "items",
                                 AbstractSqlQueryLoader.SqlQueryType.SELECT);
         StringBuilder sql = new StringBuilder(query);
-        if (location != null) {
-            sql.append("WHERE sl.name = ?");
+        if (search != null) {
+            sql.append(
+                    "WHERE i.name LIKE ?,"
+                            + "ic.name LIKE ? "
+                            + "ib.name LIKE ? "
+                            + "sl.name Like ? "
+                            + "i._item_id Like ?");
         }
+
+        sql.append(
+                "GROUP BY " + "i._item_id, " + "i._created_at, " + "ic.name, " + "i.name, " + "ib.name ");
+
         if (orderBy != null) {
             sql.append(" ORDER BY " + orderBy.toString());
+        } else {
+            sql.append(" ORDER BY i._item_id");
         }
         if (direction != null) {
             sql.append(direction == Direction.ASC ? " ASC " : " DESC ");
         }
 
         try (var stmt = conn.prepareStatement(sql.toString()); ) {
-            if (location != null) {
-                stmt.setString(1, location.toString());
+            if (search != null) {
+                String searchPattern = search.trim() + "%";
+                stmt.setString(1, searchPattern);
+                stmt.setString(2, searchPattern);
+                stmt.setString(3, searchPattern);
+                stmt.setString(4, searchPattern);
+                stmt.setString(5, searchPattern);
             }
             var rs = stmt.executeQuery();
             while (rs.next()) {

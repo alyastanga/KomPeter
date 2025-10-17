@@ -7,4 +7,13 @@
 */
 package com.github.ragudos.kompeter.database.dao.inventory;
 
-public interface ItemCategoryAssignmentDao {}
+import java.io.IOException;
+import java.sql.SQLException;
+
+public interface ItemCategoryAssignmentDao {
+    // CREATE
+    void setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException;
+    // READ
+    // UPDATE
+    // DELETE
+}

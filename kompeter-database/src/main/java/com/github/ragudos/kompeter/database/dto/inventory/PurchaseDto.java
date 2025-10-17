@@ -22,3 +22,4 @@ public record PurchaseDto(
         @NotNull BigDecimal vatPercent,
         BigDecimal discountValue,
         DiscountType discountType) {}
+;
