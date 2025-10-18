@@ -44,7 +44,7 @@ public class SqliteSalesDao implements SalesDao {
         String sqlFileName;
         if (from == null && to == null) {
             sqlFileName = "revenue_all";
-        } else if (from == null) {
+        } else if (to == null) {
             sqlFileName = "revenue_to";
         } else {
             sqlFileName = "revenue_range";
@@ -101,7 +101,7 @@ public class SqliteSalesDao implements SalesDao {
         String sqlFileName;
         if (from == null && to == null) {
             sqlFileName = "expenses_all";
-        } else if (from == null) {
+        } else if (to == null) {
             sqlFileName = "expenses_to";
         } else {
             sqlFileName = "expenses_range";
@@ -158,7 +158,7 @@ public class SqliteSalesDao implements SalesDao {
         String sqlFileName;
         if (from == null && to == null) {
             sqlFileName = "profit_all";
-        } else if (from == null) {
+        } else if (to == null) {
             sqlFileName = "profit_to";
         } else {
             sqlFileName = "profit_range";
@@ -220,7 +220,7 @@ public class SqliteSalesDao implements SalesDao {
         String sqlFileName;
         if (from == null && to == null) {
             sqlFileName = "profit_all";
-        } else if (from == null) {
+        } else if (to == null) {
             sqlFileName = "profit_to";
         } else {
             sqlFileName = "profit_range";

@@ -1,9 +1,9 @@
 WITH RECURSIVE calendar(date) AS (
-    SELECT DATE((SELECT MIN(sale_date) FROM sales)) -- start date
+    SELECT DATE(?) -- start date
     UNION ALL
     SELECT DATE(date, '+1 day')
     FROM calendar
-    WHERE date < DATE(?) -- end date
+    WHERE date < DATE('now') -- end date
 ),
 TOTAL_REVENUE AS (
     SELECT

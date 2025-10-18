@@ -17,6 +17,6 @@ LEFT JOIN item_category_assignments ica
     ON ica._item_id = i._item_id
 LEFT JOIN item_categories ic 
     ON ic._item_category_id = ica._item_category_id
-WHERE DATE(s.sale_date) BETWEEN DATE((SELECT MIN(sale_date) FROM sales)) AND DATE(?)
+WHERE DATE(s.sale_date) BETWEEN DATE(?) AND DATE('now')
 GROUP BY i._item_id, i.name, ib.name, ic.name
 ORDER BY total_sold DESC;

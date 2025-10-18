@@ -46,7 +46,7 @@ public class SqliteInventoryDao implements InventoryDao {
         String sqlFileName;
         if (from == null && to == null) {
             sqlFileName = "inventory_count_all";
-        } else if (from == null) {
+        } else if (to == null) {
             sqlFileName = "inventory_count_to";
         } else {
             sqlFileName = "inventory_count_range";
@@ -109,7 +109,7 @@ public class SqliteInventoryDao implements InventoryDao {
         String sqlFileName;
         if (from == null && to == null) {
             sqlFileName = "inventory_value_all";
-        } else if (from == null) {
+        } else if (to == null) {
             sqlFileName = "inventory_value_to";
         } else {
             sqlFileName = "inventory_value_range";
