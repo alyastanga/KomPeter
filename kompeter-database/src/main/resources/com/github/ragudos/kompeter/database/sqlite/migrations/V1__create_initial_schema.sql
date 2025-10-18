@@ -98,6 +98,7 @@ CREATE TABLE
     _item_brand_id INTEGER,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     unit_price_php REAL NOT NULL,
+    quanity INTEGER NOT NULL,
     minimum_quantity INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (_item_id) REFERENCES items (_item_id),
     FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id)
@@ -201,7 +202,7 @@ CREATE TABLE
     payment_date TIMESTAMP NOT NULL,
     reference_number TEXT,
     payment_method TEXT NOT NULL CHECK (
-      payment_method IN ('cash', 'gcash', 'bank_transfer')
+    payment_method IN ('cash', 'gcash', 'bank_transfer')
     ),
     amount_php REAL NOT NULL,
     FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id)
