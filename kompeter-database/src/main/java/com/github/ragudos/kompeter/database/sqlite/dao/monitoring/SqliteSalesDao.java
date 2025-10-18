@@ -75,7 +75,7 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    RevenueDto dto = new RevenueDto(rs.getTimestamp("date"), rs.getInt("total_revenue"));
+                    RevenueDto dto = new RevenueDto(rs.getTimestamp("date"), rs.getFloat("total_revenue"));
                     results.add(KompeterLogger.log(dto));
                 }
             }
@@ -132,7 +132,7 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    ExpensesDto dto = new ExpensesDto(rs.getTimestamp("date"), rs.getInt("total_expense"));
+                    ExpensesDto dto = new ExpensesDto(rs.getTimestamp("date"), rs.getFloat("total_expense"));
                     results.add(KompeterLogger.log(dto));
                 }
             }
@@ -192,9 +192,9 @@ public class SqliteSalesDao implements SalesDao {
                     ProfitDto dto =
                             new ProfitDto(
                                     rs.getTimestamp("date"),
-                                    rs.getInt("total_profit"),
-                                    rs.getInt("total_revenue"),
-                                    rs.getInt("total_expenses"));
+                                    rs.getFloat("total_profit"),
+                                    rs.getFloat("total_revenue"),
+                                    rs.getFloat("total_expenses"));
                     results.add(KompeterLogger.log(dto));
                 }
             }
@@ -219,11 +219,11 @@ public class SqliteSalesDao implements SalesDao {
 
         String sqlFileName;
         if (from == null && to == null) {
-            sqlFileName = "profit_all";
+            sqlFileName = "topsellingitems_all";
         } else if (to == null) {
-            sqlFileName = "profit_to";
+            sqlFileName = "topsellingitems_to";
         } else {
-            sqlFileName = "profit_range";
+            sqlFileName = "topsellingitems_range";
         }
 
         String query;
@@ -257,7 +257,7 @@ public class SqliteSalesDao implements SalesDao {
                                     rs.getString("brand_name"),
                                     rs.getString("category_name"),
                                     rs.getInt("total_sold"),
-                                    rs.getInt("total_revenue"));
+                                    rs.getFloat("total_revenue"));
                     results.add(KompeterLogger.log(dto));
                 }
             }

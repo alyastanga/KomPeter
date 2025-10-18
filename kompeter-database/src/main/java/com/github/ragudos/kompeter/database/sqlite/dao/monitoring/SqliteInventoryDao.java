@@ -143,9 +143,9 @@ public class SqliteInventoryDao implements InventoryDao {
                     InventoryValueDto dto =
                             new InventoryValueDto(
                                     rs.getTimestamp("date"),
-                                    rs.getInt("total_inventory_value"),
-                                    rs.getInt("total_purchased_value"),
-                                    rs.getInt("total_sales_value"));
+                                    rs.getFloat("total_inventory_value"),
+                                    rs.getFloat("total_purchased_value"),
+                                    rs.getFloat("total_sales_value"));
                     results.add(KompeterLogger.log(dto));
                 }
             }
