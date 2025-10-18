@@ -1,0 +1,1 @@
+SELECT * FROM item_stock WHERE _item_stock_id = ?;

@@ -1,0 +1,35 @@
+SELECT 
+    i._item_id,
+    ist._item_stock_id,
+    issl._item_stock_storage_location_id,
+    i._created_at,
+    ic.name,
+    i.name ,
+    ib.name ,
+    ist.unit_price_php ,
+    SUM(issl.quantity),
+    GROUP_CONCAT(DISTINCT sl.name)
+FROM items as i
+INNER join item_stocks as ist ON i._item_id = ist._item_id
+INNER JOIN item_category_assignments AS ica oN i._item_id = ica._item_id
+INNER JOIN item_categories as ic ON ica._item_category_id = ic._item_category_id
+INNER JOIN item_brands AS ib ON ist._item_brand_id = ib._item_brand_id
+INNER join item_stock_storage_locations as issl ON ist._item_stock_id = issl._item_stock_id
+INNER JOIN storage_locations as sl on issl._storage_location_id = sl._storage_location_id
+WHERE 
+    i.name LIKE :search
+    OR ib.name LIKE :search
+    OR ic.name LIKE :search
+    OR sl.name LIKE :search
+    OR i._item_id LIKE :search
+GROUP BY
+    i._item_id,
+    i._created_at,
+    i.name,
+    ic.name,
+    ib.name
+ORDER BY
+    i.name
+    
+
+
