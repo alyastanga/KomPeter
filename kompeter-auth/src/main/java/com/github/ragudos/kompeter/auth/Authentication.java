@@ -196,9 +196,7 @@ public final class Authentication {
                                 userDto.displayName(),
                                 userDto.firstName(),
                                 userDto.lastName(),
-                                userRoleDao
-                                        .getRolesOfUserById(conn, userDto._userId())
-                                        .orElseThrow(AuthenticationException::new),
+                                userRoleDao.getRolesOfUserById(conn, userDto._userId()),
                                 email);
 
                 ApplicationConfig.getInstance()
@@ -233,13 +231,8 @@ public final class Authentication {
             final @NotNull String firstName,
             final @NotNull String lastName,
             final @NotNull String email,
-            final @NotNull char[] password,
-            final @NotNull char[] confirmPassword)
+            final @NotNull char[] password)
             throws AuthenticationException {
-        if (!CharUtils.constantTimeEquals(password, confirmPassword)) {
-            throw new AuthenticationException(AuthenticationErrors.SIGN_UP_MISMATCH_PASSWORD);
-        }
-
         AbstractSqlFactoryDao factory =
                 AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 

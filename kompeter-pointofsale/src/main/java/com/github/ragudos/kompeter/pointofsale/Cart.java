@@ -66,10 +66,10 @@ class Cart {
         return sum;
     }
 
-    ArrayList<CartItem> getAllItems() { 
-       return items;
+    ArrayList<CartItem> getAllItems() {
+        return items;
     }
-    
+
     double checkOut() throws SQLException {
         if (items.isEmpty()) {
             System.out.println("Cart is empty. Cannot checkout");
@@ -78,7 +78,7 @@ class Cart {
             System.out.println("Transaction saving to database....");
             trans.saveToDatabase();
             System.out.println("Transaction has Succesfully been saved!");
-            
+
             items.clear();
             System.out.println("Cart has been cleared");
         }
