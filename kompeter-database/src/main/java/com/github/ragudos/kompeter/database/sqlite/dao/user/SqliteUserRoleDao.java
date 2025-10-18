@@ -34,9 +34,17 @@ public class SqliteUserRoleDao implements UserRoleDao {
 
             ResultSet rs = stmnt.executeQuery();
 
-            return rs.next()
-                    ? Optional.of(StringUtils.splitTrim(rs.getString("user_roles"), ","))
-                    : Optional.empty();
+            if (!rs.next()) {
+                return Optional.empty();
+            }
+
+            String roles = rs.getString("user_roles");
+
+            if (roles == null) {
+                return Optional.empty();
+            }
+
+            return Optional.of(StringUtils.splitTrim(roles, ","));
         }
     }
 

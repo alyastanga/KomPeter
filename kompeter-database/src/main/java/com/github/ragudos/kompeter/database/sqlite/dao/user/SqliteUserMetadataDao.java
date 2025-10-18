@@ -11,6 +11,7 @@ import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
 import com.github.ragudos.kompeter.database.dao.user.UserMetadataDao;
 import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
+import com.github.ragudos.kompeter.utilities.StringUtils;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -33,17 +34,25 @@ public class SqliteUserMetadataDao implements UserMetadataDao {
 
             ResultSet rs = stmnt.executeQuery();
 
-            return rs.next()
-                    ? Optional.of(
-                            new UserMetadataDto(
-                                    _userId,
-                                    rs.getTimestamp("_created_at"),
-                                    rs.getString("display_name"),
-                                    rs.getString("first_name"),
-                                    rs.getString("last_name"),
-                                    rs.getString("roles").split(","),
-                                    rs.getString("email")))
-                    : Optional.empty();
+            if (!rs.next()) {
+                return Optional.empty();
+            }
+
+            String roles = rs.getString("roles");
+
+            if (roles == null) {
+                return Optional.empty();
+            }
+
+            return Optional.of(
+                    new UserMetadataDto(
+                            _userId,
+                            rs.getTimestamp("_created_at"),
+                            rs.getString("display_name"),
+                            rs.getString("first_name"),
+                            rs.getString("last_name"),
+                            Optional.of(StringUtils.splitTrim(roles, ",")),
+                            rs.getString("email")));
         }
     }
 }

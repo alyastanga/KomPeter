@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.database.dto.user;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
@@ -27,14 +28,14 @@ public class UserMetadataDto {
             @NotNull String displayName,
             @NotNull String firstName,
             @NotNull String lastName,
-            @NotNull String[] roles,
+            @NotNull Optional<String[]> roles,
             @NotNull String email) {
         this._userId = _userId;
         this._createdAt = _createdAt;
         this.displayName = displayName;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.roles = roles;
+        this.roles = roles.orElse(new String[] {});
         this.email = email;
     }
 

@@ -62,10 +62,6 @@ public class SignUpAuthScene implements Scene {
             TextFieldFactory.createPasswordField("Password", JPasswordField.CENTER);
     private final JLabel passwordInputError = new JLabel();
 
-    private final JPasswordField confirmPasswordInput =
-            TextFieldFactory.createPasswordField("Confirm Password", JPasswordField.CENTER);
-    private final JLabel confirmPasswordInputError = new JLabel();
-
     private final JButton submitButton = new JButton("Sign up");
 
     private final JButton navigateToLoginButton = new JButton("Already have an account");
@@ -120,13 +116,6 @@ public class SignUpAuthScene implements Scene {
                                         () -> {
                                             passwordInputError.setText("");
                                             passwordInput.putClientProperty("JComponent.outline", null);
-                                        });
-                                goToNearestEmptyFieldOrSignUp();
-                            } else if (source.equals(confirmPasswordInput)) {
-                                SwingUtilities.invokeLater(
-                                        () -> {
-                                            confirmPasswordInputError.setText("");
-                                            confirmPasswordInput.putClientProperty("JComponent.outline", null);
                                         });
                                 goToNearestEmptyFieldOrSignUp();
                             }
@@ -275,9 +264,7 @@ public class SignUpAuthScene implements Scene {
                     firstNameInput.getText(),
                     lastNameInput.getText(),
                     emailInput.getText(),
-                    passwordInput.getPassword(),
-                    confirmPasswordInput.getPassword());
-            ;
+                    passwordInput.getPassword());
 
             SwingUtilities.invokeLater(() -> clearInputs());
             SwingUtilities.invokeLater(
@@ -316,8 +303,6 @@ public class SignUpAuthScene implements Scene {
         lastNameInputError.setText("");
         passwordInput.putClientProperty("JComponent.outline", null);
         passwordInputError.setText("");
-        confirmPasswordInput.putClientProperty("JComponent.outline", null);
-        confirmPasswordInputError.setText("");
     }
 
     private void clearInputs() {
@@ -326,7 +311,6 @@ public class SignUpAuthScene implements Scene {
         firstNameInput.setText("");
         lastNameInput.setText("");
         passwordInput.setText("");
-        confirmPasswordInput.setText("");
 
         clearErrors();
     }
@@ -467,7 +451,6 @@ public class SignUpAuthScene implements Scene {
         firstNameInput.addKeyListener(inputKeyEnterListener);
         lastNameInput.addKeyListener(inputKeyEnterListener);
         passwordInput.addKeyListener(inputKeyEnterListener);
-        confirmPasswordInput.addKeyListener(inputKeyEnterListener);
         submitButton.addActionListener(handleSubmitActionListener);
         navigateToLoginButton.addActionListener(ButtonSceneNavigationActionListener.LISTENER);
     }
@@ -481,7 +464,6 @@ public class SignUpAuthScene implements Scene {
         firstNameInput.removeKeyListener(inputKeyEnterListener);
         lastNameInput.removeKeyListener(inputKeyEnterListener);
         passwordInput.removeKeyListener(inputKeyEnterListener);
-        confirmPasswordInput.removeKeyListener(inputKeyEnterListener);
         submitButton.removeActionListener(handleSubmitActionListener);
         navigateToLoginButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
     }
@@ -496,7 +478,6 @@ public class SignUpAuthScene implements Scene {
         lastNameInput.removeKeyListener(inputKeyEnterListener);
         emailInput.removeKeyListener(inputKeyEnterListener);
         passwordInput.removeKeyListener(inputKeyEnterListener);
-        confirmPasswordInput.removeKeyListener(inputKeyEnterListener);
 
         view.removeAll();
     }
