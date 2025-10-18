@@ -26,7 +26,7 @@ CREATE TABLE
     password_hash TEXT NOT NULL,
     password_salt TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    FOREIGN KEY (_user_id) REFERENCES users (_user_id)
+    FOREIGN KEY (_user_id) REFERENCES users (_user_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -35,8 +35,8 @@ CREATE TABLE
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     _user_id INTEGER,
     _role_id INTEGER,
-    FOREIGN KEY (_user_id) REFERENCES users (_user_id),
-    FOREIGN KEY (_role_id) REFERENCES roles (_role_id)
+    FOREIGN KEY (_user_id) REFERENCES users (_user_id) ON DELETE CASCADE,
+    FOREIGN KEY (_role_id) REFERENCES roles (_role_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -46,7 +46,7 @@ CREATE TABLE
     _user_id INTEGER NOT NULL,
     session_token TEXT NOT NULL UNIQUE,
     ip_address TEXT,
-    FOREIGN KEY (_user_id) REFERENCES users (_user_id)
+    FOREIGN KEY (_user_id) REFERENCES users (_user_id) ON DELETE CASCADE
   );
  
 CREATE TABLE 
@@ -87,8 +87,8 @@ CREATE TABLE
     _item_id INTEGER,
     _item_category_id INTEGER,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (_item_id) REFERENCES items (_item_id),
-    FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id)
+    FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,
+    FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -100,8 +100,8 @@ CREATE TABLE
     unit_price_php REAL NOT NULL,
     quantity INTEGER NOT NULL,
     minimum_quantity INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY (_item_id) REFERENCES items (_item_id),
-    FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id)
+    FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,
+    FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -111,8 +111,8 @@ CREATE TABLE
         _storage_location_id INTEGER NOT NULL,
         _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         quantity INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id),
-    	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id)
+        FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE,
+    	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id) ON DELETE CASCADE
 	);
     
 CREATE TABLE
@@ -123,10 +123,8 @@ CREATE TABLE
     quantity_before INTEGER NOT NULL,
     quantity_after INTEGER NOT NULL,
     quantity_added INTEGER NOT NULL,
-    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
+    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE
   );
-  
-  
 
 CREATE TABLE
   suppliers (
@@ -152,7 +150,7 @@ CREATE TABLE
     vat_percent REAL NOT NULL,
     discount_value REAL,
     discount_type TEXT CHECK (discount_type IN ('percentage', 'fixed')),
-    FOREIGN KEY (_supplier_id) REFERENCES suppliers (_supplier_id)
+    FOREIGN KEY (_supplier_id) REFERENCES suppliers (_supplier_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -178,8 +176,8 @@ CREATE TABLE
     quantity_ordered INTEGER NOT NULL,
     quantity_received INTEGER NOT NULL,
     unit_cost_php REAL NOT NULL,
-    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id),
-    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
+    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id) ON DELETE CASCADE,
+    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -205,7 +203,7 @@ CREATE TABLE
     payment_method IN ('cash', 'gcash', 'bank_transfer')
     ),
     amount_php REAL NOT NULL,
-    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id)
+    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -216,6 +214,6 @@ CREATE TABLE
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     quantity INTEGER NOT NULL,
     unit_price_php REAL NOT NULL,
-    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id),
-    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
+    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id) ON DELETE CASCADE,
+    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE
   );

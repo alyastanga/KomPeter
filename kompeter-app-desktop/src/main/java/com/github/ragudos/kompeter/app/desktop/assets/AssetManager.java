@@ -26,7 +26,6 @@ public class AssetManager {
 
     private static SVGIconUIColor loadIcon(
             @NotNull final String path, float scale, @NotNull String colorKey) {
-        System.out.println(ICONS_BASE_PATH + "/icons/" + path);
         return new SVGIconUIColor(ICONS_BASE_PATH + "/icons/" + path, scale, colorKey);
     }
 

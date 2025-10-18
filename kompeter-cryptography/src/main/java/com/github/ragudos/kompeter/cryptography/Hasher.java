@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.cryptography;
 
+import com.github.ragudos.kompeter.utilities.CharUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -25,6 +26,15 @@ public final class Hasher {
 
     public static Optional<HashedStringWithSalt> hash(@NotNull final char[] password) {
         return hash(password, SaltFactory.generateSalt());
+    }
+
+    public static void main(String[] args) {
+        var pass = "Admin@123";
+        var hashed = hash(pass.toCharArray());
+        var str = CharUtils.toBase64(hashed.get().hashedString());
+
+        System.out.println("Password: " + pass + ", Hash: " + str);
+        System.out.println("Salt: " + hashed.get().salt().toBase64());
     }
 
     public static Optional<HashedStringWithSalt> hash(

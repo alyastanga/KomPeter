@@ -15,6 +15,8 @@ import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener.EnterK
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.auth.Authentication;
+import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.constants.StringLimits;
 import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
@@ -268,11 +270,15 @@ public class SignUpAuthScene implements Scene {
                 return;
             }
 
-            /*
-             * Authentication.signUp(displayNameInput.getText(), firstNameInput.getText(),
-             * lastNameInput.getText(), emailInput.getText(), passwordInput.getPassword(),
-             * confirmPasswordInput.getPassword()); ;
-             */
+            Authentication.signUp(
+                    displayNameInput.getText(),
+                    firstNameInput.getText(),
+                    lastNameInput.getText(),
+                    emailInput.getText(),
+                    passwordInput.getPassword(),
+                    confirmPasswordInput.getPassword());
+            ;
+
             SwingUtilities.invokeLater(() -> clearInputs());
             SwingUtilities.invokeLater(
                     () -> {
@@ -284,12 +290,16 @@ public class SignUpAuthScene implements Scene {
                     });
 
             SceneNavigator.getInstance().navigateTo(SceneNames.AuthScenes.SIGN_IN_AUTH_SCENE);
-            /*
-             * } catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
-             * JOptionPane.showMessageDialog(view,
-             * "We cannot sign you in at this moment. Sorry.", e1.getMessage(),
-             * JOptionPane.ERROR_MESSAGE); });
-             */
+
+        } catch (AuthenticationException e1) {
+            SwingUtilities.invokeLater(
+                    () -> {
+                        JOptionPane.showMessageDialog(
+                                view,
+                                "We cannot sign you in at this moment. Sorry. \n\tReason:\n\n" + e1.getMessage(),
+                                "failed to sign up",
+                                JOptionPane.ERROR_MESSAGE);
+                    });
         } finally {
             busy.set(false);
         }

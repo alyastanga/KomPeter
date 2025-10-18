@@ -15,6 +15,8 @@ import com.github.ragudos.kompeter.app.desktop.listeners.EnterKeyListener.EnterK
 import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.auth.Authentication;
+import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
 import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -156,15 +159,18 @@ public class SignInAuthScene implements Scene {
                 return;
             }
 
-            // Authentication.signIn(emailInput.getText(), passwordInput.getPassword());
+            Authentication.signIn(emailInput.getText(), passwordInput.getPassword());
             SwingUtilities.invokeLater(() -> clearInputs());
             SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.HOME_SCENE);
-            /*
-             * } catch (AuthenticationException e1) { SwingUtilities.invokeLater(() -> {
-             * JOptionPane.showMessageDialog(view,
-             * "We cannot sign you in at this moment. Sorry.", e1.getMessage(),
-             * JOptionPane.ERROR_MESSAGE); });
-             */
+        } catch (AuthenticationException e1) {
+            SwingUtilities.invokeLater(
+                    () -> {
+                        JOptionPane.showMessageDialog(
+                                view,
+                                "We cannot sign you in at this moment. Sorry. \n\tReason:\n\n " + e1.getMessage(),
+                                "Failed to sign in",
+                                JOptionPane.ERROR_MESSAGE);
+                    });
         } finally {
             busy.set(false);
         }

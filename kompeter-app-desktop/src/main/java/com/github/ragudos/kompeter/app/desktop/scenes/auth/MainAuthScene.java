@@ -12,6 +12,7 @@ import com.github.ragudos.kompeter.app.desktop.navigation.SceneGuard;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneManager;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneWithSubScenes;
 import com.github.ragudos.kompeter.app.desktop.navigation.StaticSceneManager;
+import com.github.ragudos.kompeter.auth.SessionManager;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +21,7 @@ public class MainAuthScene implements SceneWithSubScenes {
     public static class MainAuthSceneGuard implements SceneGuard {
         @Override
         public boolean canAccess() {
-            return true;
+            return SessionManager.getInstance().session() == null;
         }
     }
 

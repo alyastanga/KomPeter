@@ -12,7 +12,7 @@ import com.github.ragudos.kompeter.database.migrations.Migrator;
 import com.github.ragudos.kompeter.database.migrations.SqlMigration;
 import com.github.ragudos.kompeter.database.migrations.SqlMigration.ParsedSqlMigration;
 import com.github.ragudos.kompeter.database.seeder.Seeder;
-import com.github.ragudos.kompeter.database.sqlite.SqliteSeeder;
+import com.github.ragudos.kompeter.database.sqlite.seeder.SqliteSeeder;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
