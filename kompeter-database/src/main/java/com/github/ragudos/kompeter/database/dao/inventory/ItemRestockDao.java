@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 public interface ItemRestockDao {
     // CREATE
-    void insertItemRestock(int itemStockId, int qty_before, int qty_after, int qty_added)
+    int insertItemRestock(int itemStockId, int qty_before, int qty_after, int qty_added)
             throws SQLException, IOException;
     // READ
     // UPDATE

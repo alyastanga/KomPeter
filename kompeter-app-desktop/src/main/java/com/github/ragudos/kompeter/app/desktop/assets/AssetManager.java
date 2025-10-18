@@ -21,7 +21,8 @@ public class AssetManager {
 
     private static final LRU<String, Image> IMAGES = new LRU<>(50);
     private static final LRU<String, SVGIconUIColor> icons = new LRU<>(50);
-    private static final String ICONS_BASE_PATH = AssetManager.class.getPackageName().replace('.', '/');
+    private static final String ICONS_BASE_PATH =
+            AssetManager.class.getPackageName().replace('.', '/');
 
     private static SVGIconUIColor loadIcon(
             @NotNull final String path, float scale, @NotNull String colorKey) {

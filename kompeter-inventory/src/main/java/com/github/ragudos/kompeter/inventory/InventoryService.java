@@ -8,38 +8,79 @@
 package com.github.ragudos.kompeter.inventory;
 
 import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
-import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao.Direction;
-import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao.OrderBy;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStockDto;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemBrandDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemRestockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseItemStockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchasePaymentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteStorageLocationDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteSupplierDao;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 public class InventoryService implements Inventory {
     private final SqliteItemDao sqliteItemDao;
     private final SqliteInventoryDao sqliteInventoryDao;
     private final SqlitePurchaseDao sqlitePurchaseDao;
+    private final SqliteItemBrandDao sqliteItemBrandDao;
+    private final SqliteItemCategoryDao sqliteItemCategoryDao;
+    private final SqliteItemCategoryAssignmentDao sqliteItemCategoryAssignmentDao;
+    private final SqliteItemRestockDao sqliteItemRestockDao;
+    private final SqliteItemStockDao sqliteItemStockDao;
+    private final SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao;
+    private final SqlitePurchasePaymentDao sqlitePurchasePaymentDao;
+    private final SqliteSupplierDao sqliteSupplierDao;
+    private final SqliteStorageLocationDao sqliteStorageLocationDao;
+    private final SqliteItemStockStorageLocationDao sqliteItemStockStorageLocationDao;
 
     public InventoryService(
             SqliteItemDao sqliteItemDao,
             SqliteInventoryDao sqliteInventoryDao,
-            SqlitePurchaseDao sqlitePurchaseDao) {
+            SqliteItemBrandDao sqliteItemBrandDao,
+            SqliteItemCategoryDao sqliteItemCategoryDao,
+            SqliteItemCategoryAssignmentDao sqliteItemCategoryAssignmentDao,
+            SqliteItemStockDao sqliteItemStockDao,
+            SqliteItemRestockDao sqliteItemRestockDao,
+            SqlitePurchaseDao sqlitePurchaseDao,
+            SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao,
+            SqlitePurchasePaymentDao sqlitePurchasePaymentDao,
+            SqliteSupplierDao sqliteSupplierDao,
+            SqliteStorageLocationDao sqliteStorageLocationDao,
+            SqliteItemStockStorageLocationDao sqliteItemStockStorageLocationDao) {
         this.sqliteItemDao = sqliteItemDao;
         this.sqliteInventoryDao = sqliteInventoryDao;
+        this.sqliteItemBrandDao = sqliteItemBrandDao;
+        this.sqliteItemCategoryDao = sqliteItemCategoryDao;
+        this.sqliteItemCategoryAssignmentDao = sqliteItemCategoryAssignmentDao;
+        this.sqliteItemStockDao = sqliteItemStockDao;
+        this.sqliteItemRestockDao = sqliteItemRestockDao;
         this.sqlitePurchaseDao = sqlitePurchaseDao;
+        this.sqlitePurchaseItemStockDao = sqlitePurchaseItemStockDao;
+        this.sqlitePurchasePaymentDao = sqlitePurchasePaymentDao;
+        this.sqliteSupplierDao = sqliteSupplierDao;
+        this.sqliteStorageLocationDao = sqliteStorageLocationDao;
+        this.sqliteItemStockStorageLocationDao = sqliteItemStockStorageLocationDao;
     }
 
     // sorted by _item_id by default
     @Override
     public List<InventoryMetadataDto> showInventoryItems() {
         try {
-            return sqliteInventoryDao.getAllData(null, null, null);
+            return sqliteInventoryDao.getAllData();
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -68,19 +109,13 @@ public class InventoryService implements Inventory {
     @Override
     public List<InventoryMetadataDto> searchItem(String search) {
         try {
-            return sqliteInventoryDao.getAllData(search, null, null);
+            return sqliteInventoryDao.getAllData(search);
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    @Override
-    public void refresh() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
@@ -95,28 +130,49 @@ public class InventoryService implements Inventory {
     }
 
     @Override
-    public void addRestock(
-            String category, String brand, String itemName, int quantity, String supplier) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void addRestock(int itemStockId, int qty_added) {
+        int qty_before = getItemStockById(itemStockId);
+        int qty_after = qty_before + qty_added;
+        try {
+            sqliteItemRestockDao.insertItemRestock(itemStockId, qty_before, qty_after, qty_added);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void addBrand(String name, String description) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try {
+            sqliteItemBrandDao.insertItemBrand(name, description);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void addCategory(String name, String description) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try {
+            sqliteItemCategoryDao.insertItemCategory(name, description);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void addStorageLoc(String name, String description) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try {
+            sqliteStorageLocationDao.insertStorageLocation(name, description);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -124,14 +180,13 @@ public class InventoryService implements Inventory {
             int supplierId,
             Timestamp purchaseDate,
             Timestamp deliveryDate,
-            float vat,
-            double discVal,
+            BigDecimal vat,
+            BigDecimal discVal,
             DiscountType discType) {
         String code = PurchaseCodeGenerator.generateSecureHexToken();
-
         try {
             sqlitePurchaseDao.insertPurchase(
-                    supplierId, purchaseDate, code, deliveryDate, supplierId, supplierId, discType);
+                    supplierId, purchaseDate, code, deliveryDate, vat, discVal, discType);
         } catch (SQLException e) {
 
         } catch (IOException e) {
@@ -145,9 +200,15 @@ public class InventoryService implements Inventory {
             Timestamp paymentDate,
             String refNumber,
             PaymentMethod paymentMethod,
-            double amount) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            BigDecimal amount) {
+        try {
+            sqlitePurchasePaymentDao.insertPurchasePayment(
+                    _purchaseId, paymentDate, refNumber, paymentMethod, amount);
+        } catch (SQLException e) {
+
+        } catch (IOException e) {
+
+        }
     }
 
     @Override
@@ -156,91 +217,64 @@ public class InventoryService implements Inventory {
             int _itemStocksId,
             String refNumber,
             PaymentMethod paymentMethod,
-            double amount) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+            BigDecimal amount) {
+        try {
+            sqlitePurchaseItemStockDao.insertPurchaseItemStock(
+                    _purchaseId, _itemStocksId, _purchaseId, _purchaseId, _itemStocksId);
+        } catch (SQLException e) {
 
-    @Override
-    public void setItemStockStorageLoc(
-            int _itemStockId,
-            int quantity_ordered,
-            int quantity_received,
-            int quantity,
-            double unitCost) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        } catch (IOException e) {
+
+        }
     }
 
     @Override
     public void setItemCategory(int _itemId, int _categoryId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void setItemStocks(int _itemId, int _itemBrandId, double _unitPrice, int min_quantity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public List<InventoryMetadataDto> sortByDateAdded(Direction direction) {
         try {
-            return sqliteInventoryDao.getAllData(null, OrderBy.DATE, direction);
+            sqliteItemCategoryAssignmentDao.setItemCategory(_itemId, _categoryId);
         } catch (SQLException e) {
-            e.printStackTrace();
+
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
-        return null;
     }
 
     @Override
-    public List<InventoryMetadataDto> sortByName() {
+    public void setItemStocks(
+            int _itemId, int _itemBrandId, BigDecimal _unitPrice, int min_quantity) {
         try {
-            return sqliteInventoryDao.getAllData(null, OrderBy.ITEM_NAME, null);
+            sqliteItemStockDao.insertItemStock(_itemId, _itemBrandId, _unitPrice, min_quantity);
         } catch (SQLException e) {
-            e.printStackTrace();
+
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
-        return null;
     }
 
     @Override
-    public List<InventoryMetadataDto> sortByCategory() {
+    public void setItemStockStorageLoc(int _itemStockId, int _storageLocId, int qty) {
         try {
-            return sqliteInventoryDao.getAllData(null, OrderBy.CATEGORY_NAME, null);
+            sqliteItemStockStorageLocationDao.setItemStockStorageLocation(
+                    _itemStockId, _storageLocId, qty);
         } catch (SQLException e) {
-            e.printStackTrace();
+
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
-        return null;
     }
 
     @Override
-    public List<InventoryMetadataDto> sortByPrice(Direction direction) {
+    public int getItemStockById(int id) {
+        int qty = 0;
         try {
-            return sqliteInventoryDao.getAllData(null, OrderBy.PRICE, direction);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+            Optional<ItemStockDto> optionalItemStock = sqliteItemStockDao.getItemStockById(id);
+            qty = optionalItemStock.map(ItemStockDto::quantity).orElse(0);
 
-    @Override
-    public List<InventoryMetadataDto> sortByQuantity(Direction direction) {
-        try {
-            return sqliteInventoryDao.getAllData(null, OrderBy.QUANTITY, direction);
         } catch (SQLException e) {
-            e.printStackTrace();
+
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
-        return null;
+        return qty;
     }
 }
