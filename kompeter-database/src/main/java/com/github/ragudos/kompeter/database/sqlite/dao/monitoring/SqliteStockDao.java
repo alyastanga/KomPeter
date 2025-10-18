@@ -22,12 +22,12 @@ import java.util.List;
 public class SqliteStockDao implements StockDao {
     @Override
     public List<PurchaseUnitDto> getPurchaseUnit() {
-        return null;
+        return getPurchaseUnit(null, null);
     }
 
     @Override
     public List<PurchaseUnitDto> getPurchaseUnit(Timestamp from) {
-        return null;
+        return getPurchaseUnit(from, null);
     }
 
     @Override
@@ -37,12 +37,12 @@ public class SqliteStockDao implements StockDao {
 
     @Override
     public List<SalesUnitDto> getSalesUnit() {
-        return null;
+        return getSalesUnit(null, null);
     }
 
     @Override
     public List<SalesUnitDto> getSalesUnit(Timestamp from) {
-        return null;
+        return getSalesUnit(from, null);
     }
 
     @Override
@@ -52,12 +52,12 @@ public class SqliteStockDao implements StockDao {
 
     @Override
     public List<OnHandUnitDto> getOnHandUnit() {
-        return null;
+        return getOnHandUnit(null, null);
     }
 
     @Override
     public List<OnHandUnitDto> getOnHandUnit(Timestamp from) {
-        return null;
+        return getOnHandUnit(from, null);
     }
 
     @Override
@@ -67,12 +67,12 @@ public class SqliteStockDao implements StockDao {
 
     @Override
     public List<LowStockItemsDto> getLowStockItems() {
-        return null;
+        return getLowStockItems(null, null);
     }
 
     @Override
     public List<LowStockItemsDto> getLowStockItems(Timestamp from) {
-        return null;
+        return getLowStockItems(from, null);
     }
 
     @Override
@@ -82,12 +82,12 @@ public class SqliteStockDao implements StockDao {
 
     @Override
     public List<OldItemsDto> getOldItems() {
-        return null;
+        return getOldItems(null, null);
     }
 
     @Override
     public List<OldItemsDto> getOldItems(Timestamp from) {
-        return null;
+        return getOldItems(from, null);
     }
 
     @Override

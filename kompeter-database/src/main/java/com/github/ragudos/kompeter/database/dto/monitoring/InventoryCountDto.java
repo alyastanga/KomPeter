@@ -12,44 +12,12 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public class InventoryCountDto {
-    public Timestamp date;
-    public int totalInventoryCount;
-    public int totalPurchaseCount;
-    public int totalSalesCount;
-
-    public InventoryCountDto(
-            Timestamp date, int totalInventoryCount, int totalPurchaseCount, int totalSalesCount) {
-        this.date = date;
-        this.totalInventoryCount = totalInventoryCount;
-        this.totalPurchaseCount = totalPurchaseCount;
-        this.totalSalesCount = totalSalesCount;
-    }
-
-    public InventoryCountDto(Timestamp date, int totalInventoryCount) {
-        this.date = date;
-        this.totalInventoryCount = totalInventoryCount;
-    }
-
-    public Timestamp getDate() {
-        return date;
-    }
-
-    public int getTotalInventoryCount() {
-        return totalInventoryCount;
-    }
-
-    public int getTotalPurchaseCount() {
-        return totalPurchaseCount;
-    }
-
-    public int getTotalSalesCount() {
-        return totalSalesCount;
-    }
+public record InventoryCountDto(
+        Timestamp date, int totalInventoryCount, int totalPurchaseCount, int totalSalesCount) {
 
     @Override
     public String toString() {
-        return "InventoryCountDTO{"
+        return "InventoryCountDto{"
                 + "date="
                 + date
                 + ", totalInventoryCount="

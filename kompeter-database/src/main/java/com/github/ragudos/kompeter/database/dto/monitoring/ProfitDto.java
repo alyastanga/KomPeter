@@ -7,7 +7,15 @@
 */
 package com.github.ragudos.kompeter.database.dto.monitoring;
 
+import java.sql.Timestamp;
+
 /**
  * @author Hanz Mapua
  */
-public class ProfitDto {}
+public record ProfitDto(Timestamp date, int totalProfit, int totalRevenue, int totalExpenses) {
+
+    @Override
+    public String toString() {
+        return "ProfitDto{" + "date=" + date + ", totalProfit=" + totalProfit + '}';
+    }
+}
