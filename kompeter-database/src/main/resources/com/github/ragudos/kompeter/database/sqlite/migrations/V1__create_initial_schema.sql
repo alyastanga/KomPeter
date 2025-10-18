@@ -158,7 +158,7 @@ CREATE TABLE
 CREATE TABLE
   purchase_payments (
     _purchase_payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _purchse_id INTEGER NOT NULL,
+    _purchase_id INTEGER NOT NULL,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     payment_date TIMESTAMP NOT NULL,
     reference_number TEXT,
@@ -166,7 +166,7 @@ CREATE TABLE
       payment_method IN ('cash', 'gcash', 'bank_transfer')
     ),
     amount_php REAL NOT NULL,
-    FOREIGN KEY (_purchse_id) REFERENCES purchases (_purchase_id)
+    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id)
   );
 
 CREATE TABLE
