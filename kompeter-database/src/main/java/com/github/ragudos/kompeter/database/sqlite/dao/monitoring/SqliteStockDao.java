@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.dao.DateUtils;
 import com.github.ragudos.kompeter.database.dao.monitoring.StockDao;
 import com.github.ragudos.kompeter.database.dto.monitoring.LowStockItemsDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.OldItemsDto;
@@ -80,7 +81,7 @@ public class SqliteStockDao implements StockDao {
                 while (rs.next()) {
                     PurchaseUnitDto dto =
                             new PurchaseUnitDto(
-                                    rs.getTimestamp("date"),
+                                    DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getInt("total_purchase_unit"),
                                     rs.getInt("cumulative_purchased_units"));
                     results.add(KompeterLogger.log(dto));
@@ -141,7 +142,7 @@ public class SqliteStockDao implements StockDao {
                 while (rs.next()) {
                     SalesUnitDto dto =
                             new SalesUnitDto(
-                                    rs.getTimestamp("date"),
+                                    DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getInt("total_sales_unit"),
                                     rs.getInt("cumulative_sales_units"));
                     results.add(KompeterLogger.log(dto));
@@ -202,7 +203,7 @@ public class SqliteStockDao implements StockDao {
                 while (rs.next()) {
                     OnHandUnitDto dto =
                             new OnHandUnitDto(
-                                    rs.getTimestamp("date"),
+                                    DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getInt("total_purchased"),
                                     rs.getInt("total_sold"),
                                     rs.getInt("total_on_hand"));

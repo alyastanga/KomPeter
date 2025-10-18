@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.dao.DateUtils;
 import com.github.ragudos.kompeter.database.dao.monitoring.SalesDao;
 import com.github.ragudos.kompeter.database.dto.monitoring.ExpensesDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.ProfitDto;
@@ -75,7 +76,8 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    RevenueDto dto = new RevenueDto(rs.getTimestamp("date"), rs.getFloat("total_revenue"));
+                    RevenueDto dto =
+                            new RevenueDto(DateUtils.safeGetTimestamp(rs, "date"), rs.getFloat("total_revenue"));
                     results.add(KompeterLogger.log(dto));
                 }
             }
@@ -132,7 +134,8 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    ExpensesDto dto = new ExpensesDto(rs.getTimestamp("date"), rs.getFloat("total_expense"));
+                    ExpensesDto dto =
+                            new ExpensesDto(DateUtils.safeGetTimestamp(rs, "date"), rs.getFloat("total_expense"));
                     results.add(KompeterLogger.log(dto));
                 }
             }
@@ -191,7 +194,7 @@ public class SqliteSalesDao implements SalesDao {
                 while (rs.next()) {
                     ProfitDto dto =
                             new ProfitDto(
-                                    rs.getTimestamp("date"),
+                                    DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getFloat("total_profit"),
                                     rs.getFloat("total_revenue"),
                                     rs.getFloat("total_expenses"));
