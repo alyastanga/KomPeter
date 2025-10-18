@@ -12,6 +12,7 @@ import com.github.ragudos.kompeter.database.dto.monitoring.OldItemsDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.OnHandUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.PurchaseUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.SalesUnitDto;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -19,33 +20,33 @@ import java.util.List;
  * @author Hanz Mapua
  */
 public interface StockDao {
-    public List<PurchaseUnitDto> getPurchaseUnit();
+    public List<PurchaseUnitDto> getPurchaseUnit() throws SQLException;
 
-    public List<PurchaseUnitDto> getPurchaseUnit(Timestamp from);
+    public List<PurchaseUnitDto> getPurchaseUnit(Timestamp from) throws SQLException;
 
-    public List<PurchaseUnitDto> getPurchaseUnit(Timestamp from, Timestamp to);
+    public List<PurchaseUnitDto> getPurchaseUnit(Timestamp from, Timestamp to) throws SQLException;
 
-    public List<SalesUnitDto> getSalesUnit();
+    public List<SalesUnitDto> getSalesUnit() throws SQLException;
 
-    public List<SalesUnitDto> getSalesUnit(Timestamp from);
+    public List<SalesUnitDto> getSalesUnit(Timestamp from) throws SQLException;
 
-    public List<SalesUnitDto> getSalesUnit(Timestamp from, Timestamp to);
+    public List<SalesUnitDto> getSalesUnit(Timestamp from, Timestamp to) throws SQLException;
 
-    public List<OnHandUnitDto> getOnHandUnit();
+    public List<OnHandUnitDto> getOnHandUnit() throws SQLException;
 
-    public List<OnHandUnitDto> getOnHandUnit(Timestamp from);
+    public List<OnHandUnitDto> getOnHandUnit(Timestamp from) throws SQLException;
 
-    public List<OnHandUnitDto> getOnHandUnit(Timestamp from, Timestamp to);
+    public List<OnHandUnitDto> getOnHandUnit(Timestamp from, Timestamp to) throws SQLException;
 
-    public List<LowStockItemsDto> getLowStockItems();
+    public List<LowStockItemsDto> getLowStockItems() throws SQLException;
 
-    public List<LowStockItemsDto> getLowStockItems(Timestamp from);
+    public List<LowStockItemsDto> getLowStockItems(Timestamp from) throws SQLException;
 
-    public List<LowStockItemsDto> getLowStockItems(Timestamp from, Timestamp to);
+    public List<LowStockItemsDto> getLowStockItems(Timestamp from, Timestamp to) throws SQLException;
 
-    public List<OldItemsDto> getOldItems();
+    public List<OldItemsDto> getOldItems() throws SQLException;
 
-    public List<OldItemsDto> getOldItems(Timestamp from);
+    public List<OldItemsDto> getOldItems(Timestamp from) throws SQLException;
 
-    public List<OldItemsDto> getOldItems(Timestamp from, Timestamp to);
+    public List<OldItemsDto> getOldItems(Timestamp from, Timestamp to) throws SQLException;
 }

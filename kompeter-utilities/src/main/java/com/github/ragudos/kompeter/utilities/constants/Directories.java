@@ -26,11 +26,10 @@ public final class Directories {
     static {
         if (SystemInfo.isWindows) {
             APP_DATA_DIRECTORY = SystemInfo.USER_HOME + File.separator + "AppData";
-            APP_DIRECTORY = APP_DATA_DIRECTORY + File.separator + "Local";
-            CONFIG_DIRECTORY =
-                    APP_DIRECTORY + File.separator + Metadata.APP_TITLE + File.separator + "config";
-            LOGS_DIRECTORY =
-                    APP_DIRECTORY + File.separator + Metadata.APP_TITLE + File.separator + "logs";
+            APP_DIRECTORY =
+                    APP_DATA_DIRECTORY + File.separator + "Local" + File.separator + Metadata.APP_TITLE;
+            CONFIG_DIRECTORY = APP_DIRECTORY + File.separator + "config";
+            LOGS_DIRECTORY = APP_DIRECTORY + File.separator + "logs";
         } else if (SystemInfo.isLinux) {
             APP_DATA_DIRECTORY = SystemInfo.USER_HOME + File.separator + ".local";
             APP_DIRECTORY =

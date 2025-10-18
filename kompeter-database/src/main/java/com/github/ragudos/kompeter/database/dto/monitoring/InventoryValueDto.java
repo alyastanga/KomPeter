@@ -12,44 +12,12 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public class InventoryValueDto {
-    public Timestamp date;
-    public float totalInventoryValue;
-    public float totalPurchaseValue;
-    public float totalSalesValue;
-
-    public InventoryValueDto(
-            Timestamp date, float totalInventoryValue, float totalPurchaseValue, float totalSalesValue) {
-        this.date = date;
-        this.totalInventoryValue = totalInventoryValue;
-        this.totalPurchaseValue = totalPurchaseValue;
-        this.totalSalesValue = totalSalesValue;
-    }
-
-    public InventoryValueDto(Timestamp date, float totalInventoryValue) {
-        this.date = date;
-        this.totalInventoryValue = totalInventoryValue;
-    }
-
-    public Timestamp getDate() {
-        return date;
-    }
-
-    public float getTotalInventoryValue() {
-        return totalInventoryValue;
-    }
-
-    public float getTotalPurchaseValue() {
-        return totalPurchaseValue;
-    }
-
-    public float getTotalSalesValue() {
-        return totalSalesValue;
-    }
+public record InventoryValueDto(
+        Timestamp date, float totalInventoryValue, float totalPurchaseValue, float totalSalesValue) {
 
     @Override
     public String toString() {
-        return "InventoryValueDTO{"
+        return "InventoryValueDto{"
                 + "date="
                 + date
                 + ", totalInventoryValue="
