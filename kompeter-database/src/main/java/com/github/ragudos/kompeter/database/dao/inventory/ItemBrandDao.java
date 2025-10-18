@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 public interface ItemBrandDao {
     // CREATE
-    void insertItemBrand(String name, String description) throws SQLException, IOException;
+    int insertItemBrand(String name, String description) throws SQLException, IOException;
     // READ
     // UPDATE
     // DELETE

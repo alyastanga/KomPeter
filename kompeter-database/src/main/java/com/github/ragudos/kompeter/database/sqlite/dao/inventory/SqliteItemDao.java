@@ -7,22 +7,21 @@
 */
 package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
+import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemDto;
+import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SqliteItemDao implements ItemDao {
-    private final Connection conn;
-
-    public SqliteItemDao(Connection conn) {
-        this.conn = conn;
-    }
 
     @Override
     public List<ItemDto> getAllItems() throws SQLException, IOException {
@@ -30,7 +29,8 @@ public class SqliteItemDao implements ItemDao {
         var query =
                 SqliteQueryLoader.getInstance().get("select_all_items", "items", SqlQueryType.SELECT);
 
-        try (var stmt = conn.prepareStatement(query);
+        try (var conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query);
                 var rs = stmt.executeQuery(); ) {
 
             while (rs.next()) {
@@ -48,13 +48,14 @@ public class SqliteItemDao implements ItemDao {
     }
 
     @Override
-    public List<ItemDto> getItemsById(int id) throws SQLException, IOException {
-        List<ItemDto> items = new ArrayList<>();
+    public Optional<ItemDto> getItemsById(int id) throws SQLException, IOException {
+        Optional<ItemDto> items = Optional.empty();
 
         var query =
                 SqliteQueryLoader.getInstance().get("select_item_by_id", "items", SqlQueryType.SELECT);
 
-        try (var stmt = conn.prepareStatement(query); ) {
+        try (var conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query); ) {
             stmt.setInt(1, id);
             var rs = stmt.executeQuery();
 
@@ -66,30 +67,48 @@ public class SqliteItemDao implements ItemDao {
                                 rs.getString("name"),
                                 rs.getString("description"));
 
-                items.add(item);
+                items = Optional.of(item);
             }
         }
         return items;
     }
 
     @Override
-    public void deleteItemById(int id) throws SQLException, IOException {
+    public int deleteItemById(int id) throws SQLException, IOException {
         var query =
-                SqliteQueryLoader.getInstance().get("delete_item_by_id", "items", SqlQueryType.DELETE);
-        try (var stmt = conn.prepareStatement(query); ) {
-            stmt.setInt(1, id);
-            var delete = stmt.executeUpdate();
+                SqliteQueryLoader.getInstance()
+                        .get("delete_item_by_id", "items", AbstractSqlQueryLoader.SqlQueryType.DELETE);
+        try (var stmt =
+                new NamedPreparedStatement(
+                        SqliteFactoryDao.getInstance().getConnection(),
+                        query,
+                        Statement.RETURN_GENERATED_KEYS); ) {
+            stmt.setInt("_item_id", id);
+            stmt.executeUpdate();
+
+            var rs = stmt.getPreparedStatement().getGeneratedKeys();
+
+            return rs.next() ? rs.getInt(1) : -1;
         }
     }
 
     @Override
-    public void insertItem(String name, String description) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("insert_item", "items", SqlQueryType.INSERT);
-        try (var stmt = conn.prepareStatement(query); ) {
-            stmt.setString(1, name);
-            stmt.setString(2, description);
+    public int insertItem(String name, String description) throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("insert_item", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        try (var stmt =
+                new NamedPreparedStatement(
+                        SqliteFactoryDao.getInstance().getConnection(),
+                        query,
+                        Statement.RETURN_GENERATED_KEYS); ) {
+            stmt.setString("name", name);
+            stmt.setString("description", description);
+            stmt.executeUpdate();
 
-            var insert = stmt.executeUpdate();
+            var rs = stmt.getPreparedStatement().getGeneratedKeys();
+
+            return rs.next() ? rs.getInt(1) : -1;
         }
     }
 }

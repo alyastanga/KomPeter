@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.database;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -101,6 +102,26 @@ public final class NamedPreparedStatement implements AutoCloseable {
         }
         for (int pos : positions) {
             prepStmt.setInt(pos, value);
+        }
+    }
+
+    public void setDouble(final String name, final double value) throws SQLException {
+        List<Integer> positions = fields.get(name);
+        if (positions == null) {
+            throw new IllegalArgumentException("Parameter not found: " + name);
+        }
+        for (int pos : positions) {
+            prepStmt.setDouble(pos, value);
+        }
+    }
+
+    public void setBigDecimal(final String name, final BigDecimal value) throws SQLException {
+        List<Integer> positions = fields.get(name);
+        if (positions == null) {
+            throw new IllegalArgumentException("Parameter not found: " + name);
+        }
+        for (int pos : positions) {
+            prepStmt.setBigDecimal(pos, value);
         }
     }
 

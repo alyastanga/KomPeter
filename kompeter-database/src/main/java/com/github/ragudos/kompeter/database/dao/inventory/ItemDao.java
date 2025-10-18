@@ -11,18 +11,19 @@ import com.github.ragudos.kompeter.database.dto.inventory.ItemDto;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemDao {
     // CREATE
-    void insertItem(String name, String description) throws SQLException, IOException;
+    int insertItem(String name, String description) throws SQLException, IOException;
 
     // READ
     List<ItemDto> getAllItems() throws SQLException, IOException;
 
-    List<ItemDto> getItemsById(int id) throws SQLException, IOException;
+    Optional<ItemDto> getItemsById(int id) throws SQLException, IOException;
 
     // UPDATE
 
     // DELETE
-    void deleteItemById(int id) throws SQLException, IOException;
+    int deleteItemById(int id) throws SQLException, IOException;
 }

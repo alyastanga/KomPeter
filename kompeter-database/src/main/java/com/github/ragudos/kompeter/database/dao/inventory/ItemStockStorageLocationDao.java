@@ -10,10 +10,10 @@ package com.github.ragudos.kompeter.database.dao.inventory;
 import java.io.IOException;
 import java.sql.SQLException;
 
-public interface ItemCategoryAssignmentDao {
-    // CREATE
-    int setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException;
-    // READ
-    // UPDATE
-    // DELETE
+/**
+ * @author Peter M. Dela Cruz
+ */
+public interface ItemStockStorageLocationDao {
+    int setItemStockStorageLocation(int itemStockId, int storageLocId, int qty)
+            throws SQLException, IOException;
 }

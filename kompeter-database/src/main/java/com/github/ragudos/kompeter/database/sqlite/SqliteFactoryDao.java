@@ -14,9 +14,11 @@ import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignment
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemRestockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchaseDao;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchaseItemStockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchasePaymentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.StorageLocationDao;
 import com.github.ragudos.kompeter.database.dao.inventory.SupplierDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
@@ -33,9 +35,11 @@ import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCateg
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemRestockDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseItemStockDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchasePaymentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteStorageLocationDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteSupplierDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleItemStockDao;
@@ -118,27 +122,27 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull ItemBrandDao getItemBrandDao() {
-        return new SqliteItemBrandDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqliteItemBrandDao();
     }
 
     @Override
     public @NotNull ItemCategoryAssignmentDao getItemCategoryAssignmentDao() {
-        return new SqliteItemCategoryAssignmentDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqliteItemCategoryAssignmentDao();
     }
 
     @Override
     public @NotNull ItemDao getItemDao() {
-        return new SqliteItemDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqliteItemDao();
     }
 
     @Override
     public @NotNull ItemRestockDao getItemRestockDao() {
-        return new SqliteItemRestockDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqliteItemRestockDao();
     }
 
     @Override
     public @NotNull ItemStockDao getItemStockDao() {
-        return new SqliteItemStockDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqliteItemStockDao();
     }
 
     @Override
@@ -153,7 +157,7 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull PurchasePaymentDao getPurchasePaymentDao() {
-        return new SqlitePurchasePaymentDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqlitePurchasePaymentDao();
     }
 
     @Override
@@ -183,6 +187,16 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
     @Override
     public @NotNull InventoryDao getInventoryDao() {
-        return new SqliteInventoryDao(SqliteFactoryDao.getInstance().getConnection());
+        return new SqliteInventoryDao();
+    }
+
+    @Override
+    public StorageLocationDao getStorageLocationDao() {
+        return new SqliteStorageLocationDao();
+    }
+
+    @Override
+    public ItemStockStorageLocationDao getItemStockStorageLocationDao() {
+        return new SqliteItemStockStorageLocationDao();
     }
 }
