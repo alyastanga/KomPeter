@@ -15,11 +15,11 @@ INSERT INTO users (display_name, first_name, last_name) VALUES
 ('Kurt', 'Kurt', 'Cobain');
 
 INSERT INTO accounts (_user_id, password_hash, password_salt, email) VALUES
-(1, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'peter.admin@example.com'),
-(2, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'hanz.manager@example.com'),
-(3, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'jerick.cashier@example.com'),
-(4, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'aaron.clerk@example.com'),
-(5, '5uvOnZhz4SAcX6boOpKHhST84HgcLB3ShFHlK9WpsTI=', 'JssptbrdHjp0sRP9Hup0cw==', 'kurt.auditor@example.com');
+(1, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'peter.admin@example.com'),
+(2, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'hanz.manager@example.com'),
+(3, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'jerick.cashier@example.com'),
+(4, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'aaron.clerk@example.com'),
+(5, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'kurt.auditor@example.com');
 
 INSERT INTO user_roles (_user_id, _role_id) VALUES
 (1, 1), 
