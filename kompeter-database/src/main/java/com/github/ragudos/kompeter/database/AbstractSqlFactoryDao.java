@@ -13,9 +13,11 @@ import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignment
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemRestockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchaseDao;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchaseItemStockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchasePaymentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.StorageLocationDao;
 import com.github.ragudos.kompeter.database.dao.inventory.SupplierDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
@@ -239,4 +241,8 @@ public abstract class AbstractSqlFactoryDao {
     public @NotNull abstract SupplierDao getSupplierDao();
 
     public @NotNull abstract InventoryDao getInventoryDao();
+
+    public @NotNull abstract StorageLocationDao getStorageLocationDao();
+
+    public @NotNull abstract ItemStockStorageLocationDao getItemStockStorageLocationDao();
 }

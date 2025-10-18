@@ -13,6 +13,7 @@ import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.inventory.PurchaseDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -32,8 +33,8 @@ public class SqlitePurchaseDao implements PurchaseDao {
             Timestamp purchase_date,
             String purch_code,
             Timestamp deliverydate,
-            float vat_percentage,
-            float disc_val,
+            BigDecimal vat_percentage,
+            BigDecimal disc_val,
             DiscountType discountType)
             throws SQLException, IOException {
 
@@ -45,8 +46,8 @@ public class SqlitePurchaseDao implements PurchaseDao {
             stmt.setTimestamp(2, purchase_date);
             stmt.setString(3, purch_code);
             stmt.setTimestamp(4, deliverydate);
-            stmt.setFloat(5, vat_percentage);
-            stmt.setFloat(6, disc_val);
+            stmt.setBigDecimal(5, vat_percentage);
+            stmt.setBigDecimal(6, disc_val);
             stmt.setString(7, discountType.toString());
         }
     }

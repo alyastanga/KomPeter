@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 public interface ItemCategoryAssignmentDao {
     // CREATE
-    void setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException;
+    int setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException;
     // READ
     // UPDATE
     // DELETE

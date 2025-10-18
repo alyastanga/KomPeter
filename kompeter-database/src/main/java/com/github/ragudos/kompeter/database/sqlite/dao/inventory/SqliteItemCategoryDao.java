@@ -8,29 +8,32 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
+import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class SqliteItemCategoryDao implements ItemCategoryDao {
-    private final Connection conn;
-
-    public SqliteItemCategoryDao(Connection conn) {
-        this.conn = conn;
-    }
-
     @Override
-    public void insertItemCategory(String name, String description) throws SQLException, IOException {
+    public int insertItemCategory(String name, String description) throws SQLException, IOException {
         var query =
                 SqliteQueryLoader.getInstance()
                         .get("insert_item_category", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try (var stmt = conn.prepareStatement(query); ) {
-            stmt.setString(1, name);
-            stmt.setString(2, description);
+        try (var stmt =
+                new NamedPreparedStatement(
+                        SqliteFactoryDao.getInstance().getConnection(),
+                        query,
+                        Statement.RETURN_GENERATED_KEYS); ) {
+            stmt.setString("name", name);
+            stmt.setString("description", description);
+            stmt.executeUpdate();
 
-            var insert = stmt.executeUpdate();
+            var rs = stmt.getPreparedStatement().getGeneratedKeys();
+
+            return rs.next() ? rs.getInt(1) : -1;
         }
     }
 }

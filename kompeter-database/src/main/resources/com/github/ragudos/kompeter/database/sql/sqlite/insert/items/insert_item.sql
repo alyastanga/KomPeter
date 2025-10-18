@@ -1,2 +1,2 @@
 INSERT INTO items (name, description)
-VALUES (?, ?)
+VALUES (:name, :description);
