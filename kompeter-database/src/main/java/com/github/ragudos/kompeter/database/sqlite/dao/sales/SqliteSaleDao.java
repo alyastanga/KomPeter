@@ -7,30 +7,40 @@
 */
 package com.github.ragudos.kompeter.database.sqlite.dao.sales;
 
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
+import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SqliteSaleDao implements SaleDao {
 
     @Override
-    public int save(SaleDto sale) throws SQLException {
-        int result;
-        String sql =
-                """
-                INSERT INTO sales ( _created_at, sale_date, sale_code, customer_name, vat_percent, discount_value, discount_type)
-                VALUES (?, ?, ?, ?, ?, ?, ?)\
-                """;
+    public int saveTransaction(SaleDto sale) throws SQLException {
+        int generatedId = -1;
+
+        String sqlFileName = "insert_transaction";
+        String query;
+
+        try {
+            query =
+                    SqliteQueryLoader.getInstance()
+                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        } catch (IOException e) {
+            throw new SQLException("Error loading SQL file", e);
+        }
 
         try (Connection con = SqliteFactoryDao.getInstance().getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             if (codeExist(con, sale.saleCode())) {
                 throw new SQLException("Duplicate Sale Code: " + sale.saleCode());
@@ -43,37 +53,55 @@ public class SqliteSaleDao implements SaleDao {
             ps.setBigDecimal(5, sale.vatPercent());
             ps.setBigDecimal(6, sale.discountValue());
             ps.setString(7, sale.discountType().name());
-
-            System.out.println("This is Working");
-
-            result = ps.executeUpdate();
+            
+            ps.executeUpdate();
+            
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if(rs.next()) {
+                    generatedId = rs.getInt(1);
+                }
+            }
         }
-        return result;
+        return generatedId;
     }
 
     private boolean codeExist(Connection con, String saleCode) throws SQLException {
-        String checkSql = "SELECT COUNT(*) FROM sales WHERE sale_code = ?";
+        String sqlFileName = "select_from";
+        String query;
+        
+        try {
+            query = SqliteQueryLoader.getInstance().get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        } catch (IOException e) {
+            throw new SQLException("Error loading SQL file", e);
+        }
 
-        try (PreparedStatement ps = con.prepareStatement(checkSql)) {
+        try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, saleCode);
 
             try (ResultSet rs = ps.executeQuery()) {
-                System.out.println("This is working");
                 return rs.next() && rs.getInt(1) > 0;
             }
         }
     }
 
     @Override
-    public SaleDto get(int saleId) throws SQLException {
+    public SaleDto getTransaction(int _saleId) throws SQLException {
         SaleDto saleDto = null;
-        String sql =
-                "SELECT _sale_id, _created_at, sale_date, sale_code, customer_name, vat_percent,"
-                        + " discount_value, discount_type FROM sales WHERE _sale_id = ?";
-        try (Connection con = SqliteFactoryDao.getInstance().getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+        String sqlFileName = "sales";
+        String query;
 
-            ps.setInt(1, saleId);
+        try {
+            query =
+                    SqliteQueryLoader.getInstance()
+                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        } catch (IOException e) {
+            throw new SQLException("Error loading SQL file", e);
+        }
+
+        try (Connection con = SqliteFactoryDao.getInstance().getConnection();
+                PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setInt(1, _saleId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -94,13 +122,21 @@ public class SqliteSaleDao implements SaleDao {
     }
 
     @Override
-    public List<SaleDto> getAll() throws SQLException {
+    public List<SaleDto> getAllTransaction() throws SQLException {
         List<SaleDto> list = new ArrayList<>();
-        String sql =
-                "SELECT _sale_id, _created_at, sale_date, sale_code, customer_name, vat_percent,"
-                        + " discount_value, discount_type FROM sales";
+        String sqlFileName = "select_from_sales";
+        String query;
+
+        try {
+            query =
+                    SqliteQueryLoader.getInstance()
+                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        } catch (IOException e) {
+            throw new SQLException("Error loading SQL file", e);
+        }
+
         try (Connection con = SqliteFactoryDao.getInstance().getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(query)) {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
