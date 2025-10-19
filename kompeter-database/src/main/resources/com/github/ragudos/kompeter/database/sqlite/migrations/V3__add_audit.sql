@@ -628,19 +628,27 @@ AFTER UPDATE ON item_stock_storage_locations
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_stock_storage_locations', 'UPDATE', OLD._item_stock_storage_location_id,
+    VALUES (
+        'item_stock_storage_locations',
+        'UPDATE',
+        OLD._item_stock_storage_location_id,
         json_patch('{}',
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', OLD._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN json_object('_storage_location_id', OLD._storage_location_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity IS NOT NEW.quantity THEN json_object('quantity', OLD.quantity) ELSE '{}' END
+            json_object(
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN OLD._item_stock_id ELSE NULL END,
+                '_storage_location_id', CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN OLD._storage_location_id ELSE NULL END,
+                'quantity', CASE WHEN OLD.quantity IS NOT NEW.quantity THEN OLD.quantity ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', NEW._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN json_object('_storage_location_id', NEW._storage_location_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity IS NOT NEW.quantity THEN json_object('quantity', NEW.quantity) ELSE '{}' END
+            json_object(
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN NEW._item_stock_id ELSE NULL END,
+                '_storage_location_id', CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN NEW._storage_location_id ELSE NULL END,
+                'quantity', CASE WHEN OLD.quantity IS NOT NEW.quantity THEN NEW.quantity ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_audit_delete
 AFTER DELETE ON item_stock_storage_locations
