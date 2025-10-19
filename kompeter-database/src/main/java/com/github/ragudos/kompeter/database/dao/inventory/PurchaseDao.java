@@ -17,7 +17,7 @@ import java.util.List;
 
 public interface PurchaseDao {
     // CREATE
-    void insertPurchase(
+    int insertPurchase(
             int suppID,
             Timestamp purchase_date,
             String purch_code,
@@ -29,6 +29,9 @@ public interface PurchaseDao {
 
     // READ
     List<PurchaseDto> getAllPurchase() throws SQLException, IOException;
+    
+    
+    
     // UPDATE
     // DELETE
 }
