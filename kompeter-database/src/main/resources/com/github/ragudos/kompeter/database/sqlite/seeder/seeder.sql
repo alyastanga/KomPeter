@@ -164,11 +164,10 @@ INSERT INTO purchases (_supplier_id, purchase_date, purchase_code, delivery_date
 (3, DATETIME('now', '-2 days'), 'PO-APP-2025-003', NULL, 0.12, NULL, NULL), 
 (4, DATETIME('now', '-1 day'), 'PO-SS-2025-004', DATETIME('now'), 0.12, 0, 'fixed');
 
-
 INSERT INTO purchase_payments (_purchase_id, payment_date, reference_number, payment_method, amount_php) VALUES
-(1, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-98765', 'bank_transfer', 77840.00), 
-(2, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-65432', 'cash', 106400.00), 
-(3, DATETIME('now', '-2 days', '+3 hours'), 'REF-PP-32109', 'gcash', 44800.00), 
+(1, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-98765', 'bank_transfer', 77840.00),
+(2, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-65432', 'cash', 106400.00),
+(3, DATETIME('now', '-2 days', '+3 hours'), 'REF-PP-32109', 'gcash', 44800.00),
 (4, DATETIME('now'), 'REF-PP-09876', 'bank_transfer', 140000.00);
 
 INSERT INTO purchase_item_stocks (_purchase_id, _item_stock_id, quantity_ordered, quantity_received, unit_cost_php) VALUES
