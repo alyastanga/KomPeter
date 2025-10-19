@@ -28,12 +28,6 @@ INSERT INTO user_roles (_user_id, _role_id) VALUES
 (4, 4), 
 (5, 5); 
 
-INSERT INTO sessions (_user_id, session_token, ip_address) VALUES
-(1, 'token-peter-admin-001', '192.168.1.10'),
-(2, 'token-hanz-manager-002', '192.168.1.11'),
-(3, 'token-jerick-cashier-003', '10.0.0.5'),
-(4, 'token-aaron-clerk-004', '10.0.0.6');
-
 -- INVENTORY SETUP & STORAGE
 INSERT INTO storage_locations (name, description) VALUES
 ('Main Display Floor', 'High visibility area for quick sales items.'),
@@ -127,7 +121,7 @@ INSERT INTO item_stocks (_item_stock_id, _item_id, _item_brand_id, unit_price_ph
 (48, 48, 4, 38000.00, 10), (49, 49, 4, 50000.00, 10), (50, 50, 4, 95000.00, 10), (51, 51, 4, 65000.00, 10), 
 (52, 52, 4, 90000.00, 10), (53, 53, 4, 80000.00, 10), (54, 54, 10, 120000.00, 10), (55, 55, 4, 20000.00, 10), 
 -- ACCESSORIES: minimum_quantity = 20
-(56, 56, 4, 500.00, 20), (57, 57, 8, 350.00, 20), (58, 58, 9, 750.00, 20), (59,   59, 1, 500.00, 20), 
+(56, 56, 4, 500.00, 20), (57, 57, 8, 350.00, 20), (58, 58, 9, 750.00, 20), (59, 59, 1, 500.00, 20), 
 (60, 60, 4, 1000.00, 20), (61, 61, 4, 1200.00, 20), (62, 62, 4, 300.00, 20), (63, 63, 8, 450.00, 20), 
 (64, 64, 4, 600.00, 20), (65, 65, 6, 7000.00, 20), (66, 66, 6, 10000.00, 20), (67, 67, 8, 1500.00, 20), 
 (68, 68, 4, 400.00, 20), (69, 69, 4, 800.00, 20), (70, 70, 4, 2000.00, 20);
@@ -170,11 +164,12 @@ INSERT INTO purchases (_supplier_id, purchase_date, purchase_code, delivery_date
 (3, DATETIME('now', '-2 days'), 'PO-APP-2025-003', NULL, 0.12, NULL, NULL), 
 (4, DATETIME('now', '-1 day'), 'PO-SS-2025-004', DATETIME('now'), 0.12, 0, 'fixed');
 
+
 INSERT INTO purchase_payments (_purchase_id, payment_date, reference_number, payment_method, amount_php) VALUES
-(1, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-98765', 'bank_transfer', 69500.00), 
-(2, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-65432', 'cash', 85500.00), 
-(3, DATETIME('now', '-2 days', '+3 hours'), 'REF-PP-32109', 'gcash', 45000.00), 
-(4, DATETIME('now'), 'REF-PP-09876', 'bank_transfer', 125000.00);
+(1, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-98765', 'bank_transfer', 77840.00), 
+(2, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-65432', 'cash', 106400.00), 
+(3, DATETIME('now', '-2 days', '+3 hours'), 'REF-PP-32109', 'gcash', 44800.00), 
+(4, DATETIME('now'), 'REF-PP-09876', 'bank_transfer', 140000.00);
 
 INSERT INTO purchase_item_stocks (_purchase_id, _item_stock_id, quantity_ordered, quantity_received, unit_cost_php) VALUES
 (1, 2, 5, 5, 10000.00), 
