@@ -8,8 +8,14 @@
 package com.github.ragudos.kompeter.pointofsale;
 
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
+import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
+import com.github.ragudos.kompeter.database.dto.sales.SalePaymentDto;
+import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSalePaymentDao;
+
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -23,12 +29,15 @@ class Transaction {
     int TransID;
     LocalDateTime TimeStamp;
     double Total;
-    SaleDao saleDao;
+    int saleId;
+    SaleDao saleDao = new SqliteSaleDao();
 
+    /*
     final double vatRate = 0.12;
     double discountValue = 0.0;
     DiscountType discountType = DiscountType.FIXED;
-
+    */
+    
     Transaction(Cart cart, SaleDao saleDao) {
         this.saleDao = saleDao;
         this.TransID = ++transCounter;
@@ -41,19 +50,38 @@ class Transaction {
     }
 
     void saveToDatabase() throws SQLException {
-        saleDao.save(toSaleDto());
+        this.saleId = saleDao.saveTransaction(toSaleDto());
+        this.TransID = saleId;
     }
 
     SaleDto toSaleDto() {
         return new SaleDto(
                 TransID,
-                Timestamp.valueOf(TimeStamp),
-                Timestamp.valueOf(TimeStamp),
+                Timestamp.valueOf(LocalDateTime.now()),
+                Timestamp.valueOf(LocalDateTime.now()),
                 "SALE-" + TransID,
                 "Walk-in Customer",
                 BigDecimal.valueOf(0.12),
                 BigDecimal.ZERO,
                 DiscountType.FIXED);
+    }
+    
+    void addPayment(BigDecimal amount, String reference, String method) throws SQLException {
+        SalePaymentDao paymentD = new SqliteSalePaymentDao();
+        PaymentMethod paymentMethod = PaymentMethod.valueOf(method);
+        
+        SalePaymentDto payment = new SalePaymentDto(
+            0,
+            this.saleId,
+            new Timestamp(System.currentTimeMillis()),
+            new Timestamp(System.currentTimeMillis()),
+            reference,
+            paymentMethod,
+            amount
+        );
+        
+        paymentD.savePayment(payment);
+        System.out.println("Payment has been added!");
     }
 /*
     void printReciept() {
