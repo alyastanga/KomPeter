@@ -53,11 +53,11 @@ public class SqliteSaleDao implements SaleDao {
             ps.setBigDecimal(5, sale.vatPercent());
             ps.setBigDecimal(6, sale.discountValue());
             ps.setString(7, sale.discountType().name());
-            
+
             ps.executeUpdate();
-            
+
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if(rs.next()) {
+                if (rs.next()) {
                     generatedId = rs.getInt(1);
                 }
             }
@@ -68,9 +68,11 @@ public class SqliteSaleDao implements SaleDao {
     private boolean codeExist(Connection con, String saleCode) throws SQLException {
         String sqlFileName = "select_from";
         String query;
-        
+
         try {
-            query = SqliteQueryLoader.getInstance().get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query =
+                    SqliteQueryLoader.getInstance()
+                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Error loading SQL file", e);
         }
