@@ -16,7 +16,6 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -50,7 +49,7 @@ public class SqlitePurchaseDao implements PurchaseDao {
             stmt.setBigDecimal("vat_percent", vat_percentage);
             stmt.setBigDecimal("discount_value", disc_val);
             stmt.setString("discount_type", discountType.toString());
-            
+
             var rs = stmt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;

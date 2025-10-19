@@ -1,18 +1,17 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.inventory;
 
 import com.github.ragudos.kompeter.database.dto.inventory.SupplierDto;
 import java.util.List;
 import java.util.Optional;
 
-
-
 /**
- *
  * @author Peter M. Dela Cruz
  */
 public interface Supplier {
@@ -25,7 +24,8 @@ public interface Supplier {
             String postalCode,
             String country)
             throws InventoryException;
-    
+
     List<SupplierDto> getAllSupplier() throws InventoryException;
+
     Optional<SupplierDto> getSupplierById(int id) throws InventoryException;
 }

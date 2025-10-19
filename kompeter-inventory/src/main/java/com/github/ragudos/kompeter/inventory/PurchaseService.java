@@ -1,9 +1,15 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.inventory;
 
 import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
-import com.github.ragudos.kompeter.database.dto.inventory.PurchaseItemStockDto;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchaseItemStockDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqlitePurchasePaymentDao;
@@ -12,10 +18,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.List;
 
 /**
- *
  * @author Peter M. Dela Cruz
  */
 public class PurchaseService implements Purchase {
@@ -23,21 +27,27 @@ public class PurchaseService implements Purchase {
     private final SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao;
     private final SqlitePurchasePaymentDao sqlitePurchasePaymentDao;
     private final SqliteSupplierDao sqliteSupplierDao;
+
     public PurchaseService(
             SqlitePurchaseDao sqlitePurchaseDao,
             SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao,
             SqlitePurchasePaymentDao sqlitePurchasePaymentDao,
-            SqliteSupplierDao sqliteSupplierDao
-        ){
-    this.sqlitePurchaseDao = sqlitePurchaseDao;
-    this.sqlitePurchaseItemStockDao = sqlitePurchaseItemStockDao;
-    this.sqlitePurchasePaymentDao = sqlitePurchasePaymentDao;
-    this.sqliteSupplierDao = sqliteSupplierDao;
-    
+            SqliteSupplierDao sqliteSupplierDao) {
+        this.sqlitePurchaseDao = sqlitePurchaseDao;
+        this.sqlitePurchaseItemStockDao = sqlitePurchaseItemStockDao;
+        this.sqlitePurchasePaymentDao = sqlitePurchasePaymentDao;
+        this.sqliteSupplierDao = sqliteSupplierDao;
     }
 
     @Override
-    public void addPurchaseItem(int supplierId, Timestamp purchaseDate, Timestamp deliveryDate, BigDecimal vat, BigDecimal discVal, DiscountType discType) throws InventoryException {
+    public void addPurchaseItem(
+            int supplierId,
+            Timestamp purchaseDate,
+            Timestamp deliveryDate,
+            BigDecimal vat,
+            BigDecimal discVal,
+            DiscountType discType)
+            throws InventoryException {
         String purchase_code = PurchaseCodeGenerator.generateSecureHexToken();
         try {
             sqlitePurchaseDao.insertPurchase(
@@ -47,56 +57,52 @@ public class PurchaseService implements Purchase {
             throw new InventoryException("Could not record new purchase order.", e);
         }
     }
-        
 
     @Override
-    public void addPurchasePayments(int _purchaseId, Timestamp paymentDate, String refNumber, PaymentMethod paymentMethod, BigDecimal amount) throws InventoryException {
+    public void addPurchasePayments(
+            int _purchaseId,
+            Timestamp paymentDate,
+            String refNumber,
+            PaymentMethod paymentMethod,
+            BigDecimal amount)
+            throws InventoryException {
         try {
             sqlitePurchasePaymentDao.insertPurchasePayment(
                     _purchaseId, paymentDate, refNumber, paymentMethod, amount);
         } catch (SQLException | IOException e) {
             System.err.println("Failed to register payment for Purchase ID: " + _purchaseId);
             throw new InventoryException("Could not record purchase payment.", e);
-        }    
+        }
     }
 
     @Override
-    public void addPurchaseItemStocks(int _purchaseId, int _itemStocksId, int qty_ordered, int qty_received, BigDecimal srp) throws InventoryException {
+    public void addPurchaseItemStocks(
+            int _purchaseId, int _itemStocksId, int qty_ordered, int qty_received, BigDecimal srp)
+            throws InventoryException {
         try {
             sqlitePurchaseItemStockDao.insertPurchaseItemStock(
-                _purchaseId, _itemStocksId, qty_ordered, qty_received, srp); 
+                    _purchaseId, _itemStocksId, qty_ordered, qty_received, srp);
         } catch (SQLException | IOException e) {
             System.err.println("Failed to assign stocks to Purchase ID: " + _purchaseId);
             throw new InventoryException("Could not assign item stocks to purchase.", e);
         }
-    }  
-    
-    public static void main(String[] args) throws InventoryException{
-        SqlitePurchaseDao sqlitePurchaseDao = new SqlitePurchaseDao();
-        SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao = new SqlitePurchaseItemStockDao();
-        SqlitePurchasePaymentDao sqlitePurchasePaymentDao = new SqlitePurchasePaymentDao();
-        SqliteSupplierDao sqliteSupplierDao = new SqliteSupplierDao();
-        
-        PurchaseService ps = new PurchaseService(
-        sqlitePurchaseDao,sqlitePurchaseItemStockDao, sqlitePurchasePaymentDao, sqliteSupplierDao);
-        
-        System.out.println(ps.getPurchaseTotalCost(1));
     }
 
     @Override
-    public BigDecimal getPurchaseLineItemCost(int purchaseId, int itemStockId) throws InventoryException {
-        try{
+    public BigDecimal getPurchaseLineItemCost(int purchaseId, int itemStockId)
+            throws InventoryException {
+        try {
             return sqlitePurchaseItemStockDao.getPurchaseLineCost(purchaseId, itemStockId);
-        }catch(SQLException | IOException e){
+        } catch (SQLException | IOException e) {
             throw new InventoryException("Could not get purchase item line cost", e);
         }
     }
 
     @Override
     public BigDecimal getPurchaseTotalCost(int purchaseId) throws InventoryException {
-        try{
+        try {
             return sqlitePurchaseItemStockDao.getPurchaseTotalCost(purchaseId);
-        }catch(SQLException | IOException e){
+        } catch (SQLException | IOException e) {
             throw new InventoryException("Could not get purchase item total cost", e);
         }
     }

@@ -90,21 +90,4 @@ public class SqliteInventoryDao implements InventoryDao {
         }
         return inventory;
     }
-
-    public static void main(String[] args) {
-        try {
-            List<InventoryMetadataDto> allData = new SqliteInventoryDao().getAllData();
-            for (InventoryMetadataDto data : allData) {
-                if (data._itemStockId() == 4) {
-                    System.out.println(data.quantity());
-                }
-            }
-        } catch (SQLException ex) {
-            System.getLogger(SqliteInventoryDao.class.getName())
-                    .log(System.Logger.Level.ERROR, (String) null, ex);
-        } catch (IOException ex) {
-            System.getLogger(SqliteInventoryDao.class.getName())
-                    .log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-    }
 }

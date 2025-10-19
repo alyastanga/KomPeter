@@ -11,7 +11,6 @@ import com.github.ragudos.kompeter.database.dto.inventory.PurchaseItemStockDto;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.List;
 
 public interface PurchaseItemStockDao {
@@ -21,9 +20,11 @@ public interface PurchaseItemStockDao {
             throws SQLException, IOException;
 
     List<PurchaseItemStockDto> getAllData() throws SQLException, IOException;
-    
-    List<PurchaseItemStockDto> getAllDataByPurchaseId(int purchaseId) throws SQLException, IOException;
-    
-    BigDecimal getPurchaseLineCost(int purchaseId, int itemStockId)throws SQLException, IOException; 
-    BigDecimal getPurchaseTotalCost(int purchaseId)throws SQLException, IOException; 
+
+    List<PurchaseItemStockDto> getAllDataByPurchaseId(int purchaseId)
+            throws SQLException, IOException;
+
+    BigDecimal getPurchaseLineCost(int purchaseId, int itemStockId) throws SQLException, IOException;
+
+    BigDecimal getPurchaseTotalCost(int purchaseId) throws SQLException, IOException;
 }

@@ -60,7 +60,8 @@ public class SqliteSupplierDao implements SupplierDao {
     public List<SupplierDto> getAllSuppliers() throws SQLException, IOException {
         List<SupplierDto> supplierList = new ArrayList<>();
         var query =
-                SqliteQueryLoader.getInstance().get("select_all_supplier", "supplier", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+                SqliteQueryLoader.getInstance()
+                        .get("select_all_supplier", "supplier", AbstractSqlQueryLoader.SqlQueryType.SELECT);
 
         try (var conn = SqliteFactoryDao.getInstance().getConnection();
                 var stmt = conn.prepareStatement(query);
@@ -69,15 +70,15 @@ public class SqliteSupplierDao implements SupplierDao {
             while (rs.next()) {
                 SupplierDto supplier =
                         new SupplierDto(
-                            rs.getInt("_supplier_id"),
-                            rs.getTimestamp("_created_at"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("street"),
-                            rs.getString("city"),
-                            rs.getString("state"),
-                            rs.getString("postal_code"),
-                            rs.getString("country"));
+                                rs.getInt("_supplier_id"),
+                                rs.getTimestamp("_created_at"),
+                                rs.getString("name"),
+                                rs.getString("email"),
+                                rs.getString("street"),
+                                rs.getString("city"),
+                                rs.getString("state"),
+                                rs.getString("postal_code"),
+                                rs.getString("country"));
 
                 supplierList.add(supplier);
             }
@@ -90,7 +91,8 @@ public class SqliteSupplierDao implements SupplierDao {
         Optional<SupplierDto> supplierOpt = Optional.empty();
 
         var query =
-                SqliteQueryLoader.getInstance().get("select_supplier_by_id", "supplier", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+                SqliteQueryLoader.getInstance()
+                        .get("select_supplier_by_id", "supplier", AbstractSqlQueryLoader.SqlQueryType.SELECT);
 
         try (var conn = SqliteFactoryDao.getInstance().getConnection();
                 var stmt = conn.prepareStatement(query); ) {
@@ -101,14 +103,14 @@ public class SqliteSupplierDao implements SupplierDao {
                 SupplierDto item =
                         new SupplierDto(
                                 rs.getInt("_supplier_id"),
-                            rs.getTimestamp("_created_at"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("street"),
-                            rs.getString("city"),
-                            rs.getString("state"),
-                            rs.getString("postal_code"),
-                            rs.getString("country"));
+                                rs.getTimestamp("_created_at"),
+                                rs.getString("name"),
+                                rs.getString("email"),
+                                rs.getString("street"),
+                                rs.getString("city"),
+                                rs.getString("state"),
+                                rs.getString("postal_code"),
+                                rs.getString("country"));
 
                 supplierOpt = Optional.of(item);
             }

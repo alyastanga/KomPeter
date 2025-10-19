@@ -23,7 +23,6 @@ public class ItemService implements Items {
     private final SqliteItemBrandDao sqliteItemBrandDao;
     private final SqliteItemCategoryDao sqliteItemCategoryDao;
     private final SqliteItemCategoryAssignmentDao sqliteItemCategoryAssignmentDao;
-    
 
     public ItemService(
             SqliteItemDao sqliteItemDao,
@@ -36,11 +35,10 @@ public class ItemService implements Items {
         this.sqliteItemBrandDao = sqliteItemBrandDao;
         this.sqliteItemCategoryDao = sqliteItemCategoryDao;
         this.sqliteItemCategoryAssignmentDao = sqliteItemCategoryAssignmentDao;
-        
     }
 
     @Override
-    public List<InventoryMetadataDto> showInventoryItems() throws InventoryException  {
+    public List<InventoryMetadataDto> showInventoryItems() throws InventoryException {
         try {
             return sqliteInventoryDao.getAllData();
         } catch (SQLException | IOException e) {
@@ -65,10 +63,9 @@ public class ItemService implements Items {
             throw new InventoryException("Failed to retrieve complete inventory listing.", e);
         }
     }
-   
 
     @Override
-    public void setItemCategory(int _itemId, int _categoryId) throws InventoryException{
+    public void setItemCategory(int _itemId, int _categoryId) throws InventoryException {
         try {
             sqliteItemCategoryAssignmentDao.setItemCategory(_itemId, _categoryId);
         } catch (SQLException | IOException e) {
@@ -78,24 +75,27 @@ public class ItemService implements Items {
 
     @Override
     public int updateItemName(String name, int id) throws InventoryException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public int updateItemBrand(int brandId, int itemId) throws InventoryException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public int updateItemCategory(int categoryId, int itemId) throws InventoryException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public int addItem(String name) throws InventoryException {
         int x = 0;
         try {
-            x  = sqliteItemDao.insertItem(name, null);
+            x = sqliteItemDao.insertItem(name, null);
         } catch (SQLException | IOException e) {
             throw new InventoryException("Failed to retrieve complete inventory listing.", e);
         }
@@ -114,22 +114,22 @@ public class ItemService implements Items {
     }
 
     @Override
-    public int addCategory(String name) throws InventoryException{ 
+    public int addCategory(String name) throws InventoryException {
         int x = 0;
         try {
             x = sqliteItemCategoryDao.insertItemCategory(name, null);
         } catch (SQLException | IOException e) {
             throw new InventoryException("Failed to retrieve complete inventory listing.", e);
         }
-        
+
         return x;
     }
 
     @Override
     public int addItem(String name, String description) throws InventoryException {
-         int x = 0;
+        int x = 0;
         try {
-            x  = sqliteItemDao.insertItem(name, description);
+            x = sqliteItemDao.insertItem(name, description);
         } catch (SQLException | IOException e) {
             throw new InventoryException("Failed to retrieve complete inventory listing.", e);
         }
@@ -155,9 +155,7 @@ public class ItemService implements Items {
         } catch (SQLException | IOException e) {
             throw new InventoryException("Failed to retrieve complete inventory listing.", e);
         }
-        
+
         return x;
     }
-
-   
 }
