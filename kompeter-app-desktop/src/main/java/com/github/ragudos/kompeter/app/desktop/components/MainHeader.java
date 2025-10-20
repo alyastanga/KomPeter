@@ -16,32 +16,30 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainHeader implements SceneComponent {
-    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[grow]"));
+    private final JPanel view = new JPanel(new MigLayout("insets n 16 n 16, flowy", "[grow, fill]", "[grow]"));
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private final JLabel sceneTitle = new JLabel();
     private final RefreshLine refreshLine = new RefreshLine();
 
-    private final Consumer<String> navigationListenerClassConsumer =
-            new Consumer<String>() {
-                @Override
-                public void accept(String sceneName) {
-                    String[] splitName = sceneName.split(ParsedSceneName.SEPARATOR);
+    private final Consumer<String> navigationListenerClassConsumer = new Consumer<String>() {
+        @Override
+        public void accept(String sceneName) {
+            String[] splitName = sceneName.split(ParsedSceneName.SEPARATOR);
 
-                    if (splitName.length <= 1) {
-                        return;
-                    }
+            if (splitName.length <= 1) {
+                return;
+            }
 
-                    refreshLine.refresh();
-                    sceneTitle.setText(SceneNames.toReadable(splitName[1]));
-                }
-            };
+            refreshLine.refresh();
+            sceneTitle.setText(SceneNames.toReadable(splitName[1]));
+        }
+    };
 
     public MainHeader() {
         sceneTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1");
@@ -66,14 +64,13 @@ public class MainHeader implements SceneComponent {
             return;
         }
 
-        JPanel container = new JPanel(new MigLayout("insets 0", "[]push[]", "[grow, center]"));
+        JPanel container = new JPanel(new MigLayout("insets n 16 n 16", "[]push[]", "[grow, center]"));
 
         view.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 5%);");
 
         container.add(sceneTitle);
 
         view.add(container, "grow");
-        view.add(new JSeparator(JSeparator.HORIZONTAL), "grow, height 2!");
         view.add(refreshLine, "grow, height 2!");
 
         SceneNavigator.getInstance().subscribe(navigationListenerClassConsumer);

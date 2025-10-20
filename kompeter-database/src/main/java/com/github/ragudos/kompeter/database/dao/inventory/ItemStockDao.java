@@ -20,11 +20,17 @@ public interface ItemStockDao {
             throws SQLException, IOException;
 
     // READ
-
     List<ItemStockDto> getAllData() throws SQLException, IOException;
 
     Optional<ItemStockDto> getItemStockById(int id) throws SQLException, IOException;
 
     // UPDATE
+    int updateItemBrandById(int brandID, int id) throws SQLException, IOException;
+
+    int updateItemMinimumQtyById(int minimumQty, int id) throws SQLException, IOException;
+
+    int updateItemUnitPriceById(BigDecimal unitPrice, int id) throws SQLException, IOException;
+
     // DELETE
+    int deleteItemStockById(int id) throws SQLException, IOException;
 }

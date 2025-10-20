@@ -8,27 +8,23 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.PurchaseDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.inventory.PurchaseDto;
+import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SqlitePurchaseDao implements PurchaseDao {
-    private final Connection conn;
-
-    public SqlitePurchaseDao(Connection conn) {
-        this.conn = conn;
-    }
-
     @Override
-    public void insertPurchase(
+    public int insertPurchase(
             int suppID,
             Timestamp purchase_date,
             String purch_code,
@@ -41,14 +37,24 @@ public class SqlitePurchaseDao implements PurchaseDao {
         var query =
                 SqliteQueryLoader.getInstance()
                         .get("insert_purchase", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try (var stmt = conn.prepareStatement(query); ) {
-            stmt.setInt(1, suppID);
-            stmt.setTimestamp(2, purchase_date);
-            stmt.setString(3, purch_code);
-            stmt.setTimestamp(4, deliverydate);
-            stmt.setBigDecimal(5, vat_percentage);
-            stmt.setBigDecimal(6, disc_val);
-            stmt.setString(7, discountType.toString());
+        try (var stmt =
+                new NamedPreparedStatement(
+                        SqliteFactoryDao.getInstance().getConnection(),
+                        query,
+                        Statement.RETURN_GENERATED_KEYS); ) {
+            stmt.setInt("_supplier_id", suppID);
+            stmt.setTimestamp("purchase_date", purchase_date);
+            stmt.setString("purchase_code", purch_code);
+            stmt.setTimestamp("delivery_date", deliverydate);
+            stmt.setBigDecimal("vat_percent", vat_percentage);
+            stmt.setBigDecimal("discount_value", disc_val);
+            stmt.setString("discount_type", discountType.toString());
+
+            stmt.executeUpdate();
+
+            var rs = stmt.getPreparedStatement().getGeneratedKeys();
+
+            return rs.next() ? rs.getInt(1) : -1;
         }
     }
 
@@ -59,7 +65,8 @@ public class SqlitePurchaseDao implements PurchaseDao {
         var query =
                 SqliteQueryLoader.getInstance()
                         .get("select_all_purchase", "items", AbstractSqlQueryLoader.SqlQueryType.SELECT);
-        try (var stmt = conn.prepareStatement(query);
+        try (var conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query);
                 var rs = stmt.executeQuery(); ) {
             while (rs.next()) {
                 PurchaseDto purchase =

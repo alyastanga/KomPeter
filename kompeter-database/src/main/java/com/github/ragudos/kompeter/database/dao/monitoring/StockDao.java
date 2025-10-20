@@ -40,13 +40,5 @@ public interface StockDao {
 
     public List<LowStockItemsDto> getLowStockItems() throws SQLException;
 
-    public List<LowStockItemsDto> getLowStockItems(Timestamp from) throws SQLException;
-
-    public List<LowStockItemsDto> getLowStockItems(Timestamp from, Timestamp to) throws SQLException;
-
     public List<OldItemsDto> getOldItems() throws SQLException;
-
-    public List<OldItemsDto> getOldItems(Timestamp from) throws SQLException;
-
-    public List<OldItemsDto> getOldItems(Timestamp from, Timestamp to) throws SQLException;
 }

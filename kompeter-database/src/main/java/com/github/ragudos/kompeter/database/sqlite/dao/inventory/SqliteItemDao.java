@@ -78,17 +78,11 @@ public class SqliteItemDao implements ItemDao {
         var query =
                 SqliteQueryLoader.getInstance()
                         .get("delete_item_by_id", "items", AbstractSqlQueryLoader.SqlQueryType.DELETE);
-        try (var stmt =
-                new NamedPreparedStatement(
-                        SqliteFactoryDao.getInstance().getConnection(),
-                        query,
-                        Statement.RETURN_GENERATED_KEYS); ) {
-            stmt.setInt("_item_id", id);
-            stmt.executeUpdate();
-
-            var rs = stmt.getPreparedStatement().getGeneratedKeys();
-
-            return rs.next() ? rs.getInt(1) : -1;
+        try (var conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, id);
+            var rs = stmt.executeUpdate();
+            return rs;
         }
     }
 
@@ -109,6 +103,19 @@ public class SqliteItemDao implements ItemDao {
             var rs = stmt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
+
+    @Override
+    public int updateItemNameById(String name, int id) throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("update_item_name", "items", AbstractSqlQueryLoader.SqlQueryType.UPDATE);
+        try (var stmt =
+                new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
+            stmt.setString("name", name);
+            stmt.setInt("_item_id", id);
+            return stmt.executeUpdate();
         }
     }
 }

@@ -145,8 +145,8 @@ public final class NamedPreparedStatement implements AutoCloseable {
         }
     }
 
-    public void executeUpdate() throws SQLException {
-        prepStmt.executeUpdate();
+    public int executeUpdate() throws SQLException {
+        return prepStmt.executeUpdate();
     }
 
     public String getSql() {

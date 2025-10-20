@@ -9,22 +9,22 @@ package com.github.ragudos.kompeter.database.dao.inventory;
 
 import com.github.ragudos.kompeter.database.dto.inventory.PurchaseItemStockDto;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.List;
 
 public interface PurchaseItemStockDao {
     // CREATE
-    void insertPurchaseItemStock(
-            int purchaseId, int itemStockId, int qty_ordered, int qty_received, double unit_cost_php)
+    int insertPurchaseItemStock(
+            int purchaseId, int itemStockId, int qty_ordered, int qty_received, BigDecimal unit_cost_php)
             throws SQLException, IOException;
 
-    // READ
-    public List<PurchaseItemStockDto> getPurchaseStock() throws SQLException, IOException;
+    List<PurchaseItemStockDto> getAllData() throws SQLException, IOException;
 
-    public List<PurchaseItemStockDto> getPurchaseStock(Timestamp from)
+    List<PurchaseItemStockDto> getAllDataByPurchaseId(int purchaseId)
             throws SQLException, IOException;
 
-    public List<PurchaseItemStockDto> getPurchaseStock(Timestamp from, Timestamp to)
-            throws SQLException, IOException;
+    BigDecimal getPurchaseLineCost(int purchaseId, int itemStockId) throws SQLException, IOException;
+
+    BigDecimal getPurchaseTotalCost(int purchaseId) throws SQLException, IOException;
 }

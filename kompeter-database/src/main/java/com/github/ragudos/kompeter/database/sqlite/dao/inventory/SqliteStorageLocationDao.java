@@ -40,4 +40,17 @@ public class SqliteStorageLocationDao implements StorageLocationDao {
             return rs.next() ? rs.getInt(1) : -1;
         }
     }
+
+    @Override
+    public int deleteStorageLocationById(int id) throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("delete_storage_location", "items", AbstractSqlQueryLoader.SqlQueryType.DELETE);
+        try (var conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, id);
+            var rs = stmt.executeUpdate();
+            return rs;
+        }
+    }
 }

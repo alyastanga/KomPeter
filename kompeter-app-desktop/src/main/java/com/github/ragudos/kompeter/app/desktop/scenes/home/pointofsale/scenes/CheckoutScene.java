@@ -27,5 +27,17 @@ public final class CheckoutScene implements Scene {
     }
 
     @Override
-    public void onCreate() {}
+    public void onCreate() {
+    }
+
+    @Override
+    public boolean canHide() {
+        return Scene.super.canHide();
+    }
+
+    @Override
+    public boolean canShow() {
+
+        return Scene.super.canShow();
+    }
 }
