@@ -1,1 +1,3 @@
-SELECT * FROM suppliers WHERE suppliers._supplier_id = ?;
+SELECT * 
+FROM suppliers 
+WHERE _supplier_id = ?;

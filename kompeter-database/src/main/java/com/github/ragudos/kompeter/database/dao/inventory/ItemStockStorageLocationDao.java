@@ -16,4 +16,7 @@ import java.sql.SQLException;
 public interface ItemStockStorageLocationDao {
     int setItemStockStorageLocation(int itemStockId, int storageLocId, int qty)
             throws SQLException, IOException;
+
+    int updateItemStockQuantity(int qtyAfter, int itemStockId, int storageLocationId)
+            throws SQLException, IOException;
 }

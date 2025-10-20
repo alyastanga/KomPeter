@@ -41,4 +41,25 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
             return rs.next() ? rs.getInt(1) : -1;
         }
     }
+
+    @Override
+    public int updateItemStockQuantity(int qtyAfter, int itemStockId, int storageLocationId)
+            throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("insert_item_stock", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+        try (var stmt =
+                new NamedPreparedStatement(
+                        SqliteFactoryDao.getInstance().getConnection(),
+                        query,
+                        Statement.RETURN_GENERATED_KEYS); ) {
+            stmt.setInt("quantity", qtyAfter);
+            stmt.setInt("_item_stock_id", itemStockId);
+            stmt.setInt("_storage_loc_id", storageLocationId);
+
+            stmt.executeUpdate();
+            var rs = stmt.getPreparedStatement().getGeneratedKeys();
+            return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
 }

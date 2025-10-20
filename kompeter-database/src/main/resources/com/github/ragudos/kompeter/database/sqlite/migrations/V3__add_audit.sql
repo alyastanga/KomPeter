@@ -38,15 +38,20 @@ BEGIN
         'UPDATE',
         OLD._role_id,
         json_patch('{}',
-            CASE WHEN OLD.role_name IS NOT NEW.role_name THEN json_object('role_name', OLD.role_name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', OLD.description) ELSE '{}' END
+            json_object(
+                'role_name', CASE WHEN OLD.role_name IS NOT NEW.role_name THEN OLD.role_name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN OLD.description ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.role_name IS NOT NEW.role_name THEN json_object('role_name', NEW.role_name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', NEW.description) ELSE '{}' END
+            json_object(
+                'role_name', CASE WHEN OLD.role_name IS NOT NEW.role_name THEN NEW.role_name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN NEW.description ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS roles_audit_delete
 AFTER DELETE ON roles
@@ -95,17 +100,22 @@ BEGIN
         'UPDATE',
         OLD._user_id,
         json_patch('{}',
-            CASE WHEN OLD.display_name IS NOT NEW.display_name THEN json_object('display_name', OLD.display_name) ELSE '{}' END,
-            CASE WHEN OLD.first_name IS NOT NEW.first_name THEN json_object('first_name', OLD.first_name) ELSE '{}' END,
-            CASE WHEN OLD.last_name IS NOT NEW.last_name THEN json_object('last_name', OLD.last_name) ELSE '{}' END
+            json_object(
+                'display_name', CASE WHEN OLD.display_name IS NOT NEW.display_name THEN OLD.display_name ELSE NULL END,
+                'first_name', CASE WHEN OLD.first_name IS NOT NEW.first_name THEN OLD.first_name ELSE NULL END,
+                'last_name', CASE WHEN OLD.last_name IS NOT NEW.last_name THEN OLD.last_name ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.display_name IS NOT NEW.display_name THEN json_object('display_name', NEW.display_name) ELSE '{}' END,
-            CASE WHEN OLD.first_name IS NOT NEW.first_name THEN json_object('first_name', NEW.first_name) ELSE '{}' END,
-            CASE WHEN OLD.last_name IS NOT NEW.last_name THEN json_object('last_name', NEW.last_name) ELSE '{}' END
+            json_object(
+                'display_name', CASE WHEN OLD.display_name IS NOT NEW.display_name THEN NEW.display_name ELSE NULL END,
+                'first_name', CASE WHEN OLD.first_name IS NOT NEW.first_name THEN NEW.first_name ELSE NULL END,
+                'last_name', CASE WHEN OLD.last_name IS NOT NEW.last_name THEN NEW.last_name ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS users_audit_delete
 AFTER DELETE ON users
@@ -156,19 +166,24 @@ BEGIN
         'UPDATE',
         OLD._account_id,
         json_patch('{}',
-            CASE WHEN OLD._user_id IS NOT NEW._user_id THEN json_object('_user_id', OLD._user_id) ELSE '{}' END,
-            CASE WHEN OLD.password_hash IS NOT NEW.password_hash THEN json_object('password_hash', OLD.password_hash) ELSE '{}' END,
-            CASE WHEN OLD.password_salt IS NOT NEW.password_salt THEN json_object('password_salt', OLD.password_salt) ELSE '{}' END,
-            CASE WHEN OLD.email IS NOT NEW.email THEN json_object('email', OLD.email) ELSE '{}' END
+            json_object(
+                '_user_id', CASE WHEN OLD._user_id IS NOT NEW._user_id THEN OLD._user_id ELSE NULL END,
+                'password_hash', CASE WHEN OLD.password_hash IS NOT NEW.password_hash THEN OLD.password_hash ELSE NULL END,
+                'password_salt', CASE WHEN OLD.password_salt IS NOT NEW.password_salt THEN OLD.password_salt ELSE NULL END,
+                'email', CASE WHEN OLD.email IS NOT NEW.email THEN OLD.email ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._user_id IS NOT NEW._user_id THEN json_object('_user_id', NEW._user_id) ELSE '{}' END,
-            CASE WHEN OLD.password_hash IS NOT NEW.password_hash THEN json_object('password_hash', NEW.password_hash) ELSE '{}' END,
-            CASE WHEN OLD.password_salt IS NOT NEW.password_salt THEN json_object('password_salt', NEW.password_salt) ELSE '{}' END,
-            CASE WHEN OLD.email IS NOT NEW.email THEN json_object('email', NEW.email) ELSE '{}' END
+            json_object(
+                '_user_id', CASE WHEN OLD._user_id IS NOT NEW._user_id THEN NEW._user_id ELSE NULL END,
+                'password_hash', CASE WHEN OLD.password_hash IS NOT NEW.password_hash THEN NEW.password_hash ELSE NULL END,
+                'password_salt', CASE WHEN OLD.password_salt IS NOT NEW.password_salt THEN NEW.password_salt ELSE NULL END,
+                'email', CASE WHEN OLD.email IS NOT NEW.email THEN NEW.email ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS accounts_audit_delete
 AFTER DELETE ON accounts
@@ -218,15 +233,20 @@ BEGIN
         'UPDATE',
         OLD._user_role_id,
         json_patch('{}',
-            CASE WHEN OLD._user_id IS NOT NEW._user_id THEN json_object('_user_id', OLD._user_id) ELSE '{}' END,
-            CASE WHEN OLD._role_id IS NOT NEW._role_id THEN json_object('_role_id', OLD._role_id) ELSE '{}' END
+            json_object(
+                '_user_id', CASE WHEN OLD._user_id IS NOT NEW._user_id THEN OLD._user_id ELSE NULL END,
+                '_role_id', CASE WHEN OLD._role_id IS NOT NEW._role_id THEN OLD._role_id ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._user_id IS NOT NEW._user_id THEN json_object('_user_id', NEW._user_id) ELSE '{}' END,
-            CASE WHEN OLD._role_id IS NOT NEW._role_id THEN json_object('_role_id', NEW._role_id) ELSE '{}' END
+            json_object(
+                '_user_id', CASE WHEN OLD._user_id IS NOT NEW._user_id THEN NEW._user_id ELSE NULL END,
+                '_role_id', CASE WHEN OLD._role_id IS NOT NEW._role_id THEN NEW._role_id ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS user_roles_audit_delete
 AFTER DELETE ON user_roles
@@ -276,17 +296,22 @@ BEGIN
         'UPDATE',
         OLD._session_id,
         json_patch('{}',
-            CASE WHEN OLD._user_id IS NOT NEW._user_id THEN json_object('_user_id', OLD._user_id) ELSE '{}' END,
-            CASE WHEN OLD.session_token IS NOT NEW.session_token THEN json_object('session_token', OLD.session_token) ELSE '{}' END,
-            CASE WHEN OLD.ip_address IS NOT NEW.ip_address THEN json_object('ip_address', OLD.ip_address) ELSE '{}' END
+            json_object(
+                '_user_id', CASE WHEN OLD._user_id IS NOT NEW._user_id THEN OLD._user_id ELSE NULL END,
+                'session_token', CASE WHEN OLD.session_token IS NOT NEW.session_token THEN OLD.session_token ELSE NULL END,
+                'ip_address', CASE WHEN OLD.ip_address IS NOT NEW.ip_address THEN OLD.ip_address ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._user_id IS NOT NEW._user_id THEN json_object('_user_id', NEW._user_id) ELSE '{}' END,
-            CASE WHEN OLD.session_token IS NOT NEW.session_token THEN json_object('session_token', NEW.session_token) ELSE '{}' END,
-            CASE WHEN OLD.ip_address IS NOT NEW.ip_address THEN json_object('ip_address', NEW.ip_address) ELSE '{}' END
+            json_object(
+                '_user_id', CASE WHEN OLD._user_id IS NOT NEW._user_id THEN NEW._user_id ELSE NULL END,
+                'session_token', CASE WHEN OLD.session_token IS NOT NEW.session_token THEN NEW.session_token ELSE NULL END,
+                'ip_address', CASE WHEN OLD.ip_address IS NOT NEW.ip_address THEN NEW.ip_address ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS sessions_audit_delete
 AFTER DELETE ON sessions
@@ -336,15 +361,20 @@ BEGIN
         'UPDATE',
         OLD._storage_location_id,
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', OLD.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', OLD.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN OLD.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN OLD.description ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', NEW.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', NEW.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN NEW.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN NEW.description ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS storage_locations_audit_delete
 AFTER DELETE ON storage_locations
@@ -384,17 +414,23 @@ AFTER UPDATE ON item_categories
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_categories', 'UPDATE', OLD._item_category_id,
+    VALUES (
+        'item_categories', 'UPDATE', OLD._item_category_id,
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', OLD.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', OLD.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN OLD.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN OLD.description ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', NEW.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', NEW.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN NEW.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN NEW.description ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_categories_audit_delete
 AFTER DELETE ON item_categories
@@ -431,17 +467,23 @@ AFTER UPDATE ON item_brands
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_brands', 'UPDATE', OLD._item_brand_id,
+    VALUES (
+        'item_brands', 'UPDATE', OLD._item_brand_id,
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', OLD.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', OLD.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN OLD.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN OLD.description ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', NEW.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', NEW.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN NEW.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN NEW.description ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_brands_audit_delete
 AFTER DELETE ON item_brands
@@ -478,17 +520,23 @@ AFTER UPDATE ON items
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('items', 'UPDATE', OLD._item_id,
+    VALUES (
+        'items', 'UPDATE', OLD._item_id,
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', OLD.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', OLD.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN OLD.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN OLD.description ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', NEW.name) ELSE '{}' END,
-            CASE WHEN OLD.description IS NOT NEW.description THEN json_object('description', NEW.description) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN NEW.name ELSE NULL END,
+                'description', CASE WHEN OLD.description IS NOT NEW.description THEN NEW.description ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS items_audit_delete
 AFTER DELETE ON items
@@ -525,17 +573,23 @@ AFTER UPDATE ON item_category_assignments
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_category_assignments', 'UPDATE', OLD._item_category_assignment_id,
+    VALUES (
+        'item_category_assignments', 'UPDATE', OLD._item_category_assignment_id,
         json_patch('{}',
-            CASE WHEN OLD._item_id IS NOT NEW._item_id THEN json_object('_item_id', OLD._item_id) ELSE '{}' END,
-            CASE WHEN OLD._item_category_id IS NOT NEW._item_category_id THEN json_object('_item_category_id', OLD._item_category_id) ELSE '{}' END
+            json_object(
+                '_item_id', CASE WHEN OLD._item_id IS NOT NEW._item_id THEN OLD._item_id ELSE NULL END,
+                '_item_category_id', CASE WHEN OLD._item_category_id IS NOT NEW._item_category_id THEN OLD._item_category_id ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._item_id IS NOT NEW._item_id THEN json_object('_item_id', NEW._item_id) ELSE '{}' END,
-            CASE WHEN OLD._item_category_id IS NOT NEW._item_category_id THEN json_object('_item_category_id', NEW._item_category_id) ELSE '{}' END
+            json_object(
+                '_item_id', CASE WHEN OLD._item_id IS NOT NEW._item_id THEN NEW._item_id ELSE NULL END,
+                '_item_category_id', CASE WHEN OLD._item_category_id IS NOT NEW._item_category_id THEN NEW._item_category_id ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_category_assignments_audit_delete
 AFTER DELETE ON item_category_assignments
@@ -574,21 +628,27 @@ AFTER UPDATE ON item_stocks
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_stocks', 'UPDATE', OLD._item_stock_id,
+    VALUES (
+        'item_stocks', 'UPDATE', OLD._item_stock_id,
         json_patch('{}',
-            CASE WHEN OLD._item_id IS NOT NEW._item_id THEN json_object('_item_id', OLD._item_id) ELSE '{}' END,
-            CASE WHEN OLD._item_brand_id IS NOT NEW._item_brand_id THEN json_object('_item_brand_id', OLD._item_brand_id) ELSE '{}' END,
-            CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN json_object('unit_price_php', OLD.unit_price_php) ELSE '{}' END,
-            CASE WHEN OLD.minimum_quantity IS NOT NEW.minimum_quantity THEN json_object('minimum_quantity', OLD.minimum_quantity) ELSE '{}' END
+            json_object(
+                '_item_id', CASE WHEN OLD._item_id IS NOT NEW._item_id THEN OLD._item_id ELSE NULL END,
+                '_item_brand_id', CASE WHEN OLD._item_brand_id IS NOT NEW._item_brand_id THEN OLD._item_brand_id ELSE NULL END,
+                'unit_price_php', CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN OLD.unit_price_php ELSE NULL END,
+                'minimum_quantity', CASE WHEN OLD.minimum_quantity IS NOT NEW.minimum_quantity THEN OLD.minimum_quantity ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._item_id IS NOT NEW._item_id THEN json_object('_item_id', NEW._item_id) ELSE '{}' END,
-            CASE WHEN OLD._item_brand_id IS NOT NEW._item_brand_id THEN json_object('_item_brand_id', NEW._item_brand_id) ELSE '{}' END,
-            CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN json_object('unit_price_php', NEW.unit_price_php) ELSE '{}' END,
-            CASE WHEN OLD.minimum_quantity IS NOT NEW.minimum_quantity THEN json_object('minimum_quantity', NEW.minimum_quantity) ELSE '{}' END
+            json_object(
+                '_item_id', CASE WHEN OLD._item_id IS NOT NEW._item_id THEN NEW._item_id ELSE NULL END,
+                '_item_brand_id', CASE WHEN OLD._item_brand_id IS NOT NEW._item_brand_id THEN NEW._item_brand_id ELSE NULL END,
+                'unit_price_php', CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN NEW.unit_price_php ELSE NULL END,
+                'minimum_quantity', CASE WHEN OLD.minimum_quantity IS NOT NEW.minimum_quantity THEN NEW.minimum_quantity ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_stocks_audit_delete
 AFTER DELETE ON item_stocks
@@ -628,19 +688,27 @@ AFTER UPDATE ON item_stock_storage_locations
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_stock_storage_locations', 'UPDATE', OLD._item_stock_storage_location_id,
+    VALUES (
+        'item_stock_storage_locations',
+        'UPDATE',
+        OLD._item_stock_storage_location_id,
         json_patch('{}',
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', OLD._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN json_object('_storage_location_id', OLD._storage_location_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity IS NOT NEW.quantity THEN json_object('quantity', OLD.quantity) ELSE '{}' END
+            json_object(
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN OLD._item_stock_id ELSE NULL END,
+                '_storage_location_id', CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN OLD._storage_location_id ELSE NULL END,
+                'quantity', CASE WHEN OLD.quantity IS NOT NEW.quantity THEN OLD.quantity ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', NEW._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN json_object('_storage_location_id', NEW._storage_location_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity IS NOT NEW.quantity THEN json_object('quantity', NEW.quantity) ELSE '{}' END
+            json_object(
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN NEW._item_stock_id ELSE NULL END,
+                '_storage_location_id', CASE WHEN OLD._storage_location_id IS NOT NEW._storage_location_id THEN NEW._storage_location_id ELSE NULL END,
+                'quantity', CASE WHEN OLD.quantity IS NOT NEW.quantity THEN NEW.quantity ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_audit_delete
 AFTER DELETE ON item_stock_storage_locations
@@ -680,21 +748,27 @@ AFTER UPDATE ON item_restocks
 FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
-    VALUES ('item_restocks', 'UPDATE', OLD._item_restock_id,
+    VALUES (
+        'item_restocks', 'UPDATE', OLD._item_restock_id,
         json_patch('{}',
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', OLD._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity_before IS NOT NEW.quantity_before THEN json_object('quantity_before', OLD.quantity_before) ELSE '{}' END,
-            CASE WHEN OLD.quantity_after IS NOT NEW.quantity_after THEN json_object('quantity_after', OLD.quantity_after) ELSE '{}' END,
-            CASE WHEN OLD.quantity_added IS NOT NEW.quantity_added THEN json_object('quantity_added', OLD.quantity_added) ELSE '{}' END
+            json_object(
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN OLD._item_stock_id ELSE NULL END,
+                'quantity_before', CASE WHEN OLD.quantity_before IS NOT NEW.quantity_before THEN OLD.quantity_before ELSE NULL END,
+                'quantity_after', CASE WHEN OLD.quantity_after IS NOT NEW.quantity_after THEN OLD.quantity_after ELSE NULL END,
+                'quantity_added', CASE WHEN OLD.quantity_added IS NOT NEW.quantity_added THEN OLD.quantity_added ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', NEW._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity_before IS NOT NEW.quantity_before THEN json_object('quantity_before', NEW.quantity_before) ELSE '{}' END,
-            CASE WHEN OLD.quantity_after IS NOT NEW.quantity_after THEN json_object('quantity_after', NEW.quantity_after) ELSE '{}' END,
-            CASE WHEN OLD.quantity_added IS NOT NEW.quantity_added THEN json_object('quantity_added', NEW.quantity_added) ELSE '{}' END
+            json_object(
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN NEW._item_stock_id ELSE NULL END,
+                'quantity_before', CASE WHEN OLD.quantity_before IS NOT NEW.quantity_before THEN NEW.quantity_before ELSE NULL END,
+                'quantity_after', CASE WHEN OLD.quantity_after IS NOT NEW.quantity_after THEN NEW.quantity_after ELSE NULL END,
+                'quantity_added', CASE WHEN OLD.quantity_added IS NOT NEW.quantity_added THEN NEW.quantity_added ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS item_restocks_audit_delete
 AFTER DELETE ON item_restocks
@@ -742,25 +816,30 @@ BEGIN
     VALUES (
         'suppliers', 'UPDATE', OLD._supplier_id,
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', OLD.name) ELSE '{}' END,
-            CASE WHEN OLD.email IS NOT NEW.email THEN json_object('email', OLD.email) ELSE '{}' END,
-            CASE WHEN OLD.street IS NOT NEW.street THEN json_object('street', OLD.street) ELSE '{}' END,
-            CASE WHEN OLD.city IS NOT NEW.city THEN json_object('city', OLD.city) ELSE '{}' END,
-            CASE WHEN OLD.state IS NOT NEW.state THEN json_object('state', OLD.state) ELSE '{}' END,
-            CASE WHEN OLD.postal_code IS NOT NEW.postal_code THEN json_object('postal_code', OLD.postal_code) ELSE '{}' END,
-            CASE WHEN OLD.country IS NOT NEW.country THEN json_object('country', OLD.country) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN OLD.name ELSE NULL END,
+                'email', CASE WHEN OLD.email IS NOT NEW.email THEN OLD.email ELSE NULL END,
+                'street', CASE WHEN OLD.street IS NOT NEW.street THEN OLD.street ELSE NULL END,
+                'city', CASE WHEN OLD.city IS NOT NEW.city THEN OLD.city ELSE NULL END,
+                'state', CASE WHEN OLD.state IS NOT NEW.state THEN OLD.state ELSE NULL END,
+                'postal_code', CASE WHEN OLD.postal_code IS NOT NEW.postal_code THEN OLD.postal_code ELSE NULL END,
+                'country', CASE WHEN OLD.country IS NOT NEW.country THEN OLD.country ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD.name IS NOT NEW.name THEN json_object('name', NEW.name) ELSE '{}' END,
-            CASE WHEN OLD.email IS NOT NEW.email THEN json_object('email', NEW.email) ELSE '{}' END,
-            CASE WHEN OLD.street IS NOT NEW.street THEN json_object('street', NEW.street) ELSE '{}' END,
-            CASE WHEN OLD.city IS NOT NEW.city THEN json_object('city', NEW.city) ELSE '{}' END,
-            CASE WHEN OLD.state IS NOT NEW.state THEN json_object('state', NEW.state) ELSE '{}' END,
-            CASE WHEN OLD.postal_code IS NOT NEW.postal_code THEN json_object('postal_code', NEW.postal_code) ELSE '{}' END,
-            CASE WHEN OLD.country IS NOT NEW.country THEN json_object('country', NEW.country) ELSE '{}' END
+            json_object(
+                'name', CASE WHEN OLD.name IS NOT NEW.name THEN NEW.name ELSE NULL END,
+                'email', CASE WHEN OLD.email IS NOT NEW.email THEN NEW.email ELSE NULL END,
+                'street', CASE WHEN OLD.street IS NOT NEW.street THEN NEW.street ELSE NULL END,
+                'city', CASE WHEN OLD.city IS NOT NEW.city THEN NEW.city ELSE NULL END,
+                'state', CASE WHEN OLD.state IS NOT NEW.state THEN NEW.state ELSE NULL END,
+                'postal_code', CASE WHEN OLD.postal_code IS NOT NEW.postal_code THEN NEW.postal_code ELSE NULL END,
+                'country', CASE WHEN OLD.country IS NOT NEW.country THEN NEW.country ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS suppliers_audit_delete
 AFTER DELETE ON suppliers
@@ -813,25 +892,30 @@ BEGIN
     VALUES (
         'purchases', 'UPDATE', OLD._purchase_id,
         json_patch('{}',
-            CASE WHEN OLD._supplier_id IS NOT NEW._supplier_id THEN json_object('_supplier_id', OLD._supplier_id) ELSE '{}' END,
-            CASE WHEN OLD.purchase_date IS NOT NEW.purchase_date THEN json_object('purchase_date', OLD.purchase_date) ELSE '{}' END,
-            CASE WHEN OLD.purchase_code IS NOT NEW.purchase_code THEN json_object('purchase_code', OLD.purchase_code) ELSE '{}' END,
-            CASE WHEN OLD.delivery_date IS NOT NEW.delivery_date THEN json_object('delivery_date', OLD.delivery_date) ELSE '{}' END,
-            CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN json_object('vat_percent', OLD.vat_percent) ELSE '{}' END,
-            CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN json_object('discount_value', OLD.discount_value) ELSE '{}' END,
-            CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN json_object('discount_type', OLD.discount_type) ELSE '{}' END
+            json_object(
+                '_supplier_id', CASE WHEN OLD._supplier_id IS NOT NEW._supplier_id THEN OLD._supplier_id ELSE NULL END,
+                'purchase_date', CASE WHEN OLD.purchase_date IS NOT NEW.purchase_date THEN OLD.purchase_date ELSE NULL END,
+                'purchase_code', CASE WHEN OLD.purchase_code IS NOT NEW.purchase_code THEN OLD.purchase_code ELSE NULL END,
+                'delivery_date', CASE WHEN OLD.delivery_date IS NOT NEW.delivery_date THEN OLD.delivery_date ELSE NULL END,
+                'vat_percent', CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN OLD.vat_percent ELSE NULL END,
+                'discount_value', CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN OLD.discount_value ELSE NULL END,
+                'discount_type', CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN OLD.discount_type ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._supplier_id IS NOT NEW._supplier_id THEN json_object('_supplier_id', NEW._supplier_id) ELSE '{}' END,
-            CASE WHEN OLD.purchase_date IS NOT NEW.purchase_date THEN json_object('purchase_date', NEW.purchase_date) ELSE '{}' END,
-            CASE WHEN OLD.purchase_code IS NOT NEW.purchase_code THEN json_object('purchase_code', NEW.purchase_code) ELSE '{}' END,
-            CASE WHEN OLD.delivery_date IS NOT NEW.delivery_date THEN json_object('delivery_date', NEW.delivery_date) ELSE '{}' END,
-            CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN json_object('vat_percent', NEW.vat_percent) ELSE '{}' END,
-            CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN json_object('discount_value', NEW.discount_value) ELSE '{}' END,
-            CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN json_object('discount_type', NEW.discount_type) ELSE '{}' END
+            json_object(
+                '_supplier_id', CASE WHEN OLD._supplier_id IS NOT NEW._supplier_id THEN NEW._supplier_id ELSE NULL END,
+                'purchase_date', CASE WHEN OLD.purchase_date IS NOT NEW.purchase_date THEN NEW.purchase_date ELSE NULL END,
+                'purchase_code', CASE WHEN OLD.purchase_code IS NOT NEW.purchase_code THEN NEW.purchase_code ELSE NULL END,
+                'delivery_date', CASE WHEN OLD.delivery_date IS NOT NEW.delivery_date THEN NEW.delivery_date ELSE NULL END,
+                'vat_percent', CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN NEW.vat_percent ELSE NULL END,
+                'discount_value', CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN NEW.discount_value ELSE NULL END,
+                'discount_type', CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN NEW.discount_type ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS purchases_audit_delete
 AFTER DELETE ON purchases
@@ -881,21 +965,26 @@ BEGIN
     VALUES (
         'purchase_payments', 'UPDATE', OLD._purchase_payment_id,
         json_patch('{}',
-            CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN json_object('_purchase_id', OLD._purchase_id) ELSE '{}' END,
-            CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN json_object('payment_date', OLD.payment_date) ELSE '{}' END,
-            CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN json_object('reference_number', OLD.reference_number) ELSE '{}' END,
-            CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN json_object('payment_method', OLD.payment_method) ELSE '{}' END,
-            CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN json_object('amount_php', OLD.amount_php) ELSE '{}' END
+            json_object(
+                '_purchase_id', CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN OLD._purchase_id ELSE NULL END,
+                'payment_date', CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN OLD.payment_date ELSE NULL END,
+                'reference_number', CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN OLD.reference_number ELSE NULL END,
+                'payment_method', CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN OLD.payment_method ELSE NULL END,
+                'amount_php', CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN OLD.amount_php ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN json_object('_purchase_id', NEW._purchase_id) ELSE '{}' END,
-            CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN json_object('payment_date', NEW.payment_date) ELSE '{}' END,
-            CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN json_object('reference_number', NEW.reference_number) ELSE '{}' END,
-            CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN json_object('payment_method', NEW.payment_method) ELSE '{}' END,
-            CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN json_object('amount_php', NEW.amount_php) ELSE '{}' END
+            json_object(
+                '_purchase_id', CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN NEW._purchase_id ELSE NULL END,
+                'payment_date', CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN NEW.payment_date ELSE NULL END,
+                'reference_number', CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN NEW.reference_number ELSE NULL END,
+                'payment_method', CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN NEW.payment_method ELSE NULL END,
+                'amount_php', CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN NEW.amount_php ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS purchase_payments_audit_delete
 AFTER DELETE ON purchase_payments
@@ -941,23 +1030,30 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
     VALUES (
-        'purchase_item_stocks', 'UPDATE', OLD._purchase_item_stock_id,
+        'purchase_item_stocks',
+        'UPDATE',
+        OLD._purchase_item_stock_id,
         json_patch('{}',
-            CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN json_object('_purchase_id', OLD._purchase_id) ELSE '{}' END,
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', OLD._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity_ordered IS NOT NEW.quantity_ordered THEN json_object('quantity_ordered', OLD.quantity_ordered) ELSE '{}' END,
-            CASE WHEN OLD.quantity_received IS NOT NEW.quantity_received THEN json_object('quantity_received', OLD.quantity_received) ELSE '{}' END,
-            CASE WHEN OLD.unit_cost_php IS NOT NEW.unit_cost_php THEN json_object('unit_cost_php', OLD.unit_cost_php) ELSE '{}' END
+            json_object(
+                '_purchase_id', CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN OLD._purchase_id ELSE NULL END,
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN OLD._item_stock_id ELSE NULL END,
+                'quantity_ordered', CASE WHEN OLD.quantity_ordered IS NOT NEW.quantity_ordered THEN OLD.quantity_ordered ELSE NULL END,
+                'quantity_received', CASE WHEN OLD.quantity_received IS NOT NEW.quantity_received THEN OLD.quantity_received ELSE NULL END,
+                'unit_cost_php', CASE WHEN OLD.unit_cost_php IS NOT NEW.unit_cost_php THEN OLD.unit_cost_php ELSE NULL END
+            )
         ),
+
         json_patch('{}',
-            CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN json_object('_purchase_id', NEW._purchase_id) ELSE '{}' END,
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', NEW._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity_ordered IS NOT NEW.quantity_ordered THEN json_object('quantity_ordered', NEW.quantity_ordered) ELSE '{}' END,
-            CASE WHEN OLD.quantity_received IS NOT NEW.quantity_received THEN json_object('quantity_received', NEW.quantity_received) ELSE '{}' END,
-            CASE WHEN OLD.unit_cost_php IS NOT NEW.unit_cost_php THEN json_object('unit_cost_php', NEW.unit_cost_php) ELSE '{}' END
+            json_object(
+                '_purchase_id', CASE WHEN OLD._purchase_id IS NOT NEW._purchase_id THEN NEW._purchase_id ELSE NULL END,
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN NEW._item_stock_id ELSE NULL END,
+                'quantity_ordered', CASE WHEN OLD.quantity_ordered IS NOT NEW.quantity_ordered THEN NEW.quantity_ordered ELSE NULL END,
+                'quantity_received', CASE WHEN OLD.quantity_received IS NOT NEW.quantity_received THEN NEW.quantity_received ELSE NULL END,
+                'unit_cost_php', CASE WHEN OLD.unit_cost_php IS NOT NEW.unit_cost_php THEN NEW.unit_cost_php ELSE NULL END
+            )
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS purchase_item_stocks_audit_delete
 AFTER DELETE ON purchase_item_stocks
@@ -1005,25 +1101,33 @@ FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, action, row_id, old_data, new_data)
     VALUES (
-        'sales', 'UPDATE', OLD._sale_id,
+        'sales',
+        'UPDATE',
+        OLD._sale_id,
         json_patch('{}',
-            CASE WHEN OLD.sale_date IS NOT NEW.sale_date THEN json_object('sale_date', OLD.sale_date) ELSE '{}' END,
-            CASE WHEN OLD.sale_code IS NOT NEW.sale_code THEN json_object('sale_code', OLD.sale_code) ELSE '{}' END,
-            CASE WHEN OLD.customer_name IS NOT NEW.customer_name THEN json_object('customer_name', OLD.customer_name) ELSE '{}' END,
-            CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN json_object('vat_percent', OLD.vat_percent) ELSE '{}' END,
-            CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN json_object('discount_value', OLD.discount_value) ELSE '{}' END,
-            CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN json_object('discount_type', OLD.discount_type) ELSE '{}' END
+            json_object(
+                'sale_date', CASE WHEN OLD.sale_date IS NOT NEW.sale_date THEN OLD.sale_date ELSE NULL END,
+                'sale_code', CASE WHEN OLD.sale_code IS NOT NEW.sale_code THEN OLD.sale_code ELSE NULL END,
+                'customer_name', CASE WHEN OLD.customer_name IS NOT NEW.customer_name THEN OLD.customer_name ELSE NULL END,
+                'vat_percent', CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN OLD.vat_percent ELSE NULL END,
+                'discount_value', CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN OLD.discount_value ELSE NULL END,
+                'discount_type', CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN OLD.discount_type ELSE NULL END
+            )
         ),
+
         json_patch('{}',
-            CASE WHEN OLD.sale_date IS NOT NEW.sale_date THEN json_object('sale_date', NEW.sale_date) ELSE '{}' END,
-            CASE WHEN OLD.sale_code IS NOT NEW.sale_code THEN json_object('sale_code', NEW.sale_code) ELSE '{}' END,
-            CASE WHEN OLD.customer_name IS NOT NEW.customer_name THEN json_object('customer_name', NEW.customer_name) ELSE '{}' END,
-            CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN json_object('vat_percent', NEW.vat_percent) ELSE '{}' END,
-            CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN json_object('discount_value', NEW.discount_value) ELSE '{}' END,
-            CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN json_object('discount_type', NEW.discount_type) ELSE '{}' END
+            json_object(
+                'sale_date', CASE WHEN OLD.sale_date IS NOT NEW.sale_date THEN NEW.sale_date ELSE NULL END,
+                'sale_code', CASE WHEN OLD.sale_code IS NOT NEW.sale_code THEN NEW.sale_code ELSE NULL END,
+                'customer_name', CASE WHEN OLD.customer_name IS NOT NEW.customer_name THEN NEW.customer_name ELSE NULL END,
+                'vat_percent', CASE WHEN OLD.vat_percent IS NOT NEW.vat_percent THEN NEW.vat_percent ELSE NULL END,
+                'discount_value', CASE WHEN OLD.discount_value IS NOT NEW.discount_value THEN NEW.discount_value ELSE NULL END,
+                'discount_type', CASE WHEN OLD.discount_type IS NOT NEW.discount_type THEN NEW.discount_type ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS sales_audit_delete
 AFTER DELETE ON sales
@@ -1073,21 +1177,26 @@ BEGIN
     VALUES (
         'sale_payments', 'UPDATE', OLD._sale_payment_id,
         json_patch('{}',
-            CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN json_object('_sale_id', OLD._sale_id) ELSE '{}' END,
-            CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN json_object('payment_date', OLD.payment_date) ELSE '{}' END,
-            CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN json_object('reference_number', OLD.reference_number) ELSE '{}' END,
-            CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN json_object('payment_method', OLD.payment_method) ELSE '{}' END,
-            CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN json_object('amount_php', OLD.amount_php) ELSE '{}' END
+            json_object(
+                '_sale_id', CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN OLD._sale_id ELSE NULL END,
+                'payment_date', CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN OLD.payment_date ELSE NULL END,
+                'reference_number', CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN OLD.reference_number ELSE NULL END,
+                'payment_method', CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN OLD.payment_method ELSE NULL END,
+                'amount_php', CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN OLD.amount_php ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN json_object('_sale_id', NEW._sale_id) ELSE '{}' END,
-            CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN json_object('payment_date', NEW.payment_date) ELSE '{}' END,
-            CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN json_object('reference_number', NEW.reference_number) ELSE '{}' END,
-            CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN json_object('payment_method', NEW.payment_method) ELSE '{}' END,
-            CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN json_object('amount_php', NEW.amount_php) ELSE '{}' END
+            json_object(
+                '_sale_id', CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN NEW._sale_id ELSE NULL END,
+                'payment_date', CASE WHEN OLD.payment_date IS NOT NEW.payment_date THEN NEW.payment_date ELSE NULL END,
+                'reference_number', CASE WHEN OLD.reference_number IS NOT NEW.reference_number THEN NEW.reference_number ELSE NULL END,
+                'payment_method', CASE WHEN OLD.payment_method IS NOT NEW.payment_method THEN NEW.payment_method ELSE NULL END,
+                'amount_php', CASE WHEN OLD.amount_php IS NOT NEW.amount_php THEN NEW.amount_php ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS sale_payments_audit_delete
 AFTER DELETE ON sale_payments
@@ -1134,19 +1243,24 @@ BEGIN
     VALUES (
         'sale_item_stocks', 'UPDATE', OLD._sale_item_stock_id,
         json_patch('{}',
-            CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN json_object('_sale_id', OLD._sale_id) ELSE '{}' END,
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', OLD._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity IS NOT NEW.quantity THEN json_object('quantity', OLD.quantity) ELSE '{}' END,
-            CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN json_object('unit_price_php', OLD.unit_price_php) ELSE '{}' END
+            json_object(
+                '_sale_id', CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN OLD._sale_id ELSE NULL END,
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN OLD._item_stock_id ELSE NULL END,
+                'quantity', CASE WHEN OLD.quantity IS NOT NEW.quantity THEN OLD.quantity ELSE NULL END,
+                'unit_price_php', CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN OLD.unit_price_php ELSE NULL END
+            )
         ),
         json_patch('{}',
-            CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN json_object('_sale_id', NEW._sale_id) ELSE '{}' END,
-            CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN json_object('_item_stock_id', NEW._item_stock_id) ELSE '{}' END,
-            CASE WHEN OLD.quantity IS NOT NEW.quantity THEN json_object('quantity', NEW.quantity) ELSE '{}' END,
-            CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN json_object('unit_price_php', NEW.unit_price_php) ELSE '{}' END
+            json_object(
+                '_sale_id', CASE WHEN OLD._sale_id IS NOT NEW._sale_id THEN NEW._sale_id ELSE NULL END,
+                '_item_stock_id', CASE WHEN OLD._item_stock_id IS NOT NEW._item_stock_id THEN NEW._item_stock_id ELSE NULL END,
+                'quantity', CASE WHEN OLD.quantity IS NOT NEW.quantity THEN NEW.quantity ELSE NULL END,
+                'unit_price_php', CASE WHEN OLD.unit_price_php IS NOT NEW.unit_price_php THEN NEW.unit_price_php ELSE NULL END
+            )
         )
     );
-END $$
+END;
+
 
 CREATE TRIGGER IF NOT EXISTS sale_item_stocks_audit_delete
 AFTER DELETE ON sale_item_stocks

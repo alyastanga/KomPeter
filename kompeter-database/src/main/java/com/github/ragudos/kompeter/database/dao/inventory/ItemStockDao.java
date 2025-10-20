@@ -25,6 +25,7 @@ public interface ItemStockDao {
 
     Optional<ItemStockDto> getItemStockById(int id) throws SQLException, IOException;
 
-    // UPDATE
+    // UPDATe
+
     // DELETE
 }
