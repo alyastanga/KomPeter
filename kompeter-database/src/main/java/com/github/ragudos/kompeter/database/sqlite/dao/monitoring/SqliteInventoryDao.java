@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.dao.DateUtils;
 import com.github.ragudos.kompeter.database.dao.monitoring.InventoryDao;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryCountDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryValueDto;
@@ -79,7 +80,7 @@ public class SqliteInventoryDao implements InventoryDao {
                 while (rs.next()) {
                     InventoryCountDto dto =
                             new InventoryCountDto(
-                                    rs.getTimestamp("date"),
+                                    DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getInt("total_inventory"),
                                     rs.getInt("total_purchased"),
                                     rs.getInt("total_sold"));
@@ -142,10 +143,10 @@ public class SqliteInventoryDao implements InventoryDao {
                 while (rs.next()) {
                     InventoryValueDto dto =
                             new InventoryValueDto(
-                                    rs.getTimestamp("date"),
-                                    rs.getInt("total_inventory_value"),
-                                    rs.getInt("total_purchased_value"),
-                                    rs.getInt("total_sales_value"));
+                                    DateUtils.safeGetTimestamp(rs, "date"),
+                                    rs.getFloat("total_inventory_value"),
+                                    rs.getFloat("total_purchased_value"),
+                                    rs.getFloat("total_sales_value"));
                     results.add(KompeterLogger.log(dto));
                 }
             }

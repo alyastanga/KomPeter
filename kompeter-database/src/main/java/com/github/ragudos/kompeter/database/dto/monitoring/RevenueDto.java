@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public record RevenueDto(Timestamp date, int totalRevenue) {
+public record RevenueDto(Timestamp date, float totalRevenue) {
 
     @Override
     public String toString() {

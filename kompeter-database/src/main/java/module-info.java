@@ -20,4 +20,7 @@ module kompeter.database {
     exports com.github.ragudos.kompeter.database.sqlite.dao.sales;
     exports com.github.ragudos.kompeter.database.sqlite.dao.user;
     exports com.github.ragudos.kompeter.database.sqlite.migrations;
+    exports com.github.ragudos.kompeter.database.dto.monitoring;
+    exports com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
+    exports com.github.ragudos.kompeter.database.sqlite.seeder;
 }
