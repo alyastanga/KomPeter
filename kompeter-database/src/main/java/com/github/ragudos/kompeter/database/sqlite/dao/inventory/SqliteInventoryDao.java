@@ -8,7 +8,6 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
-import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
@@ -16,7 +15,6 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,16 +57,18 @@ public class SqliteInventoryDao implements InventoryDao {
     public List<InventoryMetadataDto> getAllData(String search) throws SQLException, IOException {
         List<InventoryMetadataDto> inventory = new ArrayList<>();
 
-        try (NamedPreparedStatement stmt =
-                new NamedPreparedStatement(
-                        SqliteFactoryDao.getInstance().getConnection(),
-                        SqliteQueryLoader.getInstance()
-                                .get(
-                                        "select_inventory_metadata_where",
-                                        "items",
-                                        AbstractSqlQueryLoader.SqlQueryType.SELECT),
-                        Statement.RETURN_GENERATED_KEYS); ) {
-            stmt.setString("search", search);
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get(
+                                "select_inventory_metadata_where",
+                                "items",
+                                AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        try (Connection conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query); ) {
+            stmt.setString(1, search);
+            stmt.setString(2, search);
+            stmt.setString(3, search);
+            stmt.setString(4, search);
 
             var rs = stmt.executeQuery();
             while (rs.next()) {

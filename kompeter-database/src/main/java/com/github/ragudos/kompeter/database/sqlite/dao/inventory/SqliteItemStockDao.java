@@ -97,4 +97,57 @@ public final class SqliteItemStockDao implements ItemStockDao {
         }
         return optionalItemStock;
     }
+
+    @Override
+    public int deleteItemStockById(int id) throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("delete_item_stock_by_id", "items", AbstractSqlQueryLoader.SqlQueryType.DELETE);
+        try (var conn = SqliteFactoryDao.getInstance().getConnection();
+                var stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, id);
+            var rs = stmt.executeUpdate();
+            return rs;
+        }
+    }
+
+    @Override
+    public int updateItemBrandById(int brandID, int id) throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("update_item_brand_by_id", "items", AbstractSqlQueryLoader.SqlQueryType.UPDATE);
+        try (var stmt =
+                new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
+            stmt.setInt("_item_brand_id", brandID);
+            stmt.setInt("_item_stock_id", id);
+            return stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int updateItemMinimumQtyById(int minimumQty, int id) throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("update_item_stock_minQty", "items", AbstractSqlQueryLoader.SqlQueryType.UPDATE);
+        try (var stmt =
+                new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
+            stmt.setInt("minimum_quantity", minimumQty);
+            stmt.setInt("_item_stock_id", id);
+            return stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int updateItemUnitPriceById(BigDecimal unitPrice, int id)
+            throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("update_item_stock_price", "items", AbstractSqlQueryLoader.SqlQueryType.UPDATE);
+        try (var stmt =
+                new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
+            stmt.setBigDecimal("unit_price_php", unitPrice);
+            stmt.setInt("_item_stock_id", id);
+            return stmt.executeUpdate();
+        }
+    }
 }

@@ -50,6 +50,8 @@ public class SqlitePurchaseDao implements PurchaseDao {
             stmt.setBigDecimal("discount_value", disc_val);
             stmt.setString("discount_type", discountType.toString());
 
+            stmt.executeUpdate();
+
             var rs = stmt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;
