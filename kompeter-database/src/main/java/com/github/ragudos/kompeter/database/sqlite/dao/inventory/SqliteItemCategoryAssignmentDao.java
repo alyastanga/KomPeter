@@ -40,4 +40,18 @@ public class SqliteItemCategoryAssignmentDao implements ItemCategoryAssignmentDa
             return rs.next() ? rs.getInt(1) : -1;
         }
     }
+
+    @Override
+    public int updateItemCategoryById(int itemId, int itemCategoryId)
+            throws SQLException, IOException {
+        var query =
+                SqliteQueryLoader.getInstance()
+                        .get("update_item_category", "items", AbstractSqlQueryLoader.SqlQueryType.UPDATE);
+        try (var stmt =
+                new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
+            stmt.setInt("_item_category_id", itemCategoryId);
+            stmt.setInt("_item_id", itemId);
+            return stmt.executeUpdate();
+        }
+    }
 }

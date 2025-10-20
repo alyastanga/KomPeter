@@ -37,8 +37,8 @@ public class SqlitePurchaseItemStockDao implements PurchaseItemStockDao {
             stmt.setInt("_purchase_id", purchaseId);
             stmt.setInt("_item_stock_id", itemStockId);
             stmt.setInt("quantity_ordered", qty_ordered);
-            stmt.setInt("quantity_ordered", qty_received);
-            stmt.setBigDecimal("quantity_received", unit_cost_php);
+            stmt.setInt("quantity_received", qty_received);
+            stmt.setBigDecimal("unit_cost_php", unit_cost_php);
 
             stmt.executeUpdate();
 
