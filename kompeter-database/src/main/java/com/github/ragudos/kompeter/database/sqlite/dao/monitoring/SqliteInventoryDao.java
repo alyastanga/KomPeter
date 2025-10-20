@@ -10,11 +10,11 @@ package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.dao.DateUtils;
 import com.github.ragudos.kompeter.database.dao.monitoring.InventoryDao;
+import com.github.ragudos.kompeter.database.dto.enums.FromTo;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryCountDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryValueDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,12 +31,16 @@ public class SqliteInventoryDao implements InventoryDao {
 
     @Override
     public List<InventoryCountDto> getInventoryCount() throws SQLException {
-        return getInventoryCount(null, null);
+        return getInventoryCount((Timestamp) null, (Timestamp) null);
     }
 
-    @Override
-    public List<InventoryCountDto> getInventoryCount(Timestamp from) throws SQLException {
-        return getInventoryCount(from, null);
+    public List<InventoryCountDto> getInventoryCount(Timestamp date, FromTo fromto)
+            throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getInventoryCount(date, (Timestamp) null);
+        } else {
+            return getInventoryCount((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -45,12 +49,19 @@ public class SqliteInventoryDao implements InventoryDao {
         List<InventoryCountDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null
+                && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "inventory_count_all";
-        } else if (to == null) {
+        } else if (to == null
+                && from
+                        != null) { // if from is not null, put it in sql, if to is null, to is 'now' date in sql
+            sqlFileName = "inventory_count_from";
+        } else if (from == null
+                && to
+                        != null) { // if from is null, from is the latest date, if to is not null, put it in sql
             sqlFileName = "inventory_count_to";
         } else {
-            sqlFileName = "inventory_count_range";
+            sqlFileName = "inventory_count_range"; // if both not null, put both in sql
         }
 
         String query;
@@ -70,10 +81,10 @@ public class SqliteInventoryDao implements InventoryDao {
 
             int paramIndex = 1;
             if (from != null) {
-                stmt.setTimestamp(paramIndex++, from);
+                stmt.setString(paramIndex++, from.toString());
             }
             if (to != null) {
-                stmt.setTimestamp(paramIndex, to);
+                stmt.setString(paramIndex, to.toString());
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -84,7 +95,7 @@ public class SqliteInventoryDao implements InventoryDao {
                                     rs.getInt("total_inventory"),
                                     rs.getInt("total_purchased"),
                                     rs.getInt("total_sold"));
-                    results.add(KompeterLogger.log(dto));
+                    results.add(dto);
                 }
             }
         }
@@ -94,12 +105,16 @@ public class SqliteInventoryDao implements InventoryDao {
 
     @Override
     public List<InventoryValueDto> getInventoryValue() throws SQLException {
-        return getInventoryValue(null, null);
+        return getInventoryValue((Timestamp) null, (Timestamp) null);
     }
 
-    @Override
-    public List<InventoryValueDto> getInventoryValue(Timestamp from) throws SQLException {
-        return getInventoryValue(from, null);
+    public List<InventoryValueDto> getInventoryValue(Timestamp date, FromTo fromto)
+            throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getInventoryValue(date, (Timestamp) null);
+        } else {
+            return getInventoryValue((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -108,12 +123,19 @@ public class SqliteInventoryDao implements InventoryDao {
         List<InventoryValueDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null
+                && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "inventory_value_all";
-        } else if (to == null) {
+        } else if (to == null
+                && from
+                        != null) { // if from is not null, put it in sql, if to is null, to is 'now' date in sql
+            sqlFileName = "inventory_value_from";
+        } else if (from == null
+                && to
+                        != null) { // if from is null, from is the latest date, if to is not null, put it in sql
             sqlFileName = "inventory_value_to";
         } else {
-            sqlFileName = "inventory_value_range";
+            sqlFileName = "inventory_value_range"; // if both not null, put both in sql
         }
 
         String query;
@@ -133,10 +155,10 @@ public class SqliteInventoryDao implements InventoryDao {
 
             int paramIndex = 1;
             if (from != null) {
-                stmt.setTimestamp(paramIndex++, from);
+                stmt.setString(paramIndex++, from.toString());
             }
             if (to != null) {
-                stmt.setTimestamp(paramIndex, to);
+                stmt.setString(paramIndex, to.toString());
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -146,8 +168,8 @@ public class SqliteInventoryDao implements InventoryDao {
                                     DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getFloat("total_inventory_value"),
                                     rs.getFloat("total_purchased_value"),
-                                    rs.getFloat("total_sales_value"));
-                    results.add(KompeterLogger.log(dto));
+                                    rs.getFloat("total_sold_value"));
+                    results.add(dto);
                 }
             }
         }
