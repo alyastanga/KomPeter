@@ -68,10 +68,10 @@ public class SqliteSalesDao implements SalesDao {
 
             int paramIndex = 1;
             if (from != null) {
-                stmt.setTimestamp(paramIndex++, from);
+                stmt.setString(paramIndex++, from.toString());
             }
             if (to != null) {
-                stmt.setTimestamp(paramIndex, to);
+                stmt.setString(paramIndex, to.toString());
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -126,10 +126,10 @@ public class SqliteSalesDao implements SalesDao {
 
             int paramIndex = 1;
             if (from != null) {
-                stmt.setTimestamp(paramIndex++, from);
+                stmt.setString(paramIndex++, from.toString());
             }
             if (to != null) {
-                stmt.setTimestamp(paramIndex, to);
+                stmt.setString(paramIndex, to.toString());
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -184,10 +184,10 @@ public class SqliteSalesDao implements SalesDao {
 
             int paramIndex = 1;
             if (from != null) {
-                stmt.setTimestamp(paramIndex++, from);
+                stmt.setString(paramIndex++, from.toString());
             }
             if (to != null) {
-                stmt.setTimestamp(paramIndex, to);
+                stmt.setString(paramIndex, to.toString());
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -246,10 +246,10 @@ public class SqliteSalesDao implements SalesDao {
 
             int paramIndex = 1;
             if (from != null) {
-                stmt.setTimestamp(paramIndex++, from);
+                stmt.setString(paramIndex++, from.toString());
             }
             if (to != null) {
-                stmt.setTimestamp(paramIndex, to);
+                stmt.setString(paramIndex, to.toString());
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
