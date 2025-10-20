@@ -33,8 +33,8 @@ public final class ShopScene implements Scene {
         };
     };
 
-    private final JPanel view = new JPanel(
-            new MigLayout("insets 0, fill, flowy", "[grow, fill]", "[top, grow 0, shrink][grow, fill]"));
+    private final JPanel view = new JPanel(new MigLayout("insets 0, fill, flowy", "[grow, fill, center]",
+            "[top, grow 0, shrink][grow, fill, center]"));
 
     public ShopScene() {
         onCreate();

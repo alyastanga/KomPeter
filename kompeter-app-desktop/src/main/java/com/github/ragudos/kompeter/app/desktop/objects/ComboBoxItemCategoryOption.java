@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Range;
 
 import com.github.ragudos.kompeter.utilities.StringUtils;
 
-public final record ComboBoxItemCategoryOption(@Range(from = 0, to = Integer.MAX_VALUE) int _itemCategoryId,
+public final record ComboBoxItemCategoryOption(@Range(from = -1, to = Integer.MAX_VALUE) int _itemCategoryId,
         @NotNull String name) {
     @Override
     public String toString() {

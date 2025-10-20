@@ -7,6 +7,9 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components;
 
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
@@ -16,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -26,6 +30,8 @@ import javax.swing.event.DocumentListener;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.assets.AssetManager;
 import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFactory;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemBrandOption;
@@ -41,6 +47,9 @@ import net.miginfocom.swing.MigLayout;
 
 public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     private final JComboBox<ComboBoxItemBrandOption> brandComboBox = new JComboBox<>();
+    private final JButton cartButton = new JButton(
+            AssetManager.getOrLoadIcon("shopping-cart.svg", 0.75f, "foreground.primary"));
+    private final ActionListener cartButtonListener = new CartActionListener();
 
     private final JComboBox<ComboBoxItemCategoryOption> categoryComboBox = new JComboBox<>();
     private final ItemListener comboBoxItemListener = new ItemListener() {
@@ -52,7 +61,9 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
             onSearch();
         };
     };
+
     private final Debouncer debouncer = new Debouncer(250);
+
     private ExecutorService executorService;
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -62,10 +73,10 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     private final JTextField searchField = TextFieldFactory.createSearchTextField(JTextField.LEFT, this::onClearSearch);
 
     private final SearchListener searchListener = new SearchListener();
-
     private final ArrayList<Consumer<SearchData>> subscribers = new ArrayList<>();
+
     private final JPanel view = new JPanel(
-            new MigLayout("flowx, insets 3, gapx 9px", "[grow, fill][][]push[grow]", "[grow, fill]"));
+            new MigLayout("flowx, insets 3, gapx 9px", "[grow, fill][][]push[]", "[grow, fill]"));
 
     @Override
     public void destroy() {
@@ -73,6 +84,7 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
 
         executorService.shutdown();
 
+        cartButton.removeActionListener(cartButtonListener);
         searchField.getDocument().removeDocumentListener(searchListener);
         categoryComboBox.removeItemListener(comboBoxItemListener);
         brandComboBox.removeItemListener(comboBoxItemListener);
@@ -87,6 +99,12 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
         }
 
         executorService = Executors.newSingleThreadExecutor();
+
+        cartButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+        cartButton.addActionListener(cartButtonListener);
+        cartButton.setMinimumSize(new Dimension(32, 32));
+        cartButton.setMaximumSize(new Dimension(32, 32));
+        cartButton.setSize(new Dimension(32, 32));
 
         categoryComboBox.addItem(new ComboBoxItemCategoryOption(-1, "Category"));
         brandComboBox.addItem(new ComboBoxItemBrandOption(-1, "Brand"));
@@ -131,6 +149,7 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
         view.add(searchField, "grow");
         view.add(categoryComboBox);
         view.add(brandComboBox);
+        view.add(cartButton);
 
         initialized.set(true);
     }
@@ -173,12 +192,25 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     }
 
     private void onSearch() {
-        ComboBoxItemCategoryOption selectedCategory = (ComboBoxItemCategoryOption) categoryComboBox.getSelectedItem();
-        ComboBoxItemBrandOption selectedBrand = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
+        debouncer.call(() -> {
+            ComboBoxItemCategoryOption selectedCategory = (ComboBoxItemCategoryOption) categoryComboBox
+                    .getSelectedItem();
+            ComboBoxItemBrandOption selectedBrand = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
 
-        debouncer.call(() -> notifySubscribers(new SearchData(searchField.getText(),
-                selectedCategory._itemCategoryId() == -1 ? "" : selectedCategory.toString(),
-                selectedBrand._itemBrandId() == -1 ? "" : selectedBrand.toString())));
+            SearchData searchData = new SearchData(searchField.getText(),
+                    selectedCategory._itemCategoryId() == -1 ? "" : selectedCategory.toString(),
+                    selectedBrand._itemBrandId() == -1 ? "" : selectedBrand.toString());
+
+            notifySubscribers(searchData);
+        });
+    }
+
+    private class CartActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
     }
 
     private class SearchListener implements DocumentListener {

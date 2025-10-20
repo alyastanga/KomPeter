@@ -11,6 +11,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,8 +66,7 @@ public class ProductList implements SceneComponent {
     private final JScrollPane itemsContainerScroller = new JScrollPane(itemsContainer);
     private final AtomicReference<SearchData> prevSearchData = new AtomicReference<>();
 
-    private final JPanel view = new JPanel(
-            new MigLayout("insets 0, flowy, gapy 16px", "[grow, fill, center]", "[grow, fill, center]"));
+    private final JPanel view = new JPanel(new BorderLayout());
 
     @Override
     public void destroy() {
@@ -91,10 +91,10 @@ public class ProductList implements SceneComponent {
                 "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:5;");
         itemsContainerScroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
                 "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:5;");
-        itemsContainerScroller.setBorder(BorderFactory.createEmptyBorder(9, 0, 9, 0));
+        itemsContainerScroller.setBorder(BorderFactory.createEmptyBorder(9, 9, 9, 9));
 
         itemsContainer.add(new LoadingPanel());
-        view.add(itemsContainerScroller, "grow, center");
+        view.add(itemsContainerScroller, BorderLayout.CENTER);
 
         initialized.set(true);
 
@@ -155,7 +155,6 @@ public class ProductList implements SceneComponent {
             isBusy.set(true);
 
             try {
-
                 itemsContainer.removeAll();
 
                 ResponsiveLayout layout = ((ResponsiveLayout) itemsContainer.getLayout());
@@ -175,15 +174,14 @@ public class ProductList implements SceneComponent {
                                     return itemNameSimilarity >= THRESHOLD;
                                 }
 
-                                return itemNameSimilarity >= THRESHOLD
-                                        && (item.categoryName().isEmpty()
-                                                ? true
-                                                : item.categoryName().toLowerCase()
-                                                        .contains(searchData.searchCategory().toLowerCase()))
-                                        && (item.brandName().isEmpty()
-                                                ? true
-                                                : item.brandName().toLowerCase()
-                                                        .equals(searchData.searchBrand().toLowerCase()));
+                                boolean categoryMatches = searchData.searchCategory().isEmpty()
+                                        || item.categoryName().toLowerCase(Locale.ENGLISH)
+                                                .equals(searchData.searchCategory().toLowerCase(Locale.ENGLISH));
+                                boolean brandMatches = searchData.searchBrand().isEmpty()
+                                        || item.brandName().toLowerCase(Locale.ENGLISH)
+                                                .equals(searchData.searchBrand().toLowerCase(Locale.ENGLISH));
+
+                                return itemNameSimilarity >= THRESHOLD && categoryMatches && brandMatches;
                             }).collect(Collectors.toList()));
 
                     if (filteredItems.isEmpty()) {
@@ -275,6 +273,13 @@ public class ProductList implements SceneComponent {
 
     private class NoResultsPanel extends JPanel {
         public NoResultsPanel() {
+            setLayout(new BorderLayout());
+
+            JLabel label = new JLabel("No results were found. :(");
+
+            label.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
+
+            add(label, BorderLayout.CENTER);
         }
     }
 }
