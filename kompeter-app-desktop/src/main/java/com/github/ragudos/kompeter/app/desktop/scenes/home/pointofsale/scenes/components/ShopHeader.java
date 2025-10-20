@@ -1,10 +1,16 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,46 +30,19 @@ import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFacto
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemBrandOption;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemCategoryOption;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
 import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.inventory.ItemService;
 import com.github.ragudos.kompeter.utilities.Debouncer;
 import com.github.ragudos.kompeter.utilities.observer.Observer;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
 
 import net.miginfocom.swing.MigLayout;
 
 public final class ShopHeader implements SceneComponent, Observer<SearchData> {
-    private class SearchListener implements DocumentListener {
-        @Override
-        public void changedUpdate(DocumentEvent e) {
-        }
-
-        @Override
-        public void insertUpdate(DocumentEvent e) {
-            onSearch();
-        }
-
-        @Override
-        public void removeUpdate(DocumentEvent e) {
-            onSearch();
-        }
-    }
-
-    private final JPanel view = new JPanel(
-            new MigLayout("flowx, insets 3, gapx 9px", "[grow, fill][][]push[grow]", "[grow, fill]"));
-    private final JTextField searchField = TextFieldFactory.createSearchTextField(JTextField.LEFT, this::onClearSearch);
-    private final JComboBox<ComboBoxItemCategoryOption> categoryComboBox = new JComboBox<>();
     private final JComboBox<ComboBoxItemBrandOption> brandComboBox = new JComboBox<>();
 
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
-
-    private ExecutorService executorService;
-
-    private final Debouncer debouncer = new Debouncer(250);
-
-    private final AtomicBoolean isBusy = new AtomicBoolean(false);
-
+    private final JComboBox<ComboBoxItemCategoryOption> categoryComboBox = new JComboBox<>();
     private final ItemListener comboBoxItemListener = new ItemListener() {
         public void itemStateChanged(java.awt.event.ItemEvent e) {
             if (e.getStateChange() != ItemEvent.SELECTED) {
@@ -73,23 +52,32 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
             onSearch();
         };
     };
+    private final Debouncer debouncer = new Debouncer(250);
+    private ExecutorService executorService;
+
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
+
+    private final AtomicBoolean isBusy = new AtomicBoolean(false);
+
+    private final JTextField searchField = TextFieldFactory.createSearchTextField(JTextField.LEFT, this::onClearSearch);
+
     private final SearchListener searchListener = new SearchListener();
 
     private final ArrayList<Consumer<SearchData>> subscribers = new ArrayList<>();
+    private final JPanel view = new JPanel(
+            new MigLayout("flowx, insets 3, gapx 9px", "[grow, fill][][]push[grow]", "[grow, fill]"));
 
-    private void onSearch() {
-        ComboBoxItemCategoryOption selectedCategory = (ComboBoxItemCategoryOption) categoryComboBox.getSelectedItem();
-        ComboBoxItemBrandOption selectedBrand = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
+    @Override
+    public void destroy() {
+        view.removeAll();
 
-        debouncer.call(() -> notifySubscribers(
-                new SearchData(searchField.getText(),
-                        selectedCategory._itemCategoryId() == -1 ? "" : selectedCategory.toString(),
-                        selectedBrand._itemBrandId() == -1 ? "" : selectedBrand.toString())));
-    }
+        executorService.shutdown();
 
-    private void onClearSearch() {
-        searchField.setText("");
-        onSearch();
+        searchField.getDocument().removeDocumentListener(searchListener);
+        categoryComboBox.removeItemListener(comboBoxItemListener);
+        brandComboBox.removeItemListener(comboBoxItemListener);
+
+        initialized.set(false);
     }
 
     @Override
@@ -128,9 +116,8 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
             } catch (InventoryException e) {
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(null,
-                            "Failed to get item categories and brands. Filtering by these criterion won't work.",
-                            "Something went wrong",
-                            JOptionPane.ERROR_MESSAGE);
+                            "Failed to get item categories and brands. Filtering by these criterion won't" + " work.",
+                            "Something went wrong", JOptionPane.ERROR_MESSAGE);
                 });
             } finally {
                 isBusy.set(false);
@@ -149,26 +136,13 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     }
 
     @Override
-    public void destroy() {
-        view.removeAll();
-
-        executorService.shutdown();
-
-        searchField.getDocument().removeDocumentListener(searchListener);
-        categoryComboBox.removeItemListener(comboBoxItemListener);
-        brandComboBox.removeItemListener(comboBoxItemListener);
-
-        initialized.set(false);
+    public boolean isBusy() {
+        return isBusy.get();
     }
 
     @Override
     public boolean isInitialized() {
         return initialized.get();
-    }
-
-    @Override
-    public @NotNull JPanel view() {
-        return view;
     }
 
     @Override
@@ -189,7 +163,37 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     }
 
     @Override
-    public boolean isBusy() {
-        return isBusy.get();
+    public @NotNull JPanel view() {
+        return view;
+    }
+
+    private void onClearSearch() {
+        searchField.setText("");
+        onSearch();
+    }
+
+    private void onSearch() {
+        ComboBoxItemCategoryOption selectedCategory = (ComboBoxItemCategoryOption) categoryComboBox.getSelectedItem();
+        ComboBoxItemBrandOption selectedBrand = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
+
+        debouncer.call(() -> notifySubscribers(new SearchData(searchField.getText(),
+                selectedCategory._itemCategoryId() == -1 ? "" : selectedCategory.toString(),
+                selectedBrand._itemBrandId() == -1 ? "" : selectedBrand.toString())));
+    }
+
+    private class SearchListener implements DocumentListener {
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+        }
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            onSearch();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            onSearch();
+        }
     }
 }

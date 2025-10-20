@@ -1,4 +1,17 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components.spinner;
+
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.*;
 
 import com.formdev.flatlaf.ui.FlatProgressBarUI;
 import com.formdev.flatlaf.util.Animator;
@@ -7,96 +20,18 @@ import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.components.spinner.render.RingSpinner;
 import com.github.ragudos.kompeter.app.desktop.components.spinner.render.SpinnerRender;
 
-import javax.swing.*;
-import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 public class SpinnerProgressUI extends FlatProgressBarUI {
 
     protected SpinnerRender render;
-    private PropertyChangeListener propertyChangeListener;
-    private Animator animator;
-    private float lastAnimator;
     private float animateFrame;
+    private Animator animator;
+    private final Rectangle iconRect = new Rectangle();
+    private float lastAnimator;
     private boolean moreAnimation;
 
-    private final Rectangle iconRect = new Rectangle();
+    private PropertyChangeListener propertyChangeListener;
     private final Rectangle textRect = new Rectangle();
     private final Rectangle viewRect = new Rectangle();
-
-    @Override
-    protected void installDefaults() {
-        super.installDefaults();
-        progressBar.setOpaque(true);
-        render = new RingSpinner(4);
-    }
-
-    @Override
-    protected void installListeners() {
-        super.installListeners();
-        propertyChangeListener = (PropertyChangeEvent evt) -> {
-            if (render.isPaintComplete()) {
-                String name = evt.getPropertyName();
-                switch (name) {
-                    case "indeterminate":
-                        checkIndeterminate(evt);
-                        break;
-                }
-            }
-        };
-        progressBar.addPropertyChangeListener(propertyChangeListener);
-    }
-
-    private void checkIndeterminate(PropertyChangeEvent evt) {
-        boolean oldValue = (boolean) evt.getOldValue();
-        boolean newValue = (boolean) evt.getNewValue();
-        if (oldValue && !newValue) {
-            if (animator == null) {
-                animator = new Animator(350, new Animator.TimingTarget() {
-                    @Override
-                    public void begin() {
-                        moreAnimation = true;
-                    }
-
-                    @Override
-                    public void end() {
-                        moreAnimation = false;
-                    }
-
-                    @Override
-                    public void timingEvent(float f) {
-                        animateFrame = f;
-                        progressBar.repaint();
-                    }
-                });
-            } else {
-                if (animator.isRunning()) {
-                    animator.cancel();
-                }
-            }
-            moreAnimation = true;
-            animateFrame = 0;
-            animator.start();
-        }
-    }
-
-    @Override
-    protected void uninstallDefaults() {
-        super.uninstallDefaults();
-        render = null;
-        if (animator != null && animator.isRunning()) {
-            animator.cancel();
-        }
-        animator = null;
-    }
-
-    @Override
-    protected void uninstallListeners() {
-        super.uninstallListeners();
-        progressBar.removePropertyChangeListener(propertyChangeListener);
-        propertyChangeListener = null;
-    }
 
     @Override
     public Dimension getPreferredSize(JComponent c) {
@@ -176,70 +111,6 @@ public class SpinnerProgressUI extends FlatProgressBarUI {
         }
     }
 
-    protected String layoutCL(
-            SpinnerProgress spinner,
-            FontMetrics fontMetrics,
-            String text,
-            Icon icon,
-            Rectangle viewR,
-            Rectangle iconR,
-            Rectangle textR) {
-
-        // This code take from BasicLabelUI
-
-        return SwingUtilities.layoutCompoundLabel(
-                spinner,
-                fontMetrics,
-                text,
-                icon,
-                spinner.getVerticalAlignment(),
-                spinner.getHorizontalAlignment(),
-                spinner.getVerticalTextPosition(),
-                spinner.getHorizontalTextPosition(),
-                viewR,
-                iconR,
-                textR,
-                UIScale.scale(spinner.getIconTextGap()));
-    }
-
-    private String layout(SpinnerProgress spinner, FontMetrics fm, int width, int height) {
-        Insets insets = spinner.getInsets(null);
-        String text = spinner.isStringPainted() ? progressBar.getString() : null;
-        Icon icon = spinner.getIcon();
-        Rectangle paintViewR = new Rectangle();
-        paintViewR.x = insets.left;
-        paintViewR.y = insets.top;
-        paintViewR.width = width - (insets.left + insets.right);
-        paintViewR.height = height - (insets.top + insets.bottom);
-        iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
-        textRect.x = textRect.y = textRect.width = textRect.height = 0;
-        return layoutCL(spinner, fm, text, icon, paintViewR, iconRect,
-                textRect);
-    }
-
-    protected void paintString(Graphics g) {
-        Graphics2DProxy g2 = new Graphics2DProxy((Graphics2D) g) {
-            @Override
-            public void setColor(Color c) {
-                super.setColor(progressBar.getForeground());
-            }
-        };
-        g2.setColor(getSelectionBackground());
-        paintString(g2, textRect.x, textRect.y, textRect.width, textRect.height, 0, null);
-    }
-
-    protected void paintIcon(Graphics g, JComponent c, Rectangle iconRect) {
-        SpinnerProgress spinner = (SpinnerProgress) progressBar;
-        spinner.getIcon().paintIcon(c, g, iconRect.x, iconRect.y);
-    }
-
-    private float getAnimation() {
-        int index = super.getAnimationIndex();
-        float animate = (index / (float) getFrameCount()) * 2f;
-        lastAnimator = animate;
-        return animate;
-    }
-
     @Override
     protected Rectangle getBox(Rectangle r) {
         if (r == null) {
@@ -253,5 +124,125 @@ public class SpinnerProgressUI extends FlatProgressBarUI {
         int y = insets.top + (height - size) / 2;
         r.setBounds(x, y, size, size);
         return r;
+    }
+
+    @Override
+    protected void installDefaults() {
+        super.installDefaults();
+        progressBar.setOpaque(true);
+        render = new RingSpinner(4);
+    }
+
+    @Override
+    protected void installListeners() {
+        super.installListeners();
+        propertyChangeListener = (PropertyChangeEvent evt) -> {
+            if (render.isPaintComplete()) {
+                String name = evt.getPropertyName();
+                switch (name) {
+                    case "indeterminate" :
+                        checkIndeterminate(evt);
+                        break;
+                }
+            }
+        };
+        progressBar.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    protected String layoutCL(SpinnerProgress spinner, FontMetrics fontMetrics, String text, Icon icon, Rectangle viewR,
+            Rectangle iconR, Rectangle textR) {
+
+        // This code take from BasicLabelUI
+
+        return SwingUtilities.layoutCompoundLabel(spinner, fontMetrics, text, icon, spinner.getVerticalAlignment(),
+                spinner.getHorizontalAlignment(), spinner.getVerticalTextPosition(),
+                spinner.getHorizontalTextPosition(), viewR, iconR, textR, UIScale.scale(spinner.getIconTextGap()));
+    }
+
+    protected void paintIcon(Graphics g, JComponent c, Rectangle iconRect) {
+        SpinnerProgress spinner = (SpinnerProgress) progressBar;
+        spinner.getIcon().paintIcon(c, g, iconRect.x, iconRect.y);
+    }
+
+    protected void paintString(Graphics g) {
+        Graphics2DProxy g2 = new Graphics2DProxy((Graphics2D) g) {
+            @Override
+            public void setColor(Color c) {
+                super.setColor(progressBar.getForeground());
+            }
+        };
+        g2.setColor(getSelectionBackground());
+        paintString(g2, textRect.x, textRect.y, textRect.width, textRect.height, 0, null);
+    }
+
+    @Override
+    protected void uninstallDefaults() {
+        super.uninstallDefaults();
+        render = null;
+        if (animator != null && animator.isRunning()) {
+            animator.cancel();
+        }
+        animator = null;
+    }
+
+    @Override
+    protected void uninstallListeners() {
+        super.uninstallListeners();
+        progressBar.removePropertyChangeListener(propertyChangeListener);
+        propertyChangeListener = null;
+    }
+
+    private void checkIndeterminate(PropertyChangeEvent evt) {
+        boolean oldValue = (boolean) evt.getOldValue();
+        boolean newValue = (boolean) evt.getNewValue();
+        if (oldValue && !newValue) {
+            if (animator == null) {
+                animator = new Animator(350, new Animator.TimingTarget() {
+                    @Override
+                    public void begin() {
+                        moreAnimation = true;
+                    }
+
+                    @Override
+                    public void end() {
+                        moreAnimation = false;
+                    }
+
+                    @Override
+                    public void timingEvent(float f) {
+                        animateFrame = f;
+                        progressBar.repaint();
+                    }
+                });
+            } else {
+                if (animator.isRunning()) {
+                    animator.cancel();
+                }
+            }
+            moreAnimation = true;
+            animateFrame = 0;
+            animator.start();
+        }
+    }
+
+    private float getAnimation() {
+        int index = super.getAnimationIndex();
+        float animate = (index / (float) getFrameCount()) * 2f;
+        lastAnimator = animate;
+        return animate;
+    }
+
+    private String layout(SpinnerProgress spinner, FontMetrics fm, int width, int height) {
+        Insets insets = spinner.getInsets(null);
+        String text = spinner.isStringPainted() ? progressBar.getString() : null;
+        Icon icon = spinner.getIcon();
+        Rectangle paintViewR = new Rectangle();
+        paintViewR.x = insets.left;
+        paintViewR.y = insets.top;
+        paintViewR.width = width - (insets.left + insets.right);
+        paintViewR.height = height - (insets.top + insets.bottom);
+        iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
+        textRect.x = textRect.y = textRect.width = textRect.height = 0;
+        return layoutCL(spinner, fm, text, icon, paintViewR, iconRect, textRect);
     }
 }

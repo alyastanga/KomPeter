@@ -10,6 +10,7 @@ package com.github.ragudos.kompeter.app.desktop.utilities;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Stack;
+
 import org.jetbrains.annotations.NotNull;
 
 public class UndoRedo<T> implements Iterable<T> {
@@ -24,14 +25,34 @@ public class UndoRedo<T> implements Iterable<T> {
         secondStack.clear();
     }
 
-    public @NotNull Optional<T> undo() {
-        if (firstStack.size() <= 1) {
+    public boolean canRedo() {
+        return !secondStack.isEmpty();
+    }
+
+    public boolean canUndo() {
+        return firstStack.size() > 1;
+    }
+
+    public void clear() {
+        firstStack.clear();
+        secondStack.clear();
+    }
+
+    public void clearRedo() {
+        secondStack.clear();
+    }
+
+    public @NotNull Optional<T> current() {
+        if (firstStack.isEmpty()) {
             return Optional.empty();
         }
 
-        secondStack.push(firstStack.pop());
-
         return Optional.of(firstStack.getLast());
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new UndoRedoIterator();
     }
 
     public @NotNull Optional<T> redo() {
@@ -46,34 +67,14 @@ public class UndoRedo<T> implements Iterable<T> {
         return Optional.of(item);
     }
 
-    public @NotNull Optional<T> current() {
-        if (firstStack.isEmpty()) {
+    public @NotNull Optional<T> undo() {
+        if (firstStack.size() <= 1) {
             return Optional.empty();
         }
 
+        secondStack.push(firstStack.pop());
+
         return Optional.of(firstStack.getLast());
-    }
-
-    public boolean canUndo() {
-        return firstStack.size() > 1;
-    }
-
-    public boolean canRedo() {
-        return !secondStack.isEmpty();
-    }
-
-    public void clear() {
-        firstStack.clear();
-        secondStack.clear();
-    }
-
-    public void clearRedo() {
-        secondStack.clear();
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return new UndoRedoIterator();
     }
 
     private class UndoRedoIterator implements Iterator<T> {
@@ -90,9 +91,7 @@ public class UndoRedo<T> implements Iterable<T> {
         public T next() {
             int firstStackSize = firstStack.size();
 
-            return cursor < firstStackSize
-                    ? firstStack.get(cursor++)
-                    : secondStack.get((cursor++) - firstStackSize);
+            return cursor < firstStackSize ? firstStack.get(cursor++) : secondStack.get((cursor++) - firstStackSize);
         }
     }
 }

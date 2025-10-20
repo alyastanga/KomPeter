@@ -1,12 +1,18 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components.spinner.render;
-
-import com.formdev.flatlaf.util.UIScale;
 
 import java.awt.*;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 
+import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.components.spinner.SpinnerUtils;
 
 public class RingSpinner implements SpinnerRender {
@@ -15,6 +21,11 @@ public class RingSpinner implements SpinnerRender {
 
     public RingSpinner(int size) {
         this.size = size;
+    }
+
+    @Override
+    public int getInsets() {
+        return UIScale.scale(size + 5);
     }
 
     @Override
@@ -42,16 +53,6 @@ public class RingSpinner implements SpinnerRender {
     }
 
     @Override
-    public void paintIndeterminate(Graphics2D g2, Component component, Rectangle rec, float f) {
-        Point2D p = getPoint(f);
-        g2.setColor(component.getBackground());
-        g2.fill(createShape(rec, 0, 360));
-        Shape shape = createShape(rec, p.getX(), p.getY());
-        g2.setColor(component.getForeground());
-        g2.fill(shape);
-    }
-
-    @Override
     public void paintDeterminate(Graphics2D g2, Component component, Rectangle rec, float p) {
         g2.setColor(component.getBackground());
         g2.fill(createShape(rec, 0, 360));
@@ -60,8 +61,13 @@ public class RingSpinner implements SpinnerRender {
     }
 
     @Override
-    public int getInsets() {
-        return UIScale.scale(size + 5);
+    public void paintIndeterminate(Graphics2D g2, Component component, Rectangle rec, float f) {
+        Point2D p = getPoint(f);
+        g2.setColor(component.getBackground());
+        g2.fill(createShape(rec, 0, 360));
+        Shape shape = createShape(rec, p.getX(), p.getY());
+        g2.setColor(component.getForeground());
+        g2.fill(shape);
     }
 
     private Shape createShape(Rectangle rec, double start, double end) {
@@ -86,7 +92,7 @@ public class RingSpinner implements SpinnerRender {
         double a = 50;
         double b = 360 - a;
         if (f > 1f) {
-            f = f - 1f;
+            f -= 1f;
             float ease = SpinnerUtils.easeInOutQuad(f);
             end = b + (f * a);
             start = a + (ease * b);

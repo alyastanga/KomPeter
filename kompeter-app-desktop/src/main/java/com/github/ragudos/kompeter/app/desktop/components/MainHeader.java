@@ -7,26 +7,25 @@
 */
 package com.github.ragudos.kompeter.app.desktop.components;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.navigation.ParsedSceneName;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
 import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
+
 import net.miginfocom.swing.MigLayout;
-import org.jetbrains.annotations.NotNull;
 
 public class MainHeader implements SceneComponent {
-    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[grow]"));
-
     private final AtomicBoolean initialized = new AtomicBoolean(false);
-
-    private final JLabel sceneTitle = new JLabel();
-    private final RefreshLine refreshLine = new RefreshLine();
 
     private final Consumer<String> navigationListenerClassConsumer = new Consumer<String>() {
         @Override
@@ -41,6 +40,11 @@ public class MainHeader implements SceneComponent {
             sceneTitle.setText(SceneNames.toReadable(splitName[1]));
         }
     };
+
+    private final RefreshLine refreshLine = new RefreshLine();
+    private final JLabel sceneTitle = new JLabel();
+
+    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[grow]"));
 
     public MainHeader() {
         sceneTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1");

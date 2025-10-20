@@ -1,16 +1,23 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 
 /**
- * This concepts from "Tom White"
- * Link here "https://github.com/tomwhite/superellipse"
+ * This concepts from "Tom White" Link here
+ * "https://github.com/tomwhite/superellipse"
  */
 public class SuperEllipse2D {
-    private final double x, y, width, height, eccentricity;
-
     private GeneralPath path;
+
+    private final double x, y, width, height, eccentricity;
 
     public SuperEllipse2D(double x, double y, double width, double height, double eccentricity) {
         if (eccentricity < 0.0) {
@@ -22,6 +29,10 @@ public class SuperEllipse2D {
         this.height = height;
         this.eccentricity = eccentricity;
         initialise();
+    }
+
+    public Shape getShape() {
+        return path;
     }
 
     private void initialise() {
@@ -49,16 +60,10 @@ public class SuperEllipse2D {
             for (double theta = 0.0; theta < TWO_PI; theta += TWO_PI / resolution) {
                 double sineTheta = Math.sin(theta);
                 double cosineTheta = Math.cos(theta);
-                double r = Math.pow(
-                        1 / (Math.pow(Math.abs(cosineTheta) / halfWidth, eccentricity)
-                                + Math.pow(Math.abs(sineTheta) / halfHeight, eccentricity)),
-                        1 / eccentricity);
+                double r = Math.pow(1 / (Math.pow(Math.abs(cosineTheta) / halfWidth, eccentricity)
+                        + Math.pow(Math.abs(sineTheta) / halfHeight, eccentricity)), 1 / eccentricity);
                 path.lineTo((float) (centreX + r * cosineTheta), (float) (centreY + r * sineTheta));
             }
         }
-    }
-
-    public Shape getShape() {
-        return path;
     }
 }

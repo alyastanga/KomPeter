@@ -1,11 +1,12 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components.icons;
 
-import com.formdev.flatlaf.ui.FlatUIUtils;
-import com.formdev.flatlaf.util.HiDPIUtils;
-import com.formdev.flatlaf.util.UIScale;
-import com.github.ragudos.kompeter.app.desktop.components.SuperEllipse2D;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -14,21 +15,35 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 
+import javax.swing.*;
+
+import com.formdev.flatlaf.ui.FlatUIUtils;
+import com.formdev.flatlaf.util.HiDPIUtils;
+import com.formdev.flatlaf.util.UIScale;
+import com.github.ragudos.kompeter.app.desktop.components.SuperEllipse2D;
+
 public class AvatarIcon implements Icon {
 
-    private final int iconWidth;
-    private final int iconHeight;
-    private final float round;
-
-    private ImageIcon imageIcon;
-    private int borderWidth;
-    private int innerBorderWidth;
     private BorderColor borderColor;
-    private Type type = Type.ROUND;
+    private int borderWidth;
+    private final int iconHeight;
 
+    private final int iconWidth;
+    private ImageIcon imageIcon;
+    private int innerBorderWidth;
     private Image lastImage;
     private double lastSystemScaleFactor;
+
     private double lastUserScaleFactor;
+    private final float round;
+    private Type type = Type.ROUND;
+
+    public AvatarIcon(ImageIcon imageIcon, int iconWidth, int iconHeight, float round) {
+        this.imageIcon = imageIcon;
+        this.iconWidth = iconWidth;
+        this.iconHeight = iconHeight;
+        this.round = round;
+    }
 
     public AvatarIcon(String filename, int iconWidth, int iconHeight, float round) {
         this(new ImageIcon(filename), iconWidth, iconHeight, round);
@@ -38,11 +53,38 @@ public class AvatarIcon implements Icon {
         this(new ImageIcon(location), iconWidth, iconHeight, round);
     }
 
-    public AvatarIcon(ImageIcon imageIcon, int iconWidth, int iconHeight, float round) {
-        this.imageIcon = imageIcon;
-        this.iconWidth = iconWidth;
-        this.iconHeight = iconHeight;
-        this.round = round;
+    public BorderColor getBorderColor() {
+        return borderColor;
+    }
+
+    public int getBorderWidth() {
+        return borderWidth;
+    }
+
+    @Override
+    public int getIconHeight() {
+        return UIScale.scale(iconHeight);
+    }
+
+    @Override
+    public int getIconWidth() {
+        return UIScale.scale(iconWidth);
+    }
+
+    public ImageIcon getImageIcon() {
+        return imageIcon;
+    }
+
+    public int getInnerBorderWidth() {
+        return innerBorderWidth;
+    }
+
+    public float getRound() {
+        return round;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     @Override
@@ -76,6 +118,84 @@ public class AvatarIcon implements Icon {
         lastImage = image;
 
         paintLastImage(g, x, y);
+    }
+
+    public void setBorder(int borderWidth, int innerBorderWidth) {
+        this.borderWidth = borderWidth;
+        this.innerBorderWidth = innerBorderWidth;
+        lastImage = null;
+    }
+
+    public void setBorderColor(BorderColor borderColor) {
+        this.borderColor = borderColor;
+        lastImage = null;
+    }
+
+    public void setBorderWidth(int borderWidth) {
+        this.borderWidth = borderWidth;
+        lastImage = null;
+    }
+
+    public void setIcon(ImageIcon imageIcon) {
+        this.imageIcon = imageIcon;
+        lastImage = null;
+    }
+
+    public void setIcon(String filename) {
+        setIcon(new ImageIcon(filename));
+    }
+
+    public void setIcon(URL location) {
+        setIcon(new ImageIcon(location));
+    }
+
+    public void setInnerBorderWidth(int innerBorderWidth) {
+        this.innerBorderWidth = innerBorderWidth;
+        lastImage = null;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+        lastImage = null;
+    }
+
+    private Shape createMask(double width, double height, double border, float round, double scaleFactor) {
+        if (round <= 0)
+            return new Rectangle2D.Double(border, border, width, height);
+        Shape mask;
+        if (type == Type.ROUND) {
+            if (round == 999) {
+                mask = new Ellipse2D.Double(border, border, width, height);
+            } else {
+                double r = Math.max(round * scaleFactor - border, 0);
+                mask = new RoundRectangle2D.Double(border, border, width, height, r, r);
+            }
+        } else {
+            mask = new SuperEllipse2D(border, border, width, height, round).getShape();
+        }
+        return mask;
+    }
+
+    private int getAllBorder() {
+        return borderWidth + innerBorderWidth;
+    }
+
+    private void paintBorder(Graphics2D g, Shape mask, int width, int height, double borderSize, double innerSize,
+            float round, double scaleFactor) {
+        Area areaBorder = new Area(createMask(width, height, 0, round, scaleFactor));
+        Shape shape = innerSize > 0
+                ? createMask(width - borderSize * 2, height - borderSize * 2, borderSize, round, scaleFactor)
+                : mask;
+        if (shape != null) {
+            areaBorder.subtract(new Area(shape));
+        }
+        g.setComposite(AlphaComposite.SrcOver);
+        if (borderColor != null) {
+            borderColor.paint(g, 0, 0, width, height);
+        } else {
+            g.setColor(UIManager.getColor("Component.borderColor"));
+        }
+        g.fill(areaBorder);
     }
 
     private void paintLastImage(Graphics g, int x, int y) {
@@ -135,145 +255,16 @@ public class AvatarIcon implements Icon {
         return buff;
     }
 
-    private void paintBorder(Graphics2D g, Shape mask, int width, int height, double borderSize, double innerSize,
-            float round, double scaleFactor) {
-        Area areaBorder = new Area(createMask(width, height, 0, round, scaleFactor));
-        Shape shape = innerSize > 0
-                ? createMask(width - borderSize * 2, height - borderSize * 2, borderSize, round, scaleFactor)
-                : mask;
-        if (shape != null) {
-            areaBorder.subtract(new Area(shape));
-        }
-        g.setComposite(AlphaComposite.SrcOver);
-        if (borderColor != null) {
-            borderColor.paint(g, 0, 0, width, height);
-        } else {
-            g.setColor(UIManager.getColor("Component.borderColor"));
-        }
-        g.fill(areaBorder);
-    }
-
-    private Shape createMask(double width, double height, double border, float round, double scaleFactor) {
-        if (round <= 0)
-            return new Rectangle2D.Double(border, border, width, height);
-        Shape mask;
-        if (type == Type.ROUND) {
-            if (round == 999) {
-                mask = new Ellipse2D.Double(border, border, width, height);
-            } else {
-                double r = Math.max(round * scaleFactor - border, 0);
-                mask = new RoundRectangle2D.Double(border, border, width, height, r, r);
-            }
-        } else {
-            mask = new SuperEllipse2D(border, border, width, height, round).getShape();
-        }
-        return mask;
-    }
-
-    @Override
-    public int getIconWidth() {
-        return UIScale.scale(iconWidth);
-    }
-
-    @Override
-    public int getIconHeight() {
-        return UIScale.scale(iconHeight);
-    }
-
-    public float getRound() {
-        return round;
-    }
-
-    public int getBorderWidth() {
-        return borderWidth;
-    }
-
-    public void setBorderWidth(int borderWidth) {
-        this.borderWidth = borderWidth;
-        lastImage = null;
-    }
-
-    public int getInnerBorderWidth() {
-        return innerBorderWidth;
-    }
-
-    public void setInnerBorderWidth(int innerBorderWidth) {
-        this.innerBorderWidth = innerBorderWidth;
-        lastImage = null;
-    }
-
-    public void setBorder(int borderWidth, int innerBorderWidth) {
-        this.borderWidth = borderWidth;
-        this.innerBorderWidth = innerBorderWidth;
-        lastImage = null;
-    }
-
-    public BorderColor getBorderColor() {
-        return borderColor;
-    }
-
-    public void setBorderColor(BorderColor borderColor) {
-        this.borderColor = borderColor;
-        lastImage = null;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-        lastImage = null;
-    }
-
-    public void setIcon(String filename) {
-        setIcon(new ImageIcon(filename));
-    }
-
-    public void setIcon(URL location) {
-        setIcon(new ImageIcon(location));
-    }
-
-    public void setIcon(ImageIcon imageIcon) {
-        this.imageIcon = imageIcon;
-        lastImage = null;
-    }
-
-    public ImageIcon getImageIcon() {
-        return imageIcon;
-    }
-
-    private int getAllBorder() {
-        return borderWidth + innerBorderWidth;
-    }
-
-    public enum Type {
-        ROUND, MASK_SQUIRCLE,
-    }
-
     public static class BorderColor {
 
-        private Color startColor;
         private Color endColor;
-        private float startPoint;
         private float endPoint;
         private float opacity = 1f;
-
-        public BorderColor(int r, int g, int b) {
-            this(new Color(r, g, b));
-        }
-
-        public BorderColor(int r, int g, int b, float opacity) {
-            this(new Color(r, g, b), opacity);
-        }
+        private Color startColor;
+        private float startPoint;
 
         public BorderColor(Color color) {
             this.startColor = color;
-        }
-
-        public BorderColor(Color color, float opacity) {
-            this.startColor = color;
-            this.opacity = opacity;
         }
 
         public BorderColor(Color startColor, Color endColor) {
@@ -294,6 +285,39 @@ public class AvatarIcon implements Icon {
             this.startPoint = startPoint;
             this.endPoint = endPoint;
             this.opacity = opacity;
+        }
+
+        public BorderColor(Color color, float opacity) {
+            this.startColor = color;
+            this.opacity = opacity;
+        }
+
+        public BorderColor(int r, int g, int b) {
+            this(new Color(r, g, b));
+        }
+
+        public BorderColor(int r, int g, int b, float opacity) {
+            this(new Color(r, g, b), opacity);
+        }
+
+        public Color getEndColor() {
+            return endColor;
+        }
+
+        public float getEndPoint() {
+            return endPoint;
+        }
+
+        public float getOpacity() {
+            return opacity;
+        }
+
+        public Color getStartColor() {
+            return startColor;
+        }
+
+        public float getStartPoint() {
+            return startPoint;
         }
 
         public void paint(Graphics2D g, int x, int y, int width, int height) {
@@ -324,44 +348,28 @@ public class AvatarIcon implements Icon {
             }
         }
 
-        public Color getStartColor() {
-            return startColor;
-        }
-
-        public void setStartColor(Color startColor) {
-            this.startColor = startColor;
-        }
-
-        public Color getEndColor() {
-            return endColor;
-        }
-
         public void setEndColor(Color endColor) {
             this.endColor = endColor;
-        }
-
-        public float getStartPoint() {
-            return startPoint;
-        }
-
-        public void setStartPoint(float startPoint) {
-            this.startPoint = startPoint;
-        }
-
-        public float getEndPoint() {
-            return endPoint;
         }
 
         public void setEndPoint(float endPoint) {
             this.endPoint = endPoint;
         }
 
-        public float getOpacity() {
-            return opacity;
-        }
-
         public void setOpacity(float opacity) {
             this.opacity = opacity;
         }
+
+        public void setStartColor(Color startColor) {
+            this.startColor = startColor;
+        }
+
+        public void setStartPoint(float startPoint) {
+            this.startPoint = startPoint;
+        }
+    }
+
+    public enum Type {
+        MASK_SQUIRCLE, ROUND,
     }
 }

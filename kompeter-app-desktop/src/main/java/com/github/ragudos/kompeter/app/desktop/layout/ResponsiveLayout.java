@@ -1,57 +1,29 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.layout;
+
+import java.awt.*;
+
+import javax.swing.*;
 
 import com.formdev.flatlaf.util.UIScale;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class ResponsiveLayout implements LayoutManager {
 
-    public JustifyContent getJustifyContent() {
-        return justifyContent;
-    }
+    private int column;
 
-    public void setJustifyContent(JustifyContent justifyContent) {
-        this.justifyContent = justifyContent;
-    }
-
-    public Dimension getSize() {
-        return new Dimension(size);
-    }
-
-    public void setSize(Dimension size) {
-        this.size = new Dimension(size);
-    }
-
-    public int getHorizontalGap() {
-        return horizontalGap;
-    }
-
-    public void setHorizontalGap(int horizontalGap) {
-        this.horizontalGap = horizontalGap;
-    }
-
-    public int getVerticalGap() {
-        return verticalGap;
-    }
-
-    public void setVerticalGap(int verticalGap) {
-        this.verticalGap = verticalGap;
-    }
-
-    public int getColumn() {
-        return column;
-    }
-
-    public void setColumn(int column) {
-        this.column = column;
-    }
+    private int horizontalGap;
 
     private JustifyContent justifyContent;
+
     private Dimension size;
-    private int horizontalGap;
+
     private int verticalGap;
-    private int column;
 
     public ResponsiveLayout(JustifyContent justifyContent) {
         this(justifyContent, new Dimension(-1, -1));
@@ -78,41 +50,31 @@ public class ResponsiveLayout implements LayoutManager {
     public void addLayoutComponent(String name, Component comp) {
     }
 
-    @Override
-    public void removeLayoutComponent(Component comp) {
+    public int calculateColumns(int width, int itemWidth, int gap) {
+        if (column > 0) {
+            return column;
+        }
+        return (width + gap) / (itemWidth + gap);
     }
 
-    @Override
-    public Dimension preferredLayoutSize(Container parent) {
-        synchronized (parent.getTreeLock()) {
-            Insets insets = parent.getInsets();
-            int height = insets.top + insets.bottom;
-            int width = (insets.left + insets.right);
-            Dimension itemSize = getItemSize(parent);
-            int count = getVisibleComponentCount(parent);
-            int column = getColumn(parent, itemSize.width, count);
-            if (count == 0) {
-                return new Dimension(width, height);
-            }
-            int row = (int) Math.ceil((double) count / column);
-            int hGap = UIScale.scale(horizontalGap);
-            int vGap = UIScale.scale(verticalGap);
-            width += column * itemSize.width + ((column - 1) * hGap);
-            height += row * itemSize.height + ((row - 1) * vGap);
-            if (SwingUtilities.getAncestorOfClass(JScrollPane.class, parent) != null) {
-                width -= 1;
-            }
-            return new Dimension(width, height);
-        }
+    public int getColumn() {
+        return column;
     }
 
-    @Override
-    public Dimension minimumLayoutSize(Container parent) {
-        synchronized (parent.getTreeLock()) {
-            // update if we require to use
-            Insets insets = parent.getInsets();
-            return new Dimension(insets.left + insets.right, insets.top + insets.bottom);
-        }
+    public int getHorizontalGap() {
+        return horizontalGap;
+    }
+
+    public JustifyContent getJustifyContent() {
+        return justifyContent;
+    }
+
+    public Dimension getSize() {
+        return new Dimension(size);
+    }
+
+    public int getVerticalGap() {
+        return verticalGap;
     }
 
     @Override
@@ -147,6 +109,85 @@ public class ResponsiveLayout implements LayoutManager {
                 }
             }
         }
+    }
+
+    @Override
+    public Dimension minimumLayoutSize(Container parent) {
+        synchronized (parent.getTreeLock()) {
+            // update if we require to use
+            Insets insets = parent.getInsets();
+            return new Dimension(insets.left + insets.right, insets.top + insets.bottom);
+        }
+    }
+
+    @Override
+    public Dimension preferredLayoutSize(Container parent) {
+        synchronized (parent.getTreeLock()) {
+            Insets insets = parent.getInsets();
+            int height = insets.top + insets.bottom;
+            int width = (insets.left + insets.right);
+            Dimension itemSize = getItemSize(parent);
+            int count = getVisibleComponentCount(parent);
+            int column = getColumn(parent, itemSize.width, count);
+            if (count == 0) {
+                return new Dimension(width, height);
+            }
+            int row = (int) Math.ceil((double) count / column);
+            int hGap = UIScale.scale(horizontalGap);
+            int vGap = UIScale.scale(verticalGap);
+            width += column * itemSize.width + ((column - 1) * hGap);
+            height += row * itemSize.height + ((row - 1) * vGap);
+            if (SwingUtilities.getAncestorOfClass(JScrollPane.class, parent) != null) {
+                width -= 1;
+            }
+            return new Dimension(width, height);
+        }
+    }
+
+    @Override
+    public void removeLayoutComponent(Component comp) {
+    }
+
+    public void setColumn(int column) {
+        this.column = column;
+    }
+
+    public void setHorizontalGap(int horizontalGap) {
+        this.horizontalGap = horizontalGap;
+    }
+
+    public void setJustifyContent(JustifyContent justifyContent) {
+        this.justifyContent = justifyContent;
+    }
+
+    public void setSize(Dimension size) {
+        this.size = new Dimension(size);
+    }
+
+    public void setVerticalGap(int verticalGap) {
+        this.verticalGap = verticalGap;
+    }
+
+    private int getColumn(Container parent, int itemWidth, int itemCount) {
+        Insets insets = parent.getInsets();
+        int width = parent.getWidth() - (insets.left + insets.right);
+        int height = parent.getHeight() - (insets.top + insets.bottom);
+        int hGap = UIScale.scale(horizontalGap);
+        return Math.max(Math.min(calculateColumns(width, itemWidth, hGap), itemCount), 1);
+    }
+
+    private Dimension getItemSize(Container parent) {
+        if (size.width >= 0 && size.height >= 0) {
+            return new Dimension(UIScale.scale(size));
+        }
+        Dimension itemSize = getVisibleComponentMaxSize(parent);
+        if (size.width >= 0) {
+            itemSize.width = UIScale.scale(size.width);
+        }
+        if (size.height >= 0) {
+            itemSize.height = UIScale.scale(size.height);
+        }
+        return itemSize;
     }
 
     private LayoutOption getLayoutOption(Dimension itemSize, int width, int column) {
@@ -201,41 +242,24 @@ public class ResponsiveLayout implements LayoutManager {
         return new Dimension(width, height);
     }
 
-    private Dimension getItemSize(Container parent) {
-        if (size.width >= 0 && size.height >= 0) {
-            return new Dimension(UIScale.scale(size));
-        }
-        Dimension itemSize = getVisibleComponentMaxSize(parent);
-        if (size.width >= 0) {
-            itemSize.width = UIScale.scale(size.width);
-        }
-        if (size.height >= 0) {
-            itemSize.height = UIScale.scale(size.height);
-        }
-        return itemSize;
-    }
-
-    private int getColumn(Container parent, int itemWidth, int itemCount) {
-        Insets insets = parent.getInsets();
-        int width = parent.getWidth() - (insets.left + insets.right);
-        int height = parent.getHeight() - (insets.top + insets.bottom);
-        int hGap = UIScale.scale(horizontalGap);
-        return Math.max(Math.min(calculateColumns(width, itemWidth, hGap), itemCount), 1);
-    }
-
-    public int calculateColumns(int width, int itemWidth, int gap) {
-        if (column > 0) {
-            return column;
-        }
-        return (width + gap) / (itemWidth + gap);
+    /**
+     * START: Items are positioned at the beginning of the container END: Items are
+     * positioned at the end of the container CENTER: Items are positioned in the
+     * center of the container SPACE_BETWEEN: Items will have space between them
+     * SPACE_AROUND: Items Start and end gaps are half the size of the space between
+     * then SPACE_EVENLY: Items will have equal space around them FIT_CONTENT: Items
+     * will full size of the container
+     */
+    public enum JustifyContent {
+        CENTER, END, FIT_CONTENT, SPACE_AROUND, SPACE_BETWEEN, SPACE_EVENLY, START
     }
 
     private static class LayoutOption {
+        protected int hGap;
+        protected Dimension itemSize;
         protected int startX;
         protected int startY;
-        protected int hGap;
         protected int vGap;
-        protected Dimension itemSize;
 
         public LayoutOption(int startX, int startY, int hGap, int vGap, Dimension itemSize) {
             this.startX = startX;
@@ -244,19 +268,5 @@ public class ResponsiveLayout implements LayoutManager {
             this.vGap = vGap;
             this.itemSize = itemSize;
         }
-    }
-
-    /**
-     * START: Items are positioned at the beginning of the container
-     * END: Items are positioned at the end of the container
-     * CENTER: Items are positioned in the center of the container
-     * SPACE_BETWEEN: Items will have space between them
-     * SPACE_AROUND: Items Start and end gaps are half the size of the space between
-     * then
-     * SPACE_EVENLY: Items will have equal space around them
-     * FIT_CONTENT: Items will full size of the container
-     */
-    public enum JustifyContent {
-        START, END, CENTER, SPACE_BETWEEN, SPACE_AROUND, SPACE_EVENLY, FIT_CONTENT
     }
 }

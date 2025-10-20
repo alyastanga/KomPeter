@@ -7,13 +7,6 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes;
 
-import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
-import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.ProductList;
-import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.SearchData;
-import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.ShopHeader;
-
-import net.miginfocom.swing.MigLayout;
-
 import java.util.function.Consumer;
 
 import javax.swing.JOptionPane;
@@ -22,22 +15,34 @@ import javax.swing.SwingUtilities;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.ProductList;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.SearchData;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.ShopHeader;
+
+import net.miginfocom.swing.MigLayout;
+
 public final class ShopScene implements Scene {
     public static final String SCENE_NAME = "shop";
 
-    private final JPanel view = new JPanel(
-            new MigLayout("insets 0, fill, flowy", "[grow, fill]", "[top, grow 0, shrink][grow, fill]"));
     private final ProductList productList = new ProductList();
     private final ShopHeader shopHeader = new ShopHeader();
-
     private final Consumer<SearchData> shopHeaderSubscriber = new Consumer<SearchData>() {
         public void accept(SearchData arg0) {
             productList.searchItems(arg0);
         };
     };
 
+    private final JPanel view = new JPanel(
+            new MigLayout("insets 0, fill, flowy", "[grow, fill]", "[top, grow 0, shrink][grow, fill]"));
+
     public ShopScene() {
         onCreate();
+    }
+
+    @Override
+    public boolean canHide() {
+        return !shopHeader.isBusy() && !productList.isBusy();
     }
 
     @Override
@@ -46,8 +51,11 @@ public final class ShopScene implements Scene {
     }
 
     @Override
-    public @NotNull JPanel view() {
-        return view;
+    public void onCannotHide() {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(view, "The current page is loading. Cannot navigate away right now",
+                    "Failed to navigate", JOptionPane.ERROR_MESSAGE);
+        });
     }
 
     @Override
@@ -60,8 +68,9 @@ public final class ShopScene implements Scene {
     }
 
     @Override
-    public void onShow() {
-        shopHeader.subscribe(shopHeaderSubscriber);
+    public void onDestroy() {
+        shopHeader.destroy();
+        productList.destroy();
     }
 
     @Override
@@ -70,21 +79,12 @@ public final class ShopScene implements Scene {
     }
 
     @Override
-    public void onDestroy() {
-        shopHeader.destroy();
-        productList.destroy();
+    public void onShow() {
+        shopHeader.subscribe(shopHeaderSubscriber);
     }
 
     @Override
-    public boolean canHide() {
-        return !shopHeader.isBusy() && !productList.isBusy();
-    }
-
-    @Override
-    public void onCannotHide() {
-        SwingUtilities.invokeLater(() -> {
-            JOptionPane.showMessageDialog(view, "The current page is loading. Cannot navigate away right now",
-                    "Failed to navigate", JOptionPane.ERROR_MESSAGE);
-        });
+    public @NotNull JPanel view() {
+        return view;
     }
 }

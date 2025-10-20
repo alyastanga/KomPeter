@@ -1,14 +1,21 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components.icons;
-
-import com.formdev.flatlaf.util.AnimatedIcon;
-import com.github.ragudos.kompeter.app.desktop.assets.SVGIconUIColor;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.formdev.flatlaf.util.AnimatedIcon;
+import com.github.ragudos.kompeter.app.desktop.assets.SVGIconUIColor;
 
 public class SpinnerIcon implements AnimatedIcon {
     private final @NotNull SVGIconUIColor icon;
@@ -34,6 +41,14 @@ public class SpinnerIcon implements AnimatedIcon {
     }
 
     @Override
+    public float getValue(Component c) {
+        // continuously loops from 0 to 1
+        long now = System.currentTimeMillis();
+        float period = 1000f / rotationsPerSecond; // ms per rotation
+        return (now % (int) period) / period;
+    }
+
+    @Override
     public void paintIconAnimated(Component c, Graphics g, int x, int y, float animatedValue) {
         Graphics2D g2 = (Graphics2D) g.create();
 
@@ -52,13 +67,5 @@ public class SpinnerIcon implements AnimatedIcon {
 
         g2.setTransform(old);
         g2.dispose();
-    }
-
-    @Override
-    public float getValue(Component c) {
-        // continuously loops from 0 to 1
-        long now = System.currentTimeMillis();
-        float period = 1000f / rotationsPerSecond; // ms per rotation
-        return (now % (int) period) / period;
     }
 }

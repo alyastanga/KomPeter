@@ -7,6 +7,13 @@
 */
 package com.github.ragudos.kompeter.database;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
@@ -31,31 +38,22 @@ import com.github.ragudos.kompeter.database.dao.user.UserMetadataDao;
 import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This class is responsible for creating the appropriate SQL factory DAO based
- * on the database
- * type. It uses a factory method pattern to create the appropriate instance.
- * <br>
+ * on the database type. It uses a factory method pattern to create the
+ * appropriate instance. <br>
  * <br>
  * Example usage of the AbstractSqlFactoryDao to retrieve a platform-specific
  * DAO implementation.
  *
  * <p>
  * This snippet demonstrates how to obtain a MySQL-specific factory instance
- * using the factory
- * method {@link AbstractSqlFactoryDao#getSqlFactoryDao(int)}, and then retrieve
- * the {@link
- * SessionDao} to perform a data access operation. This promotes loose coupling
- * between
- * database-specific implementations and the business logic, making the codebase
- * easier to maintain
- * and extend for other database platforms.
+ * using the factory method {@link AbstractSqlFactoryDao#getSqlFactoryDao(int)},
+ * and then retrieve the {@link SessionDao} to perform a data access operation.
+ * This promotes loose coupling between database-specific implementations and
+ * the business logic, making the codebase easier to maintain and extend for
+ * other database platforms.
  *
  * <pre>
  * // Step 1: Get the factory for the specified database type (MySQL in this
@@ -74,14 +72,12 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>
  * This design allows easy substitution of different database backends by
- * changing only the
- * factory input type, without modifying the business logic that relies on the
- * DAO interfaces.
+ * changing only the factory input type, without modifying the business logic
+ * that relies on the DAO interfaces.
  *
  * @see <a href=
  *      "https://www.oracle.com/java/technologies/dataaccessobject.html">Article
- *      about DAO
- *      Pattern by Oracle</a>
+ *      about DAO Pattern by Oracle</a>
  */
 public abstract class AbstractSqlFactoryDao {
     protected static final Logger LOGGER = KompeterLogger.getLogger(AbstractSqlFactoryDao.class);

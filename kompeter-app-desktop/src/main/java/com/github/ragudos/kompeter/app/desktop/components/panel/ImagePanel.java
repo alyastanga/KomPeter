@@ -1,3 +1,10 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components.panel;
 
 import java.awt.Dimension;
@@ -23,6 +30,15 @@ public class ImagePanel extends JPanel {
         }
 
         setOpaque(false);
+    }
+
+    public void setImage(Image image) {
+        this.image = image;
+
+        setPreferredSize(new Dimension(image.getWidth(this), image.getHeight(this)));
+        setSize(new Dimension(image.getWidth(this), image.getHeight(this)));
+
+        repaint();
     }
 
     @Override
@@ -61,14 +77,5 @@ public class ImagePanel extends JPanel {
             }
             g2.dispose();
         }
-    }
-
-    public void setImage(Image image) {
-        this.image = image;
-
-        setPreferredSize(new Dimension(image.getWidth(this), image.getHeight(this)));
-        setSize(new Dimension(image.getWidth(this), image.getHeight(this)));
-
-        repaint();
     }
 }

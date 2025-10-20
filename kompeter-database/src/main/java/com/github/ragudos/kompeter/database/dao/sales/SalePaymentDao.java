@@ -7,19 +7,20 @@
 */
 package com.github.ragudos.kompeter.database.dao.sales;
 
-import com.github.ragudos.kompeter.database.dto.sales.SaleItemStockDto;
-import com.github.ragudos.kompeter.database.dto.sales.SalePaymentDto;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
+import com.github.ragudos.kompeter.database.dto.sales.SaleItemStockDto;
+import com.github.ragudos.kompeter.database.dto.sales.SalePaymentDto;
+
 public interface SalePaymentDao {
 
-    public int savePayment(SalePaymentDto salePayment) throws SQLException;
+    List<SaleItemStockDto> getRevenue();
 
-    public List<SaleItemStockDto> getRevenue();
+    List<SaleItemStockDto> getRevenue(Timestamp from);
 
-    public List<SaleItemStockDto> getRevenue(Timestamp from);
+    List<SaleItemStockDto> getRevenue(Timestamp from, Timestamp to);
 
-    public List<SaleItemStockDto> getRevenue(Timestamp from, Timestamp to);
+    int savePayment(SalePaymentDto salePayment) throws SQLException;
 }
