@@ -3,7 +3,7 @@ WITH RECURSIVE calendar(date) AS (
     UNION ALL
     SELECT DATE(date, '+1 day')
     FROM calendar
-    WHERE date < DATE(?) -- end date
+    WHERE date < DATE('now') -- end date
 ),
 TOTAL_REVENUE AS (
     SELECT

@@ -19,4 +19,5 @@ LEFT JOIN item_categories ic
     ON ic._item_category_id = ica._item_category_id
 WHERE DATE(s.sale_date) BETWEEN DATE(?) AND DATE(?)
 GROUP BY i._item_id, i.name, ib.name, ic.name
-ORDER BY total_sold DESC;
+ORDER BY total_sold DESC
+LIMIT 10;

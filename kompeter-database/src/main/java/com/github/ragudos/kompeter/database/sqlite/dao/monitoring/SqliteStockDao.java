@@ -10,11 +10,11 @@ package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.dao.DateUtils;
 import com.github.ragudos.kompeter.database.dao.monitoring.StockDao;
-import com.github.ragudos.kompeter.database.dto.monitoring.LowStockItemsDto;
-import com.github.ragudos.kompeter.database.dto.monitoring.OldItemsDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.OnHandUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.PurchaseUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.SalesUnitDto;
+import com.github.ragudos.kompeter.database.dto.monitoring.Top10LowStockItemsDto;
+import com.github.ragudos.kompeter.database.dto.monitoring.Top10OldItemsDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -216,8 +216,8 @@ public class SqliteStockDao implements StockDao {
     }
 
     @Override
-    public List<LowStockItemsDto> getLowStockItems() throws SQLException {
-        List<LowStockItemsDto> results = new ArrayList<>();
+    public List<Top10LowStockItemsDto> getLowStockItems() throws SQLException {
+        List<Top10LowStockItemsDto> results = new ArrayList<>();
 
         String sqlFileName = "low_stock_items";
         String query;
@@ -237,8 +237,8 @@ public class SqliteStockDao implements StockDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    LowStockItemsDto dto =
-                            new LowStockItemsDto(
+                    Top10LowStockItemsDto dto =
+                            new Top10LowStockItemsDto(
                                     rs.getString("item_name"),
                                     rs.getString("brand_name"),
                                     rs.getString("category_name"),
@@ -252,8 +252,8 @@ public class SqliteStockDao implements StockDao {
     }
 
     @Override
-    public List<OldItemsDto> getOldItems() throws SQLException {
-        List<OldItemsDto> results = new ArrayList<>();
+    public List<Top10OldItemsDto> getOldItems() throws SQLException {
+        List<Top10OldItemsDto> results = new ArrayList<>();
 
         String sqlFileName = "low_stock_items";
         String query;
@@ -273,8 +273,8 @@ public class SqliteStockDao implements StockDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    OldItemsDto dto =
-                            new OldItemsDto(
+                    Top10OldItemsDto dto =
+                            new Top10OldItemsDto(
                                     rs.getString("item_name"),
                                     rs.getString("brand_name"),
                                     rs.getString("category_name"),

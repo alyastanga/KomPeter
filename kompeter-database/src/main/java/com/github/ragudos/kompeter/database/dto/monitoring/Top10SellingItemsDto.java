@@ -10,20 +10,22 @@ package com.github.ragudos.kompeter.database.dto.monitoring;
 /**
  * @author Hanz Mapua
  */
-public record LowStockItemsDto(
-        String itemName, String brandName, String categoryName, int quantity) {
+public record Top10SellingItemsDto(
+        String itemName, String brandName, String categoryName, int totalSold, float totalRevenue) {
 
     @Override
     public String toString() {
-        return "LowStockItemsDto{"
+        return "TopSellingDto{"
                 + "itemName="
                 + itemName
                 + ", brandName="
                 + brandName
                 + ", categoryName="
                 + categoryName
-                + ", quantity="
-                + quantity
+                + ", totalSold="
+                + totalSold
+                + ", totalRevenue="
+                + totalRevenue
                 + '}';
     }
 }

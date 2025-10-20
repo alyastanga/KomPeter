@@ -34,6 +34,7 @@ public class SqliteInventoryDao implements InventoryDao {
         return getInventoryCount((Timestamp) null, (Timestamp) null);
     }
 
+    @Override
     public List<InventoryCountDto> getInventoryCount(Timestamp date, FromTo fromto)
             throws SQLException {
         if (fromto == FromTo.FROM) {

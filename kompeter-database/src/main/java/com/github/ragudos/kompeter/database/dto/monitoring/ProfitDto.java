@@ -17,6 +17,15 @@ public record ProfitDto(
 
     @Override
     public String toString() {
-        return "ProfitDto{" + "date=" + date + ", totalProfit=" + totalProfit + '}';
+        return "ProfitDto{"
+                + "date="
+                + date
+                + ", totalProfit="
+                + totalProfit
+                + ", totalRevenue="
+                + totalRevenue
+                + ", totalExpenses="
+                + totalExpenses
+                + '}';
     }
 }

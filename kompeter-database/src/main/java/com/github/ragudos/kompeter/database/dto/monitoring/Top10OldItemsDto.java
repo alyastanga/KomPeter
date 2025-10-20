@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public record OldItemsDto(
+public record Top10OldItemsDto(
         String itemName,
         String brandName,
         String categoryName,
