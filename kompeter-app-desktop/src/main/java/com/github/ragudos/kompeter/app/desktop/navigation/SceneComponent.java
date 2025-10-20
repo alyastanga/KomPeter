@@ -17,7 +17,10 @@ public interface SceneComponent {
 
     boolean isInitialized();
 
-    @NotNull JPanel view();
+    @NotNull
+    JPanel view();
 
-    default void backgroundTask() {}
+    default boolean isBusy() {
+        return false;
+    }
 }

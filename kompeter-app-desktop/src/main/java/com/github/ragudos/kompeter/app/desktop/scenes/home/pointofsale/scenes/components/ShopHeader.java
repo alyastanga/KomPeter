@@ -3,12 +3,18 @@ package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.c
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -18,8 +24,12 @@ import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFacto
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemBrandOption;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemCategoryOption;
+import com.github.ragudos.kompeter.inventory.InventoryException;
+import com.github.ragudos.kompeter.inventory.ItemService;
 import com.github.ragudos.kompeter.utilities.Debouncer;
 import com.github.ragudos.kompeter.utilities.observer.Observer;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -48,7 +58,11 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
+    private ExecutorService executorService;
+
     private final Debouncer debouncer = new Debouncer(250);
+
+    private final AtomicBoolean isBusy = new AtomicBoolean(false);
 
     private final ItemListener comboBoxItemListener = new ItemListener() {
         public void itemStateChanged(java.awt.event.ItemEvent e) {
@@ -84,8 +98,44 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
             return;
         }
 
+        executorService = Executors.newSingleThreadExecutor();
+
         categoryComboBox.addItem(new ComboBoxItemCategoryOption(-1, "Category"));
         brandComboBox.addItem(new ComboBoxItemBrandOption(-1, "Brand"));
+
+        categoryComboBox.setSelectedIndex(0);
+        brandComboBox.setSelectedIndex(0);
+
+        executorService.submit(() -> {
+            isBusy.set(true);
+
+            try {
+                ItemService itemService = new ItemService();
+
+                List<ItemBrandDto> itemBrands = itemService.showAllBrands();
+                List<ItemCategoryDto> itemCategories = itemService.showAllCategories();
+
+                SwingUtilities.invokeLater(() -> {
+                    itemBrands.forEach((brand) -> {
+                        brandComboBox.addItem(new ComboBoxItemBrandOption(brand._itemBrandId(), brand.name()));
+                    });
+
+                    itemCategories.forEach((category) -> {
+                        categoryComboBox
+                                .addItem(new ComboBoxItemCategoryOption(category._itemCategoryId(), category.name()));
+                    });
+                });
+            } catch (InventoryException e) {
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null,
+                            "Failed to get item categories and brands. Filtering by these criterion won't work.",
+                            "Something went wrong",
+                            JOptionPane.ERROR_MESSAGE);
+                });
+            } finally {
+                isBusy.set(false);
+            }
+        });
 
         searchField.getDocument().addDocumentListener(searchListener);
         categoryComboBox.addItemListener(comboBoxItemListener);
@@ -101,6 +151,8 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     @Override
     public void destroy() {
         view.removeAll();
+
+        executorService.shutdown();
 
         searchField.getDocument().removeDocumentListener(searchListener);
         categoryComboBox.removeItemListener(comboBoxItemListener);
@@ -134,5 +186,10 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     @Override
     public void unsubscribe(Consumer<SearchData> subscriber) {
         subscribers.remove(subscriber);
+    }
+
+    @Override
+    public boolean isBusy() {
+        return isBusy.get();
     }
 }

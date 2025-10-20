@@ -1,6 +1,7 @@
 module kompeter.app.desktop {
     requires java.desktop;
     requires java.management;
+    requires java.base;
 
     requires kompeter.auth;
     requires kompeter.configuration;

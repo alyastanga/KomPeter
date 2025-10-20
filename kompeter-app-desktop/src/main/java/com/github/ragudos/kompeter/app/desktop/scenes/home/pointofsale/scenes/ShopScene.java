@@ -16,13 +16,17 @@ import net.miginfocom.swing.MigLayout;
 
 import java.util.function.Consumer;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class ShopScene implements Scene {
     public static final String SCENE_NAME = "shop";
 
-    private final JPanel view = new JPanel(new MigLayout("insets 0, fill, flowy", "[grow, fill]", "[][]"));
+    private final JPanel view = new JPanel(
+            new MigLayout("insets 0, fill, flowy", "[grow, fill]", "[top, grow 0, shrink][grow, fill]"));
     private final ProductList productList = new ProductList();
     private final ShopHeader shopHeader = new ShopHeader();
 
@@ -68,7 +72,19 @@ public final class ShopScene implements Scene {
     @Override
     public void onDestroy() {
         shopHeader.destroy();
-        ;
         productList.destroy();
+    }
+
+    @Override
+    public boolean canHide() {
+        return !shopHeader.isBusy() && !productList.isBusy();
+    }
+
+    @Override
+    public void onCannotHide() {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(view, "The current page is loading. Cannot navigate away right now",
+                    "Failed to navigate", JOptionPane.ERROR_MESSAGE);
+        });
     }
 }
