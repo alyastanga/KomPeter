@@ -11,7 +11,7 @@ import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-class Cart {
+public class Cart {
     SaleDao saleDao;
     static int transID = 0;
 
