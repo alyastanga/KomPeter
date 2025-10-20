@@ -1,9 +1,9 @@
 WITH RECURSIVE calendar(date) AS (
-    SELECT DATE(?)  -- Start date (user-supplied)
+    SELECT DATE(?) -- from
     UNION ALL
     SELECT DATE(date, '+1 day')
     FROM calendar
-    WHERE date < DATE(?)  -- End date (user-supplied)
+    WHERE date < DATE(?) -- to
 ),
 daily_purchases AS (
     SELECT 
@@ -12,7 +12,6 @@ daily_purchases AS (
     FROM purchases p
     INNER JOIN purchase_item_stocks pis 
         ON pis._purchase_id = p._purchase_id
-    WHERE DATE(p.purchase_date) BETWEEN DATE(?) AND DATE(?)  -- filter by user range
     GROUP BY DATE(p.purchase_date)
 ),
 daily_sales AS (
@@ -22,7 +21,6 @@ daily_sales AS (
     FROM sales s
     INNER JOIN sale_item_stocks sis 
         ON sis._sale_id = s._sale_id
-    WHERE DATE(s.sale_date) BETWEEN DATE(?) AND DATE(?)  -- filter by user range
     GROUP BY DATE(s.sale_date)
 ),
 daily_net AS (
