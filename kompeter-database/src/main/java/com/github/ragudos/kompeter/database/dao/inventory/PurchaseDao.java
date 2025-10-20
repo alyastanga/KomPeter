@@ -29,7 +29,6 @@ public interface PurchaseDao {
 
     // READ
     List<PurchaseDto> getAllPurchase() throws SQLException, IOException;
-
     // UPDATE
     // DELETE
 }

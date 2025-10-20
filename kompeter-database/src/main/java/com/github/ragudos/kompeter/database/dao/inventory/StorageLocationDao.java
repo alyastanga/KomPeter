@@ -15,4 +15,6 @@ import java.sql.SQLException;
  */
 public interface StorageLocationDao {
     int insertStorageLocation(String name, String description) throws SQLException, IOException;
+
+    int deleteStorageLocationById(int id) throws SQLException, IOException;
 }
