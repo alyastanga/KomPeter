@@ -23,6 +23,7 @@ public interface ItemDao {
     Optional<ItemDto> getItemsById(int id) throws SQLException, IOException;
 
     // UPDATE
+    int updateItemNameById(String name, int id) throws SQLException, IOException;
 
     // DELETE
     int deleteItemById(int id) throws SQLException, IOException;

@@ -14,6 +14,9 @@ public enum DiscountType {
     FIXED;
 
     public static DiscountType fromString(@NotNull final String name) {
+        if (name == null) {
+            return null;
+        }
         return switch (name) {
             case "percentage" -> PERCENTAGE;
             case "fixed" -> FIXED;
