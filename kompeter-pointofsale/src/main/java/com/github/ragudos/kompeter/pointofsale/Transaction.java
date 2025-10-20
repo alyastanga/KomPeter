@@ -22,7 +22,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-class Transaction {
+public class Transaction {
 
     static int transCounter = 0;
     ArrayList<CartItem> cartItems = new ArrayList<>();
