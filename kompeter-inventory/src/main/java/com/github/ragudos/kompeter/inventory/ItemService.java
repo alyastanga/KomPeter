@@ -7,34 +7,32 @@
 */
 package com.github.ragudos.kompeter.inventory;
 
+import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
-import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemBrandDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryAssignmentDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
 public class ItemService implements Items {
-    private final SqliteItemDao sqliteItemDao;
-    private final SqliteInventoryDao sqliteInventoryDao;
-    private final SqliteItemBrandDao sqliteItemBrandDao;
-    private final SqliteItemCategoryDao sqliteItemCategoryDao;
-    private final SqliteItemCategoryAssignmentDao sqliteItemCategoryAssignmentDao;
+    private final ItemDao sqliteItemDao;
+    private final InventoryDao sqliteInventoryDao;
+    private final ItemBrandDao sqliteItemBrandDao;
+    private final ItemCategoryDao sqliteItemCategoryDao;
+    private final ItemCategoryAssignmentDao sqliteItemCategoryAssignmentDao;
 
-    public ItemService(
-            SqliteItemDao sqliteItemDao,
-            SqliteInventoryDao sqliteInventoryDao,
-            SqliteItemBrandDao sqliteItemBrandDao,
-            SqliteItemCategoryDao sqliteItemCategoryDao,
-            SqliteItemCategoryAssignmentDao sqliteItemCategoryAssignmentDao) {
-        this.sqliteItemDao = sqliteItemDao;
-        this.sqliteInventoryDao = sqliteInventoryDao;
-        this.sqliteItemBrandDao = sqliteItemBrandDao;
-        this.sqliteItemCategoryDao = sqliteItemCategoryDao;
-        this.sqliteItemCategoryAssignmentDao = sqliteItemCategoryAssignmentDao;
+    public ItemService() {
+        AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+
+        this.sqliteItemDao = factoryDao.getItemDao();
+        this.sqliteInventoryDao = factoryDao.getInventoryDao();
+        this.sqliteItemBrandDao = factoryDao.getItemBrandDao();
+        this.sqliteItemCategoryDao = factoryDao.getItemCategoryDao();
+        this.sqliteItemCategoryAssignmentDao = factoryDao.getItemCategoryAssignmentDao();
     }
 
     @Override

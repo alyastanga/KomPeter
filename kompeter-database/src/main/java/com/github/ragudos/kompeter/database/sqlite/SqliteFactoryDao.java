@@ -11,6 +11,7 @@ import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemRestockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
@@ -32,6 +33,7 @@ import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemBrandDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemRestockDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockDao;
@@ -65,8 +67,8 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
     private static SqliteFactoryDao instance = null;
 
-    public static final String MAIN_DB_FILE_NAME =
-            Directories.SQLITE_DIRECTORY + File.separator + "main-" + Metadata.APP_ENV + ".db";
+    public static final String MAIN_DB_FILE_NAME = Directories.SQLITE_DIRECTORY + File.separator + "main-"
+            + Metadata.APP_ENV + ".db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
 
     private SqliteFactoryDao() {
@@ -198,5 +200,10 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public ItemStockStorageLocationDao getItemStockStorageLocationDao() {
         return new SqliteItemStockStorageLocationDao();
+    }
+
+    @Override
+    public @NotNull ItemCategoryDao getItemCategoryDao() {
+        return new SqliteItemCategoryDao();
     }
 }

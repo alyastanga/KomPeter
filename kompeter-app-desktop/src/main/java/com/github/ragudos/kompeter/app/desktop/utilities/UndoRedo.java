@@ -16,7 +16,8 @@ public class UndoRedo<T> implements Iterable<T> {
     private final Stack<T> firstStack = new Stack<>();
     private final Stack<T> secondStack = new Stack<>();
 
-    public UndoRedo() {}
+    public UndoRedo() {
+    }
 
     public void add(@NotNull T item) {
         firstStack.push(item);

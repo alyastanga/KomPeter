@@ -22,21 +22,21 @@ import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 
 public class MainFooter implements SceneComponent {
-    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[grow]"));
+    private final JPanel view = new JPanel(new MigLayout("insets n 16 n 16", "[grow, fill]"));
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private final JLabel breadcrumbsPathJLabel = new JLabel();
     private final MemoryBar memoryBar = new MemoryBar();
 
-    private final Consumer<String> navigationListenerClass =
-            new Consumer<String>() {
-                @Override
-                public void accept(String sceneName) {
-                    breadcrumbsPathJLabel.setText(sceneName);
-                }
-            };
+    private final Consumer<String> navigationListenerClass = new Consumer<String>() {
+        @Override
+        public void accept(String sceneName) {
+            breadcrumbsPathJLabel.setText(sceneName);
+        }
+    };
 
-    public MainFooter() {}
+    public MainFooter() {
+    }
 
     @Override
     public void initialize() {
@@ -46,28 +46,25 @@ public class MainFooter implements SceneComponent {
 
         memoryBar.installMemoryBar();
 
-        JPanel container =
-                new JPanel(
-                        new MigLayout(
-                                "gapx 10px,insets 3 n 3 n, al trailing center, height 32!",
-                                "[]push[]push[][][]",
-                                "fill"));
+        JPanel container = new JPanel(
+                new MigLayout(
+                        "gapx 8px, insets 0, height 32!",
+                        "[]push[]push[][][]",
+                        "fill"));
 
         JLabel appVersionJLabel = new JLabel(Metadata.APP_TITLE + ": v" + Metadata.APP_VERSION);
         String javaString = SystemInfo.JAVA_VENDOR + " v" + SystemInfo.JAVA_VERSION;
-        JLabel javaLabel = new JLabel(String.format("Running on: Java %s", javaString));
+        JLabel javaLabel = new JLabel(String.format("Running: %s", javaString));
         String osString = SystemInfo.OS_NAME + " v" + SystemInfo.OS_VERSION;
-        JLabel osLabel = new JLabel(String.format("Using: %s", osString));
+        JLabel osLabel = new JLabel(String.format("%s", osString));
 
         appVersionJLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
         appVersionJLabel.setIcon(
-                AssetManager.getOrLoadIcon("git-commit-horizontal.svg", 1f, "color.muted"));
+                AssetManager.getOrLoadIcon("git-commit-horizontal.svg", 0.75f, "color.muted"));
         javaLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-        javaLabel.setIcon(AssetManager.getOrLoadIcon("coffee.svg", 1f, "color.muted"));
+        javaLabel.setIcon(AssetManager.getOrLoadIcon("coffee.svg", 0.75f, "color.muted"));
         osLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-        osLabel.setIcon(AssetManager.getOrLoadIcon("cpu.svg", 1f, "color.muted"));
-
-        view.add(new JSeparator(JSeparator.HORIZONTAL), "grow");
+        osLabel.setIcon(AssetManager.getOrLoadIcon("cpu.svg", 0.75f, "color.muted"));
 
         container.add(appVersionJLabel);
         container.add(breadcrumbsPathJLabel);
@@ -79,7 +76,7 @@ public class MainFooter implements SceneComponent {
 
         SceneNavigator.getInstance().subscribe(navigationListenerClass);
 
-        view.add(container, "grow");
+        view.add(container, "growx");
 
         initialized.set(true);
     }
