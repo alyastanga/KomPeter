@@ -11,7 +11,7 @@ package com.github.ragudos.kompeter.database.dto.monitoring;
  * @author Hanz Mapua
  */
 public record TopSellingDto(
-        String itemName, String brandName, String categoryName, int totalSold, int totalRevenue) {
+        String itemName, String brandName, String categoryName, int totalSold, float totalRevenue) {
 
     @Override
     public String toString() {

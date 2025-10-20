@@ -12,7 +12,8 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public record ProfitDto(Timestamp date, int totalProfit, int totalRevenue, int totalExpenses) {
+public record ProfitDto(
+        Timestamp date, float totalProfit, float totalRevenue, float totalExpenses) {
 
     @Override
     public String toString() {

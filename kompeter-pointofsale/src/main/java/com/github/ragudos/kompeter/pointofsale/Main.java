@@ -7,15 +7,33 @@
 */
 package com.github.ragudos.kompeter.pointofsale;
 
-import java.sql.SQLException;
+import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleDao;
+import java.math.BigDecimal;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
-        /*  SqliteSaleDao saledao = new SqliteSaleDao();
-        Cart cart = new Cart(saledao);
+    public static void main(String[] args) {
 
-        cart.addItem(new CartItem(1, "SSD 1TB", 2, 3500.00));
+        SaleDao saleDao = null;
 
-        cart.checkOut();*/
+        try {
+            // Create a fake cart with sample items
+            Cart cart = new Cart(saleDao);
+            cart.addItem(new CartItem(1, "Apple", 3, 10.0));
+            cart.addItem(new CartItem(2, "Banana", 2, 15.0));
+
+            // Initialize a Transaction
+            Transaction transaction = new Transaction(cart, new SqliteSaleDao());
+
+            // Save sale to database
+            transaction.saveToDatabase();
+            System.out.println("✅ Transaction saved successfully. Sale ID: " + transaction.saleId);
+
+            // Add a payment to the same sale
+            transaction.addPayment(BigDecimal.valueOf(75.00), "REF-001", "CASH");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -12,9 +12,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface SaleDao {
-    int save(SaleDto sale) throws SQLException;
+    int saveTransaction(SaleDto sale) throws SQLException;
 
-    SaleDto get(int saleId) throws SQLException;
+    SaleDto getTransaction(int saleId) throws SQLException;
 
-    List<SaleDto> getAll() throws SQLException;
+    List<SaleDto> getAllTransaction() throws SQLException;
 }
