@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.monitoring.service;
 
+import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
@@ -18,8 +19,15 @@ import com.github.ragudos.kompeter.database.dto.monitoring.ExpensesDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.ProfitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.RevenueDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10SellingItemsDto;
+import com.github.ragudos.kompeter.database.migrations.Migrator;
+import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteSalesDao;
+import com.github.ragudos.kompeter.database.sqlite.seeder.SqliteSeeder;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
 /**
  * @author Hanz Mapua
@@ -144,40 +152,48 @@ public class MonitoringSalesService {
             System.out.println(dto);
         }
     }
-    // TEST
-    // public static void main(String[] args) throws IOException, SQLException {
-    // AbstractMigratorFactory factory =
-    // AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
-    //
-    // // initialize schema
-    // Migrator migrator = factory.getMigrator();
-    // migrator.migrate();
-    //
-    // // initialize seeder
-    // SqliteSeeder seeder = new SqliteSeeder();
-    // seeder.seed();
-    //
-    // MonitoringSalesService service = new MonitoringSalesService(new
-    // SqliteSalesDao());
-    // // sample timestamp values
-    // Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
-    // Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-    //
-    // System.out.println("REVENUE - FROM 10/14 TO 10/21");
-    // service.printRevenueReport(from, to);
-    // System.out.println("\n");
-    //
-    // System.out.println("EXPENSES - FROM 10/14 TO 10/21");
-    // service.printExpensesReport(from, to);
-    // System.out.println("\n");
-    //
-    // System.out.println("PROFIT - FROM 10/14 TO 10/21");
-    // service.printProfitReport(from, to);
-    // System.out.println("\n");
-    //
-    // System.out.println("TOP 10 SELLING ITEMS");
-    // service.printTop10SellingItemsReport(from, to);
-    //
-    // Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
-    // }
+    
+     public static void main(String[] args) throws IOException, SQLException {
+     AbstractMigratorFactory factory =
+     AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+    
+     // initialize schema
+     Migrator migrator = factory.getMigrator();
+     try {
+         migrator.migrate();
+     } catch (Exception e) {
+     
+     }
+    
+     // initialize seeder
+     SqliteSeeder seeder = new SqliteSeeder();
+     try {
+     seeder.seed();
+     } catch (Exception e) {
+     
+     }
+    
+     MonitoringSalesService service = new MonitoringSalesService(new
+     SqliteSalesDao());
+     // sample timestamp values
+     Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
+     Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+    
+     System.out.println("REVENUE - FROM 10/14 TO 10/21");
+     service.printRevenueReport(from, to);
+     System.out.println("\n");
+    
+     System.out.println("EXPENSES - FROM 10/14 TO 10/21");
+     service.printExpensesReport(from, to);
+     System.out.println("\n");
+    
+     System.out.println("PROFIT - FROM 10/14 TO 10/21");
+     service.printProfitReport(from, to);
+     System.out.println("\n");
+    
+     System.out.println("TOP 10 SELLING ITEMS");
+     service.printTop10SellingItemsReport(from, to);
+    
+     Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
+     }
 }

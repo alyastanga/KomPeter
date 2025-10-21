@@ -7,19 +7,27 @@
 */
 package com.github.ragudos.kompeter.monitoring.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
 import com.github.ragudos.kompeter.database.dto.enums.FromTo;
 import com.github.ragudos.kompeter.database.dto.monitoring.OnHandUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.PurchaseUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.SalesUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10LowStockItemsDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10OldItemsDto;
+import com.github.ragudos.kompeter.database.migrations.Migrator;
+import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteStockDao;
+import com.github.ragudos.kompeter.database.sqlite.seeder.SqliteSeeder;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 /**
@@ -140,45 +148,45 @@ public class MonitoringStockService {
             System.out.println(dto);
         }
     }
-    // TEST
-    // public static void main(String[] args) throws IOException, SQLException {
-    // // find db file
-    // AbstractMigratorFactory factory =
-    // AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
-    //
-    // // initialize V1 schema
-    // Migrator migrator = factory.getMigrator();
-    // migrator.migrate();
-    //
-    // // initialize seeder
-    // SqliteSeeder seeder = new SqliteSeeder();
-    // seeder.seed();
-    //
-    // MonitoringStockService service = new MonitoringStockService(new
-    // SqliteStockDao());
-    // // sample timestamp values
-    // Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
-    // Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-    //
-    // System.out.println("PURCHASE UNIT - FROM 10/14 TO 10/21");
-    // service.printPurchaseUnitReport(from, to);
-    // System.out.println("\n");
-    //
-    // System.out.println("SALES UNIT - FROM 10/14 TO 10/21");
-    // service.printSalesUnitReport(from, to);
-    // System.out.println("\n");
-    //
-    // System.out.println("ON HAND UNIT - FROM 10/14 TO 10/21");
-    // service.printOnhandUnitReport(from, to);
-    // System.out.println("\n");
-    //
-    // System.out.println("TOP 10 LOW STOCK ITEMS");
-    // service.printTop10LowStockItems();
-    // System.out.println("\n");
-    //
-    // System.out.println("TOP 10 OLD ITEMS");
-    // service.printTop10OldItemsReport();
-    //
-    // Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
-    // }
+
+    public static void main(String[] args) throws IOException, SQLException {
+    // find db file
+    AbstractMigratorFactory factory =
+    AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+    
+    // initialize V1 schema
+    Migrator migrator = factory.getMigrator();
+    migrator.migrate();
+    
+    // initialize seeder
+    SqliteSeeder seeder = new SqliteSeeder();
+    seeder.seed();
+    
+    MonitoringStockService service = new MonitoringStockService(new
+    SqliteStockDao());
+    // sample timestamp values
+    Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
+    Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+    
+    System.out.println("PURCHASE UNIT - FROM 10/14 TO 10/21");
+    service.printPurchaseUnitReport(from, to);
+    System.out.println("\n");
+    
+    System.out.println("SALES UNIT - FROM 10/14 TO 10/21");
+    service.printSalesUnitReport(from, to);
+    System.out.println("\n");
+    
+    System.out.println("ON HAND UNIT - FROM 10/14 TO 10/21");
+    service.printOnhandUnitReport(from, to);
+    System.out.println("\n");
+    
+    System.out.println("TOP 10 LOW STOCK ITEMS");
+    service.printTop10LowStockItems();
+    System.out.println("\n");
+    
+    System.out.println("TOP 10 OLD ITEMS");
+    service.printTop10OldItemsReport();
+    
+    Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
+    }
 }
