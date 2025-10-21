@@ -7,20 +7,20 @@
 */
 package com.github.ragudos.kompeter.database.dao.sales;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.List;
 
-import com.github.ragudos.kompeter.database.dto.sales.SaleItemStockDto;
-import com.github.ragudos.kompeter.database.dto.sales.SalePaymentDto;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
+
+import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 
 public interface SalePaymentDao {
-
-    List<SaleItemStockDto> getRevenue();
-
-    List<SaleItemStockDto> getRevenue(Timestamp from);
-
-    List<SaleItemStockDto> getRevenue(Timestamp from, Timestamp to);
-
-    int savePayment(SalePaymentDto salePayment) throws SQLException;
+    int createPayment(@NotNull Connection conn, @Range(from = 0, to = Integer.MAX_VALUE) int _saleId,
+            @NotNull PaymentMethod paymentMethod, @NotNull String referenceNumber, @NotNull BigDecimal amount,
+            @NotNull Timestamp paymentDate)
+            throws SQLException, IOException;
 }

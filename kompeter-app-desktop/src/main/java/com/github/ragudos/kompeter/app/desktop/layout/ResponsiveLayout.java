@@ -171,7 +171,7 @@ public class ResponsiveLayout implements LayoutManager {
     private int getColumn(Container parent, int itemWidth, int itemCount) {
         Insets insets = parent.getInsets();
         int width = parent.getWidth() - (insets.left + insets.right);
-        int height = parent.getHeight() - (insets.top + insets.bottom);
+        // int height = parent.getHeight() - (insets.top + insets.bottom);
         int hGap = UIScale.scale(horizontalGap);
         return Math.max(Math.min(calculateColumns(width, itemWidth, hGap), itemCount), 1);
     }

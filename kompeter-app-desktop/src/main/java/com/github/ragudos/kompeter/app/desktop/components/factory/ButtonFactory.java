@@ -15,6 +15,14 @@ import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
 
 public final class ButtonFactory {
+    public static JButton createButton(@NotNull String text, @NotNull String styleClass) {
+        JButton b = new JButton(text);
+
+        b.putClientProperty(FlatClientProperties.STYLE_CLASS, styleClass);
+
+        return b;
+    }
+
     public static JButton createButton(
             @NotNull String text,
             @NotNull String iconName,
