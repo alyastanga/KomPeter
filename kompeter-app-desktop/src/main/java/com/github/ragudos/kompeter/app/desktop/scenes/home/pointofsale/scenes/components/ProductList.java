@@ -8,14 +8,20 @@
 package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
@@ -39,6 +46,8 @@ import com.github.ragudos.kompeter.app.desktop.components.spinner.SpinnerProgres
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.dialog.AddToCartDialog;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.dialog.AddToCartDialog.UpdatePayload;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.inventory.ItemService;
@@ -68,10 +77,23 @@ public class ProductList implements SceneComponent {
 
     private final JPanel view = new JPanel(new BorderLayout());
 
+    private final Consumer<UpdatePayload> addToCartConsumer;
+
+    private final AddButtonListener addButtonListener = new AddButtonListener();
+    private final AddToCartDialog addToCartDialog;
+
+    public ProductList(Consumer<UpdatePayload> addToCartConsumer) {
+        this.addToCartConsumer = addToCartConsumer;
+        this.addToCartDialog = new AddToCartDialog(SwingUtilities.getWindowAncestor(view),
+                addToCartConsumer);
+    }
+
     @Override
     public void destroy() {
+        removeAllItems();
         view.removeAll();
 
+        addToCartDialog.destroy();
         executorService.shutdown();
 
         initialized.set(false);
@@ -95,6 +117,7 @@ public class ProductList implements SceneComponent {
 
         itemsContainer.add(new LoadingPanel());
         view.add(itemsContainerScroller, BorderLayout.CENTER);
+        addToCartDialog.initialize();
 
         initialized.set(true);
 
@@ -123,7 +146,7 @@ public class ProductList implements SceneComponent {
                 searchItems(prevSearchData.getAcquire(), false);
             } catch (InventoryException e) {
                 SwingUtilities.invokeLater(() -> {
-                    itemsContainer.removeAll();
+                    removeAllItems();
 
                     ResponsiveLayout layout = ((ResponsiveLayout) itemsContainer.getLayout());
                     layout.setJustifyContent(JustifyContent.CENTER);
@@ -155,7 +178,7 @@ public class ProductList implements SceneComponent {
             isBusy.set(true);
 
             try {
-                itemsContainer.removeAll();
+                removeAllItems();
 
                 ResponsiveLayout layout = ((ResponsiveLayout) itemsContainer.getLayout());
 
@@ -225,6 +248,9 @@ public class ProductList implements SceneComponent {
 
         addButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
         addButton.putClientProperty(FlatClientProperties.STYLE, "margin:3,9,3,9;" + "arc:8;");
+        addButton.addActionListener(addButtonListener);
+        addButton.setActionCommand(String.format("%s;%s;%s", item._itemId(), item._itemStockId(),
+                item._stockLocationId()));
 
         itemName.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
         brand.putClientProperty(FlatClientProperties.STYLE_CLASS, "h6");
@@ -245,6 +271,25 @@ public class ProductList implements SceneComponent {
         itemContainer.add(contentContainer);
 
         itemsContainer.add(itemContainer);
+    }
+
+    private void removeAllItems() {
+        removeAllButtonListeners(itemsContainer);
+        itemsContainer.removeAll();
+    }
+
+    private void removeAllButtonListeners(Container container) {
+        for (Component component : container.getComponents()) {
+            if (component instanceof JButton) {
+                JButton button = (JButton) component;
+
+                for (ActionListener listener : button.getActionListeners()) {
+                    button.removeActionListener(listener);
+                }
+            } else if (component instanceof Container) {
+                removeAllButtonListeners((Container) component);
+            }
+        }
     }
 
     private class ErrorPanel extends JPanel {
@@ -280,6 +325,41 @@ public class ProductList implements SceneComponent {
             label.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
 
             add(label, BorderLayout.CENTER);
+        }
+    }
+
+    private class AddButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String[] stringData = e.getActionCommand().split(";");
+
+            try {
+                int itemId = Integer.parseUnsignedInt(stringData[0]);
+                int itemStockId = Integer.parseUnsignedInt(stringData[1]);
+                int itemStockLocationId = Integer.parseUnsignedInt(stringData[2]);
+                Optional<InventoryMetadataDto> chosenItem = items
+                        .getAcquire().stream().filter((item) -> item._itemId() == itemId
+                                && item._itemStockId() == itemStockId && item._stockLocationId() == itemStockLocationId)
+                        .findFirst();
+
+                if (chosenItem.isEmpty()) {
+                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(view),
+                            "Can't add item to cart because of bad logic.", "Something went wrong",
+                            JOptionPane.ERROR_MESSAGE);
+
+                    return;
+                }
+
+                InventoryMetadataDto item = chosenItem.get();
+
+                addToCartDialog.open(item._itemStockId(), item.itemName(), item.categoryName(), item.brandName(),
+                        item.itemPricePhp(), 1);
+            } catch (NumberFormatException err) {
+                JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(view),
+                        "Can't add item to cart because of bad logic.\n\nReason:\n" + err.getMessage(),
+                        "Something went wrong",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

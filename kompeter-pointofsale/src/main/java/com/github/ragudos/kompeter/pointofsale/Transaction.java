@@ -7,115 +7,72 @@
 */
 package com.github.ragudos.kompeter.pointofsale;
 
+import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
+import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
 import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
-import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
-import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
-import com.github.ragudos.kompeter.database.dto.sales.SalePaymentDto;
-import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSaleDao;
-import com.github.ragudos.kompeter.database.sqlite.dao.sales.SqliteSalePaymentDao;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 
+import org.jetbrains.annotations.NotNull;
+
 public class Transaction {
+    public static final double VAT_RATE = 0.12;
 
-    static int transCounter = 0;
-    ArrayList<CartItem> cartItems = new ArrayList<>();
-    int TransID;
-    LocalDateTime TimeStamp;
-    double Total;
-    int saleId;
-    SaleDao saleDao = new SqliteSaleDao();
-
-    /*
-    final double vatRate = 0.12;
-    double discountValue = 0.0;
-    DiscountType discountType = DiscountType.FIXED;
-    */
-    
-    Transaction(Cart cart, SaleDao saleDao) {
-        this.saleDao = saleDao;
-        this.TransID = ++transCounter;
-        this.TimeStamp = LocalDateTime.now();
-        for (CartItem item : cart.items) {
-            CartItem copy = new CartItem(item.productID(), item.productName(), item.qty(), item.price());
-            cartItems.add(copy);
-        } /// Copies all the transaction and stores in a differnt array
-        this.Total = cart.getCartTotal();
+    public static void createTransaction(@NotNull ArrayList<CartItem> items, @NotNull PaymentMethod paymentMethod,
+            double cashTendered) throws Exception {
+        createTransaction(items, paymentMethod, cashTendered, Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
+                PurchaseCodeGenerator.generateSecureHexToken());
     }
 
-    void saveToDatabase() throws SQLException {
-        this.saleId = saleDao.saveTransaction(toSaleDto());
-        this.TransID = saleId;
-    }
+    public static void createTransaction(@NotNull ArrayList<CartItem> items, @NotNull PaymentMethod paymentMethod,
+            double cashTendered,
+            @NotNull Timestamp saleDate, @NotNull String saleCode) throws Exception {
+        AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
-    SaleDto toSaleDto() {
-        return new SaleDto(
-                TransID,
-                Timestamp.valueOf(LocalDateTime.now()),
-                Timestamp.valueOf(LocalDateTime.now()),
-                "SALE-" + TransID,
-                "Walk-in Customer",
-                BigDecimal.valueOf(0.12),
-                BigDecimal.ZERO,
-                DiscountType.FIXED);
-    }
-    
-    void addPayment(BigDecimal amount, String reference, String method) throws SQLException {
-        SalePaymentDao paymentD = new SqliteSalePaymentDao();
-        PaymentMethod paymentMethod = PaymentMethod.valueOf(method);
-        
-        SalePaymentDto payment = new SalePaymentDto(
-            0,
-            this.saleId,
-            new Timestamp(System.currentTimeMillis()),
-            new Timestamp(System.currentTimeMillis()),
-            reference,
-            paymentMethod,
-            amount
-        );
-        
-        paymentD.savePayment(payment);
-        System.out.println("Payment has been added!");
-    }
-/*
-    void printReciept() {
-        double vatAmount = Total * vatRate;
-        double discountAmount =
-                (discountType == DiscountType.PERCENTAGE) ? Total * (discountValue / 100) : discountValue;
-        double grandTotal = Total + vatAmount - discountAmount;
+        SaleDao saleDao = factoryDao.getSaleDao();
+        SalePaymentDao salePaymentDao = factoryDao.getSalePaymentDao();
+        SaleItemStockDao saleItemStockDao = factoryDao.getSaleItemStockDao();
 
-        System.out.println(" ============================= ");
-        System.out.println("    KOMPETER COMPUTER PARTS    ");
-        System.out.println("     & ACCESSORIES RECEIPT     ");
-        System.out.println(" ============================= ");
+        Connection conn = factoryDao.getConnection();
 
-        System.out.println(" Transaction ID: " + TransID);
-        System.out.println(" Date & Time: " + TimeStamp);
-        System.out.println(" ----------------------------- ");
-        System.out.printf("%-15s %5s %10s%n", "Item", "Qty", "Subtotal");
-        System.out.println(" ----------------------------- ");
+        try {
+            conn.setAutoCommit(false);
 
-        for (CartItem items : cartItems) {
-            double subTotal = items.qty() * items.price();
-            System.out.printf("%-15s %5d %10.2f%n", items.productName(), items.qty(), subTotal);
+            int _saleId = saleDao.createSale(conn, saleDate, saleCode, new BigDecimal(VAT_RATE));
+
+            for (CartItem item : items) {
+                saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(),
+                        new BigDecimal(item.price()));
+            }
+
+            // TODO: accept reference number of other payment methods
+            salePaymentDao.createPayment(conn, _saleId, paymentMethod,
+                    (paymentMethod == PaymentMethod.CASH ? "" : PurchaseCodeGenerator.generateSecureHexToken()),
+                    new BigDecimal(cashTendered), saleDate);
+
+            conn.commit();
+        } catch (SQLException | IOException err) {
+            try {
+                conn.rollback();
+            } catch (SQLException err2) {
+                err.addSuppressed(err2);
+            }
+
+            Exception exception = new Exception("Failed to process transaction!");
+
+            exception.addSuppressed(err);
+
+            throw exception;
         }
-
-        System.out.println(" ----------------------------- ");
-        System.out.printf("%-20s %10.2f%n", "Subtotal:", Total);
-        System.out.printf("%-20s %10.2f%n", "VAT (12%):", vatAmount);
-        if (discountAmount > 0) {
-            System.out.printf("%-20s %10.2f%n", "Discount: ", -discountAmount);
-        }
-        System.out.println(" ----------------------------- ");
-        System.out.printf("%-20s %10.2f%n", " Grand Total: ", +grandTotal);
-        System.out.println(" ============================= ");
-        System.out.println("     THANK YOU FOR SHOPPING    ");
-        System.out.println(" ============================= ");
-    } */
+    }
 }

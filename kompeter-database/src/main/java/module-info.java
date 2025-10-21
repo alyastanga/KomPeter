@@ -1,6 +1,6 @@
 module kompeter.database {
     requires transitive java.sql;
-    requires kompeter.utilities;
+    requires transitive kompeter.utilities;
     requires org.xerial.sqlitejdbc;
     requires io.github.classgraph;
     requires static org.jetbrains.annotations;

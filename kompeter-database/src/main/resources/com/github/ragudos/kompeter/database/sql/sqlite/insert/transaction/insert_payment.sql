@@ -8,11 +8,6 @@
  */
 
 INSERT INTO sale_payments (
-    _sale_id,
-    _created_at,
-    payment_date,
-    reference_number,
-    payment_method,
-    amount_php
+    payment_method, amount_php, payment_date
 )
-VALUES (?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?);

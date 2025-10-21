@@ -66,11 +66,8 @@ import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
-    public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
-    public static final String MAIN_DB_FILE_NAME = Directories.SQLITE_DIRECTORY + File.separator + "main-"
-            + Metadata.APP_ENV + ".db";
-
-    private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
+    public static final String MAIN_DB_FILE_NAME;
+    public static final String DB_URL;
 
     private static SqliteFactoryDao instance = null;
 
@@ -80,6 +77,12 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
         }
 
         return instance;
+    }
+
+    static {
+        MAIN_DB_FILE_NAME = Directories.SQLITE_DIRECTORY + File.separator + "main-"
+                + Metadata.APP_ENV + ".db";
+        DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
     }
 
     private SqliteFactoryDao() {

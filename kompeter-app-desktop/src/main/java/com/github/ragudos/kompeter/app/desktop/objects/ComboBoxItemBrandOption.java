@@ -18,4 +18,9 @@ public final record ComboBoxItemBrandOption(@Range(from = -1, to = Integer.MAX_V
     public String toString() {
         return StringUtils.upperCaseFirstLetters(name);
     }
+
+    public int _itemCategoryId() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method '_itemCategoryId'");
+    }
 }
