@@ -7,6 +7,12 @@
 */
 package com.github.ragudos.kompeter.monitoring.service;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.github.ragudos.kompeter.database.dto.enums.FromTo;
 import com.github.ragudos.kompeter.database.dto.monitoring.ExpensesDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.ProfitDto;
@@ -14,11 +20,6 @@ import com.github.ragudos.kompeter.database.dto.monitoring.RevenueDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10SellingItemsDto;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteSalesDao;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Hanz Mapua
@@ -30,31 +31,6 @@ public class MonitoringSalesService {
 
     public MonitoringSalesService(SqliteSalesDao salesDAO) {
         this.salesDAO = salesDAO;
-    }
-
-    // 1️⃣ No date filter — calls DAO with both nulls
-    public void printRevenueReport() {
-        printRevenueReport((Timestamp) null, (Timestamp) null);
-    }
-
-    // 2️⃣ Single date + direction (FROM or TO)
-    public void printRevenueReport(Timestamp date, FromTo fromTo) {
-        try {
-            List<RevenueDto> results = salesDAO.getRevenue(date, fromTo);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (single-date)", e);
-        }
-    }
-
-    // 3️⃣ Date range
-    public void printRevenueReport(Timestamp from, Timestamp to) {
-        try {
-            List<RevenueDto> results = salesDAO.getRevenue(from, to);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (range)", e);
-        }
     }
 
     // 1️⃣ No date filter — calls DAO with both nulls
@@ -108,6 +84,31 @@ public class MonitoringSalesService {
     }
 
     // 1️⃣ No date filter — calls DAO with both nulls
+    public void printRevenueReport() {
+        printRevenueReport((Timestamp) null, (Timestamp) null);
+    }
+
+    // 2️⃣ Single date + direction (FROM or TO)
+    public void printRevenueReport(Timestamp date, FromTo fromTo) {
+        try {
+            List<RevenueDto> results = salesDAO.getRevenue(date, fromTo);
+            printResults(results);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (single-date)", e);
+        }
+    }
+
+    // 3️⃣ Date range
+    public void printRevenueReport(Timestamp from, Timestamp to) {
+        try {
+            List<RevenueDto> results = salesDAO.getRevenue(from, to);
+            printResults(results);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (range)", e);
+        }
+    }
+
+    // 1️⃣ No date filter — calls DAO with both nulls
     public void printTop10SellingItemsReport() {
         printTop10SellingItemsReport((Timestamp) null, (Timestamp) null);
     }
@@ -144,38 +145,39 @@ public class MonitoringSalesService {
         }
     }
     // TEST
-    //    public static void main(String[] args) throws IOException, SQLException {
-    //        AbstractMigratorFactory factory =
-    //                AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+    // public static void main(String[] args) throws IOException, SQLException {
+    // AbstractMigratorFactory factory =
+    // AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
     //
-    //        // initialize schema
-    //        Migrator migrator = factory.getMigrator();
-    //        migrator.migrate();
+    // // initialize schema
+    // Migrator migrator = factory.getMigrator();
+    // migrator.migrate();
     //
-    //        // initialize seeder
-    //        SqliteSeeder seeder = new SqliteSeeder();
-    //        seeder.seed();
+    // // initialize seeder
+    // SqliteSeeder seeder = new SqliteSeeder();
+    // seeder.seed();
     //
-    //        MonitoringSalesService service = new MonitoringSalesService(new SqliteSalesDao());
-    //        // sample timestamp values
-    //        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
-    //        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+    // MonitoringSalesService service = new MonitoringSalesService(new
+    // SqliteSalesDao());
+    // // sample timestamp values
+    // Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
+    // Timestamp to = Timestamp.valueOf(LocalDateTime.now());
     //
-    //        System.out.println("REVENUE - FROM 10/14 TO 10/21");
-    //        service.printRevenueReport(from, to);
-    //        System.out.println("\n");
+    // System.out.println("REVENUE - FROM 10/14 TO 10/21");
+    // service.printRevenueReport(from, to);
+    // System.out.println("\n");
     //
-    //        System.out.println("EXPENSES - FROM 10/14 TO 10/21");
-    //        service.printExpensesReport(from, to);
-    //        System.out.println("\n");
+    // System.out.println("EXPENSES - FROM 10/14 TO 10/21");
+    // service.printExpensesReport(from, to);
+    // System.out.println("\n");
     //
-    //        System.out.println("PROFIT - FROM 10/14 TO 10/21");
-    //        service.printProfitReport(from, to);
-    //        System.out.println("\n");
+    // System.out.println("PROFIT - FROM 10/14 TO 10/21");
+    // service.printProfitReport(from, to);
+    // System.out.println("\n");
     //
-    //        System.out.println("TOP 10 SELLING ITEMS");
-    //        service.printTop10SellingItemsReport(from, to);
+    // System.out.println("TOP 10 SELLING ITEMS");
+    // service.printTop10SellingItemsReport(from, to);
     //
-    //        Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
-    //    }
+    // Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
+    // }
 }

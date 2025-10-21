@@ -7,16 +7,17 @@
 */
 package com.github.ragudos.kompeter.monitoring.service;
 
-import com.github.ragudos.kompeter.database.dto.enums.FromTo;
-import com.github.ragudos.kompeter.database.dto.monitoring.InventoryCountDto;
-import com.github.ragudos.kompeter.database.dto.monitoring.InventoryValueDto;
-import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteInventoryDao;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.github.ragudos.kompeter.database.dto.enums.FromTo;
+import com.github.ragudos.kompeter.database.dto.monitoring.InventoryCountDto;
+import com.github.ragudos.kompeter.database.dto.monitoring.InventoryValueDto;
+import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteInventoryDao;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public class MonitoringInventoryService {
 
@@ -89,28 +90,28 @@ public class MonitoringInventoryService {
         }
     }
     // TEST
-    //    public static void main(String[] args) throws IOException, SQLException {
-    //        AbstractMigratorFactory factory =
-    //                AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+    // public static void main(String[] args) throws IOException, SQLException {
+    // AbstractMigratorFactory factory =
+    // AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
     //
-    //        // initialize schema
-    //        Migrator migrator = factory.getMigrator();
-    //        migrator.migrate();
+    // // initialize schema
+    // Migrator migrator = factory.getMigrator();
+    // migrator.migrate();
     //
-    //        // initialize seeder
-    //        SqliteSeeder seeder = new SqliteSeeder();
-    //        seeder.seed();
+    // // initialize seeder
+    // SqliteSeeder seeder = new SqliteSeeder();
+    // seeder.seed();
     //
-    //        MonitoringInventoryService service = new MonitoringInventoryService(new
+    // MonitoringInventoryService service = new MonitoringInventoryService(new
     // SqliteInventoryDao());
     //
-    //        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(14));
-    //        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+    // Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(14));
+    // Timestamp to = Timestamp.valueOf(LocalDateTime.now());
     //
-    //        service.printInventoryCountReport(from, to);
-    //        System.out.println("\n");
-    //        service.printInventoryValueReport(from, to);
+    // service.printInventoryCountReport(from, to);
+    // System.out.println("\n");
+    // service.printInventoryValueReport(from, to);
     //
-    //        Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
-    //    }
+    // Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
+    // }
 }

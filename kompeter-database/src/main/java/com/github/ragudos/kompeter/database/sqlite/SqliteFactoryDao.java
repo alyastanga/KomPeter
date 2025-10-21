@@ -7,10 +7,19 @@
 */
 package com.github.ragudos.kompeter.database.sqlite;
 
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.logging.Logger;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemRestockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
@@ -32,6 +41,7 @@ import com.github.ragudos.kompeter.database.dao.user.UserRoleDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemBrandDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryAssignmentDao;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemCategoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemRestockDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteItemStockDao;
@@ -54,27 +64,15 @@ import com.github.ragudos.kompeter.utilities.constants.Directories;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 
 public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
-    private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
-    private static SqliteFactoryDao instance = null;
-
-    public static final String MAIN_DB_FILE_NAME =
-            Directories.SQLITE_DIRECTORY + File.separator + "main-" + Metadata.APP_ENV + ".db";
     public static final String DB_URL = "jdbc:sqlite:/" + MAIN_DB_FILE_NAME;
+    public static final String MAIN_DB_FILE_NAME = Directories.SQLITE_DIRECTORY + File.separator + "main-"
+            + Metadata.APP_ENV + ".db";
 
-    private SqliteFactoryDao() {
-        super();
+    private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
 
-        FileUtils.createDirectoryIfNotExists(Directories.SQLITE_DIRECTORY);
-        FileUtils.createFileIfNotExists(MAIN_DB_FILE_NAME);
-    }
+    private static SqliteFactoryDao instance = null;
 
     public static synchronized @NotNull SqliteFactoryDao getInstance() {
         if (instance == null) {
@@ -84,20 +82,11 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
         return instance;
     }
 
-    @Override
-    protected @NotNull Connection createConnection() throws SQLException {
-        try {
-            Class.forName("java.sql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("SQLite JDBC Driver not found", e);
-        }
+    private SqliteFactoryDao() {
+        super();
 
-        return DriverManager.getConnection(DB_URL);
-    }
-
-    @Override
-    public @NotNull UserMetadataDao getUserMetadataDao() {
-        return new SqliteUserMetadataDao();
+        FileUtils.createDirectoryIfNotExists(Directories.SQLITE_DIRECTORY);
+        FileUtils.createFileIfNotExists(MAIN_DB_FILE_NAME);
     }
 
     @Override
@@ -106,18 +95,8 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     }
 
     @Override
-    public @NotNull UserDao getUserDao() {
-        return new SqliteUserDao();
-    }
-
-    @Override
-    public @NotNull UserRoleDao getUserRoleDao() {
-        return new SqliteUserRoleDao();
-    }
-
-    @Override
-    public @NotNull SessionDao getSessionDao() {
-        return new SqliteSessionDao();
+    public @NotNull InventoryDao getInventoryDao() {
+        return new SqliteInventoryDao();
     }
 
     @Override
@@ -128,6 +107,11 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public @NotNull ItemCategoryAssignmentDao getItemCategoryAssignmentDao() {
         return new SqliteItemCategoryAssignmentDao();
+    }
+
+    @Override
+    public @NotNull ItemCategoryDao getItemCategoryDao() {
+        return new SqliteItemCategoryDao();
     }
 
     @Override
@@ -143,6 +127,11 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public @NotNull ItemStockDao getItemStockDao() {
         return new SqliteItemStockDao();
+    }
+
+    @Override
+    public ItemStockStorageLocationDao getItemStockStorageLocationDao() {
+        return new SqliteItemStockStorageLocationDao();
     }
 
     @Override
@@ -181,13 +170,8 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     }
 
     @Override
-    public @NotNull SupplierDao getSupplierDao() {
-        return new SqliteSupplierDao();
-    }
-
-    @Override
-    public @NotNull InventoryDao getInventoryDao() {
-        return new SqliteInventoryDao();
+    public @NotNull SessionDao getSessionDao() {
+        return new SqliteSessionDao();
     }
 
     @Override
@@ -196,7 +180,33 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     }
 
     @Override
-    public ItemStockStorageLocationDao getItemStockStorageLocationDao() {
-        return new SqliteItemStockStorageLocationDao();
+    public @NotNull SupplierDao getSupplierDao() {
+        return new SqliteSupplierDao();
+    }
+
+    @Override
+    public @NotNull UserDao getUserDao() {
+        return new SqliteUserDao();
+    }
+
+    @Override
+    public @NotNull UserMetadataDao getUserMetadataDao() {
+        return new SqliteUserMetadataDao();
+    }
+
+    @Override
+    public @NotNull UserRoleDao getUserRoleDao() {
+        return new SqliteUserRoleDao();
+    }
+
+    @Override
+    protected @NotNull Connection createConnection() throws SQLException {
+        try {
+            Class.forName("java.sql.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("SQLite JDBC Driver not found", e);
+        }
+
+        return DriverManager.getConnection(DB_URL);
     }
 }

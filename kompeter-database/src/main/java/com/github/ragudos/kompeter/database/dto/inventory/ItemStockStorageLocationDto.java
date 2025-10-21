@@ -8,10 +8,12 @@
 package com.github.ragudos.kompeter.database.dto.inventory;
 
 import java.sql.Timestamp;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Peter M. Dela Cruz
  */
-public record ItemStockStorageLocationDto(
-        int _itemStockStorageLoc, int _itemStockId, @NotNull Timestamp created_at, int quantity) {}
+public record ItemStockStorageLocationDto(int _itemStockStorageLoc, int _itemStockId, int storageLocId,
+        @NotNull Timestamp created_at, int quantity) {
+}

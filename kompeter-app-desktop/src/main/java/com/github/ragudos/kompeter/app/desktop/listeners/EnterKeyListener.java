@@ -11,11 +11,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public final class EnterKeyListener extends KeyAdapter {
-    @FunctionalInterface
-    public interface EnterKeyCallback {
-        public void onPress(KeyEvent e);
-    }
-
     private EnterKeyCallback fn;
 
     public EnterKeyListener(EnterKeyCallback fn) {
@@ -27,5 +22,10 @@ public final class EnterKeyListener extends KeyAdapter {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             fn.onPress(e);
         }
+    }
+
+    @FunctionalInterface
+    public interface EnterKeyCallback {
+        void onPress(KeyEvent e);
     }
 }

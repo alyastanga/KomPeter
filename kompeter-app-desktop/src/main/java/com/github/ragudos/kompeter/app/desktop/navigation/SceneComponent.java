@@ -8,16 +8,19 @@
 package com.github.ragudos.kompeter.app.desktop.navigation;
 
 import javax.swing.JPanel;
+
 import org.jetbrains.annotations.NotNull;
 
 public interface SceneComponent {
+    void destroy();
+
     void initialize();
 
-    void destroy();
+    default boolean isBusy() {
+        return false;
+    }
 
     boolean isInitialized();
 
     @NotNull JPanel view();
-
-    default void backgroundTask() {}
 }
