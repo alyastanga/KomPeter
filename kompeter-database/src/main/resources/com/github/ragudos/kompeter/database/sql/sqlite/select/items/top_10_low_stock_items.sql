@@ -28,4 +28,5 @@ WHERE
         OR (ic.name = 'Laptops' AND COALESCE(ts.total_quantity, 0) <= 10)
         OR (ic.name = 'Peripherals' AND COALESCE(ts.total_quantity, 0) <= 15)
     )
-ORDER BY total_quantity ASC, i.name ASC;
+ORDER BY total_quantity ASC, i.name ASC
+LIMIT 10;

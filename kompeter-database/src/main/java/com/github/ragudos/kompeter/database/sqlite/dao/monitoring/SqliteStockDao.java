@@ -10,6 +10,7 @@ package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.dao.DateUtils;
 import com.github.ragudos.kompeter.database.dao.monitoring.StockDao;
+import com.github.ragudos.kompeter.database.dto.enums.FromTo;
 import com.github.ragudos.kompeter.database.dto.monitoring.OnHandUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.PurchaseUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.SalesUnitDto;
@@ -17,7 +18,6 @@ import com.github.ragudos.kompeter.database.dto.monitoring.Top10LowStockItemsDto
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10OldItemsDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -33,12 +33,16 @@ import java.util.List;
 public class SqliteStockDao implements StockDao {
     @Override
     public List<PurchaseUnitDto> getPurchaseUnit() throws SQLException {
-        return getPurchaseUnit(null, null);
+        return getPurchaseUnit((Timestamp) null, (Timestamp) null);
     }
 
     @Override
-    public List<PurchaseUnitDto> getPurchaseUnit(Timestamp from) throws SQLException {
-        return getPurchaseUnit(from, null);
+    public List<PurchaseUnitDto> getPurchaseUnit(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getPurchaseUnit(date, (Timestamp) null);
+        } else {
+            return getPurchaseUnit((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -46,12 +50,19 @@ public class SqliteStockDao implements StockDao {
         List<PurchaseUnitDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null
+                && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "purchase_unit_all";
-        } else if (to == null) {
+        } else if (to == null
+                && from
+                        != null) { // if from is not null, put it in sql, if to is null, to is 'now' date in sql
+            sqlFileName = "purchase_unit_from";
+        } else if (from == null
+                && to
+                        != null) { // if from is null, from is the latest date, if to is not null, put it in sql
             sqlFileName = "purchase_unit_to";
         } else {
-            sqlFileName = "purchase_unit_range";
+            sqlFileName = "purchase_unit_range"; // if both not null, put both in sql
         }
 
         String query;
@@ -84,7 +95,7 @@ public class SqliteStockDao implements StockDao {
                                     DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getInt("total_purchase_unit"),
                                     rs.getInt("cumulative_purchased_units"));
-                    results.add(KompeterLogger.log(dto));
+                    results.add(dto);
                 }
             }
         }
@@ -94,12 +105,16 @@ public class SqliteStockDao implements StockDao {
 
     @Override
     public List<SalesUnitDto> getSalesUnit() throws SQLException {
-        return getSalesUnit(null, null);
+        return getSalesUnit((Timestamp) null, (Timestamp) null);
     }
 
     @Override
-    public List<SalesUnitDto> getSalesUnit(Timestamp from) throws SQLException {
-        return getSalesUnit(from, null);
+    public List<SalesUnitDto> getSalesUnit(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getSalesUnit(date, (Timestamp) null);
+        } else {
+            return getSalesUnit((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -107,12 +122,19 @@ public class SqliteStockDao implements StockDao {
         List<SalesUnitDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null
+                && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "sales_unit_all";
-        } else if (to == null) {
+        } else if (to == null
+                && from
+                        != null) { // if from is not null, put it in sql, if to is null, to is 'now' date in sql
+            sqlFileName = "sales_unit_from";
+        } else if (from == null
+                && to
+                        != null) { // if from is null, from is the latest date, if to is not null, put it in sql
             sqlFileName = "sales_unit_to";
         } else {
-            sqlFileName = "sales_unit_range";
+            sqlFileName = "sales_unit_range"; // if both not null, put both in sql
         }
 
         String query;
@@ -145,7 +167,7 @@ public class SqliteStockDao implements StockDao {
                                     DateUtils.safeGetTimestamp(rs, "date"),
                                     rs.getInt("total_sales_unit"),
                                     rs.getInt("cumulative_sales_units"));
-                    results.add(KompeterLogger.log(dto));
+                    results.add(dto);
                 }
             }
         }
@@ -155,12 +177,16 @@ public class SqliteStockDao implements StockDao {
 
     @Override
     public List<OnHandUnitDto> getOnHandUnit() throws SQLException {
-        return getOnHandUnit(null, null);
+        return getOnHandUnit((Timestamp) null, (Timestamp) null);
     }
 
     @Override
-    public List<OnHandUnitDto> getOnHandUnit(Timestamp from) throws SQLException {
-        return getOnHandUnit(from, null);
+    public List<OnHandUnitDto> getOnHandUnit(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getOnHandUnit(date, (Timestamp) null);
+        } else {
+            return getOnHandUnit((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -168,12 +194,19 @@ public class SqliteStockDao implements StockDao {
         List<OnHandUnitDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null
+                && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "onhand_unit_all";
-        } else if (to == null) {
+        } else if (to == null
+                && from
+                        != null) { // if from is not null, put it in sql, if to is null, to is 'now' date in sql
+            sqlFileName = "onhand_unit_from";
+        } else if (from == null
+                && to
+                        != null) { // if from is null, from is the latest date, if to is not null, put it in sql
             sqlFileName = "onhand_unit_to";
         } else {
-            sqlFileName = "onhand_unit_range";
+            sqlFileName = "onhand_unit_range"; // if both not null, put both in sql
         }
 
         String query;
@@ -207,7 +240,7 @@ public class SqliteStockDao implements StockDao {
                                     rs.getInt("total_purchased"),
                                     rs.getInt("total_sold"),
                                     rs.getInt("total_on_hand"));
-                    results.add(KompeterLogger.log(dto));
+                    results.add(dto);
                 }
             }
         }
@@ -216,10 +249,10 @@ public class SqliteStockDao implements StockDao {
     }
 
     @Override
-    public List<Top10LowStockItemsDto> getLowStockItems() throws SQLException {
+    public List<Top10LowStockItemsDto> getTop10LowStockItems() throws SQLException {
         List<Top10LowStockItemsDto> results = new ArrayList<>();
 
-        String sqlFileName = "low_stock_items";
+        String sqlFileName = "top_10_low_stock_items";
         String query;
         try {
             query =
@@ -243,7 +276,7 @@ public class SqliteStockDao implements StockDao {
                                     rs.getString("brand_name"),
                                     rs.getString("category_name"),
                                     rs.getInt("quantity"));
-                    results.add(KompeterLogger.log(dto));
+                    results.add(dto);
                 }
             }
         }
@@ -252,10 +285,10 @@ public class SqliteStockDao implements StockDao {
     }
 
     @Override
-    public List<Top10OldItemsDto> getOldItems() throws SQLException {
+    public List<Top10OldItemsDto> getTop10OldItems() throws SQLException {
         List<Top10OldItemsDto> results = new ArrayList<>();
 
-        String sqlFileName = "low_stock_items";
+        String sqlFileName = "top_10_old_items";
         String query;
         try {
             query =
@@ -278,10 +311,10 @@ public class SqliteStockDao implements StockDao {
                                     rs.getString("item_name"),
                                     rs.getString("brand_name"),
                                     rs.getString("category_name"),
-                                    rs.getInt("current_quantity"),
-                                    rs.getTimestamp("stocked_date"),
+                                    rs.getInt("total_quantity"),
+                                    DateUtils.safeGetTimestamp(rs, "stocked_date"),
                                     rs.getInt("days_in_stock"));
-                    results.add(KompeterLogger.log(dto));
+                    results.add(dto);
                 }
             }
         }

@@ -16,7 +16,7 @@ public record Top10OldItemsDto(
         String itemName,
         String brandName,
         String categoryName,
-        int currentQuantity,
+        int totalQuantity,
         Timestamp stockedDate,
         int daysInStock) {
 
@@ -29,8 +29,8 @@ public record Top10OldItemsDto(
                 + brandName
                 + ", categoryName="
                 + categoryName
-                + ", currentQuantity="
-                + currentQuantity
+                + ", totalQuantity="
+                + totalQuantity
                 + ", stockedDate="
                 + stockedDate
                 + ", daysInStock="

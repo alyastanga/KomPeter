@@ -9,7 +9,7 @@ WITH RECURSIVE calendar(date) AS (
     UNION ALL
     SELECT DATE(date, '+1 day')
     FROM calendar
-    WHERE date < DATE('now')                -- end date
+    WHERE date < DATE(?)                -- end date
 ),
 daily_purchases AS (
     SELECT 
