@@ -7,80 +7,73 @@
 */
 package com.github.ragudos.kompeter.pointofsale;
 
-import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
-import com.github.ragudos.kompeter.pointofsale.observers.CartObserver;
-import com.github.ragudos.kompeter.pointofsale.observers.Observable;
-import java.sql.SQLException;
+import com.github.ragudos.kompeter.utilities.observer.Observer;
+
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
-public class Cart {
-    SaleDao saleDao;
-    ArrayList<CartItem> items = new ArrayList<>();
-    Observable<Cart> observable = new Observable<>();
+public class Cart implements Observer<Void> {
+    private ArrayList<CartItem> items = new ArrayList<>();
 
-    Cart(SaleDao saleDao) {
-        this.saleDao = saleDao;
-    }
-
-    public void addObserver(CartObserver<Cart> ob) {
-        observable.addObserver(ob);
-    }
-
-    public void removeObserver(CartObserver<Cart> ob) {
-        observable.removeObserver(ob);
-    }
-
-    public void notifyChange(String eventType) {
-        observable.notifyObserver(eventType, this);
-    }
+    private ArrayList<Consumer<Void>> subscribers = new ArrayList<>();
 
     public void addItem(CartItem item) {
         for (int i = 0; i < items.size(); i++) {
             CartItem exist = items.get(i);
-            if (exist.productID() == item.productID()) {
+            if (exist._itemStockId() == item._itemStockId()) {
                 int newQty = exist.qty() + item.qty();
-                items.set(i, new CartItem(exist.productID(), exist.productName(), newQty, exist.price()));
-                notifyChange("ITEM_ADDED");
+                items.set(i, new CartItem(exist._itemStockId(), exist.productName(), exist.category(), exist.brand(),
+                        newQty, exist.price()));
+
+                notifySubscribers(null);
+
                 return;
             }
         }
+
         items.add(item);
-        notifyChange("ITEM_ADDED");
-    } //// Connect to database//// Connect to database
+        notifySubscribers(null);
+    }
 
     public void decItem(CartItem item) {
         for (int i = 0; i < items.size(); i++) {
             CartItem exist = items.get(i);
-            if (exist.productID() == item.productID()) {
+
+            if (exist._itemStockId() == item._itemStockId()) {
                 int newQty = exist.qty() - item.qty();
 
                 if (newQty > 0) {
-                    items.set(i, new CartItem(exist.productID(), exist.productName(), newQty, exist.price()));
-                    notifyChange("ITEM_REMOVED");
+                    items.set(i,
+                            new CartItem(exist._itemStockId(), exist.productName(), exist.category(), exist.brand(),
+                                    newQty, exist.price()));
                 } else {
                     items.remove(i);
-                    notifyChange("ITEM_REMOVED");
                 }
+                notifySubscribers(null);
+
                 break;
             }
         }
     }
 
-    public void removeItem(int productID) {
+    public void removeItem(int _itemStockId) {
         for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).productID() == productID) {
+            if (items.get(i)._itemStockId() == _itemStockId) {
                 items.remove(i);
-                notifyChange("ITEM_REMOVED");
+                notifySubscribers(null);
+
                 break;
             }
         }
     }
 
-    public double getCartTotal() {
+    public double totalPrice() {
         double sum = 0;
+
         for (int i = 0; i < items.size(); i++) {
             sum += items.get(i).getTotalPrice();
         }
+
         return sum;
     }
 
@@ -88,19 +81,18 @@ public class Cart {
         return items;
     }
 
-    public double checkOut() throws SQLException {
-        if (items.isEmpty()) {
-            System.out.println("Cart is empty. Cannot checkout");
-        } else {
-            Transaction trans = new Transaction(this, saleDao);
-            System.out.println("Transaction saving to database....");
-            trans.saveToDatabase();
-            System.out.println("Transaction has Succesfully been saved!");
+    @Override
+    public void notifySubscribers(Void value) {
+        subscribers.forEach((cb) -> cb.accept(value));
+    }
 
-            items.clear();
-            notifyChange("CART_CLEARED");
-            System.out.println("Cart has been cleared");
-        }
-        return 0;
+    @Override
+    public void subscribe(Consumer<Void> subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    @Override
+    public void unsubscribe(Consumer<Void> subscriber) {
+        subscribers.remove(subscriber);
     }
 }

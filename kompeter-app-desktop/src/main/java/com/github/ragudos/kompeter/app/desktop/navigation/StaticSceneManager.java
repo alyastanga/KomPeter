@@ -108,8 +108,7 @@ public class StaticSceneManager implements SceneManager {
         sceneEntriesCache.remove(name);
 
         LOGGER.info("Scene unregistered: " + name);
-    }
-    ;
+    };
 
     @Override
     public synchronized void destroy() {
@@ -128,8 +127,7 @@ public class StaticSceneManager implements SceneManager {
         view.removeAll();
 
         LOGGER.info("Scene manager destroyed.");
-    }
-    ;
+    };
 
     @Override
     public synchronized void destroyScene(@NotNull Scene scene) {
@@ -155,32 +153,27 @@ public class StaticSceneManager implements SceneManager {
         cardLayout.removeLayoutComponent(sceneView);
         view.remove(sceneView);
         scene.onDestroy();
-    }
-    ;
+    };
 
     @Override
     public @NotNull Scene currentScene() {
         return sceneCache.get(currentSceneName);
-    }
-    ;
+    };
 
     @Override
     public @NotNull String currentSceneName() {
         return currentSceneName;
-    }
-    ;
+    };
 
     @Override
     public @NotNull JPanel view() {
         return view;
-    }
-    ;
+    };
 
     @Override
     public @NotNull Scene scene(@NotNull final String name) {
         return sceneCache.get(name);
-    }
-    ;
+    };
 
     @Override
     public synchronized boolean navigateTo(@NotNull final ParsedSceneName parsedSceneName) {
@@ -244,7 +237,10 @@ public class StaticSceneManager implements SceneManager {
         if (!iterator.hasNext()) {
             if (currentScene.supportsSubScenes()) {
                 SceneWithSubScenes scene = (SceneWithSubScenes) currentScene.self();
-                parsedSceneName.appendToFullPath(scene.getDefaultScene());
+                String currentSceneName = scene.sceneManager().currentSceneName();
+                parsedSceneName.appendToFullPath(
+                        currentSceneName == null || currentSceneName.isEmpty() ? scene.getDefaultScene()
+                                : currentSceneName);
             }
         }
 
@@ -257,6 +253,5 @@ public class StaticSceneManager implements SceneManager {
                                 .thisFullPath()
                                 .substring(parsedSceneName.thisFullPath().indexOf(ParsedSceneName.SEPARATOR) + 1),
                         parsedSceneName));
-    }
-    ;
+    };
 }

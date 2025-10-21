@@ -8,21 +8,44 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.sales;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 public class SqliteSaleDao implements SaleDao {
+    @Override
+    public int createSale(@NotNull Connection conn, @NotNull Timestamp saleDate, @NotNull String saleCode,
+            BigDecimal vatPercent)
+            throws SQLException, IOException {
+        try (PreparedStatement stmnt = conn.prepareStatement(
+                SqliteQueryLoader.getInstance().get("create_sale", "sales", SqlQueryType.INSERT),
+                Statement.RETURN_GENERATED_KEYS)) {
+            stmnt.setTimestamp(1, saleDate);
+            stmnt.setString(2, saleCode);
+            stmnt.setBigDecimal(3, vatPercent);
+
+            stmnt.executeUpdate();
+
+            ResultSet rs = stmnt.getGeneratedKeys();
+
+            return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
 
     @Override
     public int saveTransaction(SaleDto sale) throws SQLException {
@@ -32,9 +55,8 @@ public class SqliteSaleDao implements SaleDao {
         String query;
 
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.INSERT);
+            query = SqliteQueryLoader.getInstance()
+                    .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.INSERT);
         } catch (IOException e) {
             throw new SQLException("Error loading SQL file", e);
         }
@@ -70,9 +92,8 @@ public class SqliteSaleDao implements SaleDao {
         String query;
 
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query = SqliteQueryLoader.getInstance()
+                    .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Error loading SQL file", e);
         }
@@ -93,9 +114,8 @@ public class SqliteSaleDao implements SaleDao {
         String query;
 
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query = SqliteQueryLoader.getInstance()
+                    .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Error loading SQL file", e);
         }
@@ -107,16 +127,15 @@ public class SqliteSaleDao implements SaleDao {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    saleDto =
-                            new SaleDto(
-                                    rs.getInt("_sale_id"),
-                                    rs.getTimestamp("_created_at"),
-                                    rs.getTimestamp("sale_date"),
-                                    rs.getString("sale_code"),
-                                    rs.getString("customer_name"),
-                                    rs.getBigDecimal("vat_percent"),
-                                    rs.getBigDecimal("discount_value"),
-                                    DiscountType.valueOf(rs.getString("discount_type").toUpperCase()));
+                    saleDto = new SaleDto(
+                            rs.getInt("_sale_id"),
+                            rs.getTimestamp("_created_at"),
+                            rs.getTimestamp("sale_date"),
+                            rs.getString("sale_code"),
+                            rs.getString("customer_name"),
+                            rs.getBigDecimal("vat_percent"),
+                            rs.getBigDecimal("discount_value"),
+                            DiscountType.valueOf(rs.getString("discount_type").toUpperCase()));
                 }
             }
         }
@@ -130,9 +149,8 @@ public class SqliteSaleDao implements SaleDao {
         String query;
 
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query = SqliteQueryLoader.getInstance()
+                    .get(sqlFileName, "sales", AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Error loading SQL file", e);
         }

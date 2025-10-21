@@ -19,14 +19,18 @@ import com.github.ragudos.kompeter.app.desktop.navigation.Scene;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.ProductList;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.SearchData;
 import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.ShopHeader;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.dialog.AddToCartDialog.UpdatePayload;
+import com.github.ragudos.kompeter.pointofsale.Cart;
+import com.github.ragudos.kompeter.pointofsale.CartItem;
 
 import net.miginfocom.swing.MigLayout;
 
 public final class ShopScene implements Scene {
     public static final String SCENE_NAME = "shop";
 
-    private final ProductList productList = new ProductList();
+    private final ProductList productList = new ProductList(new AddToCartConsumer());
     private final ShopHeader shopHeader = new ShopHeader();
+    private final Cart cart = new Cart();
     private final Consumer<SearchData> shopHeaderSubscriber = new Consumer<SearchData>() {
         public void accept(SearchData arg0) {
             productList.searchItems(arg0);
@@ -35,6 +39,12 @@ public final class ShopScene implements Scene {
 
     private final JPanel view = new JPanel(new MigLayout("insets 0, fill, flowy", "[grow, fill, center]",
             "[top, grow 0, shrink][grow, fill, center]"));
+
+    private final Consumer<Void> cartSubscriber = new Consumer<Void>() {
+        public void accept(Void arg0) {
+            shopHeader.changeCartQty(cart.getAllItems().size());
+        };
+    };
 
     public ShopScene() {
         onCreate();
@@ -63,12 +73,16 @@ public final class ShopScene implements Scene {
         view.add(shopHeader.view(), "growx");
         view.add(productList.view(), "grow");
 
+        cart.subscribe(cartSubscriber);
+
         shopHeader.initialize();
         productList.initialize();
     }
 
     @Override
     public void onDestroy() {
+        cart.unsubscribe(cartSubscriber);
+
         shopHeader.destroy();
         productList.destroy();
     }
@@ -86,5 +100,12 @@ public final class ShopScene implements Scene {
     @Override
     public @NotNull JPanel view() {
         return view;
+    }
+
+    private class AddToCartConsumer implements Consumer<UpdatePayload> {
+        public void accept(UpdatePayload payload) {
+            cart.addItem(new CartItem(payload._itemStockId(), payload.itemName(), payload.itemCategory(),
+                    payload.itemBrand(), payload.quantity(), payload.price()));
+        };
     }
 }

@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -19,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
@@ -32,35 +34,21 @@ import org.jetbrains.annotations.NotNull;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetManager;
+import com.github.ragudos.kompeter.app.desktop.components.buttons.BadgeButton;
 import com.github.ragudos.kompeter.app.desktop.components.factory.TextFieldFactory;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
-import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemBrandOption;
-import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemCategoryOption;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
-import com.github.ragudos.kompeter.inventory.InventoryException;
-import com.github.ragudos.kompeter.inventory.ItemService;
+import com.github.ragudos.kompeter.app.desktop.navigation.SceneNavigator;
+import com.github.ragudos.kompeter.app.desktop.scenes.SceneNames;
+import com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components.dialog.FilterDialog;
 import com.github.ragudos.kompeter.utilities.Debouncer;
 import com.github.ragudos.kompeter.utilities.observer.Observer;
 
 import net.miginfocom.swing.MigLayout;
 
 public final class ShopHeader implements SceneComponent, Observer<SearchData> {
-    private final JComboBox<ComboBoxItemBrandOption> brandComboBox = new JComboBox<>();
-    private final JButton cartButton = new JButton(
+    private final BadgeButton cartButton = new BadgeButton(
             AssetManager.getOrLoadIcon("shopping-cart.svg", 0.75f, "foreground.primary"));
     private final ActionListener cartButtonListener = new CartActionListener();
-
-    private final JComboBox<ComboBoxItemCategoryOption> categoryComboBox = new JComboBox<>();
-    private final ItemListener comboBoxItemListener = new ItemListener() {
-        public void itemStateChanged(java.awt.event.ItemEvent e) {
-            if (e.getStateChange() != ItemEvent.SELECTED) {
-                return;
-            }
-
-            onSearch();
-        };
-    };
 
     private final Debouncer debouncer = new Debouncer(250);
 
@@ -76,18 +64,28 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
     private final ArrayList<Consumer<SearchData>> subscribers = new ArrayList<>();
 
     private final JPanel view = new JPanel(
-            new MigLayout("flowx, insets 3, gapx 9px", "[grow, fill][][]push[]", "[grow, fill]"));
+            new MigLayout("flowx, insets 3 9 3 9, gapx 9px", "[grow 50, shrink 25]9px[]48px[]", "[grow, fill]"));
+
+    private final FilterDialog filterDialog = new FilterDialog(SwingUtilities.getWindowAncestor(view), this::onSearch);
+    private final JButton filterButton = new JButton(
+            AssetManager.getOrLoadIcon("filter.svg", 0.75f, "foreground.background"));
+    private final FilterActionListener filterButtonListener = new FilterActionListener();
+
+    public void changeCartQty(int qty) {
+        cartButton.setBadgeNumber(qty);
+    }
 
     @Override
     public void destroy() {
         view.removeAll();
 
+        filterDialog.destroy();
+
         executorService.shutdown();
 
+        filterButton.removeActionListener(filterButtonListener);
         cartButton.removeActionListener(cartButtonListener);
         searchField.getDocument().removeDocumentListener(searchListener);
-        categoryComboBox.removeItemListener(comboBoxItemListener);
-        brandComboBox.removeItemListener(comboBoxItemListener);
 
         initialized.set(false);
     }
@@ -100,55 +98,15 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
 
         executorService = Executors.newSingleThreadExecutor();
 
+        filterButton.addActionListener(filterButtonListener);
+        filterDialog.initialize();
         cartButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
         cartButton.addActionListener(cartButtonListener);
-        cartButton.setMinimumSize(new Dimension(32, 32));
-        cartButton.setMaximumSize(new Dimension(32, 32));
-        cartButton.setSize(new Dimension(32, 32));
-
-        categoryComboBox.addItem(new ComboBoxItemCategoryOption(-1, "Category"));
-        brandComboBox.addItem(new ComboBoxItemBrandOption(-1, "Brand"));
-
-        categoryComboBox.setSelectedIndex(0);
-        brandComboBox.setSelectedIndex(0);
-
-        executorService.submit(() -> {
-            isBusy.set(true);
-
-            try {
-                ItemService itemService = new ItemService();
-
-                List<ItemBrandDto> itemBrands = itemService.showAllBrands();
-                List<ItemCategoryDto> itemCategories = itemService.showAllCategories();
-
-                SwingUtilities.invokeLater(() -> {
-                    itemBrands.forEach((brand) -> {
-                        brandComboBox.addItem(new ComboBoxItemBrandOption(brand._itemBrandId(), brand.name()));
-                    });
-
-                    itemCategories.forEach((category) -> {
-                        categoryComboBox
-                                .addItem(new ComboBoxItemCategoryOption(category._itemCategoryId(), category.name()));
-                    });
-                });
-            } catch (InventoryException e) {
-                SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(null,
-                            "Failed to get item categories and brands. Filtering by these criterion won't" + " work.",
-                            "Something went wrong", JOptionPane.ERROR_MESSAGE);
-                });
-            } finally {
-                isBusy.set(false);
-            }
-        });
 
         searchField.getDocument().addDocumentListener(searchListener);
-        categoryComboBox.addItemListener(comboBoxItemListener);
-        brandComboBox.addItemListener(comboBoxItemListener);
 
-        view.add(searchField, "grow");
-        view.add(categoryComboBox);
-        view.add(brandComboBox);
+        view.add(searchField, "growx");
+        view.add(filterButton);
         view.add(cartButton);
 
         initialized.set(true);
@@ -193,23 +151,31 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
 
     private void onSearch() {
         debouncer.call(() -> {
-            ComboBoxItemCategoryOption selectedCategory = (ComboBoxItemCategoryOption) categoryComboBox
-                    .getSelectedItem();
-            ComboBoxItemBrandOption selectedBrand = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
-
-            SearchData searchData = new SearchData(searchField.getText(),
-                    selectedCategory._itemCategoryId() == -1 ? "" : selectedCategory.toString(),
-                    selectedBrand._itemBrandId() == -1 ? "" : selectedBrand.toString());
+            SearchData searchData = new SearchData(searchField.getText(), filterDialog.getSelectedCategory(),
+                    filterDialog.getSelectedBrand());
 
             notifySubscribers(searchData);
         });
     }
 
+    private class FilterActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            filterDialog.setVisible(true);
+        }
+    }
+
     private class CartActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            // TODO Auto-generated method stub
+            if (cartButton.getBadgeNumber() == 0) {
+                JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(view),
+                        "There are no items in cart yet :(", "Can't show cart", JOptionPane.ERROR_MESSAGE);
 
+                return;
+            }
+
+            SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.PointOfSaleScenes.CHECKOUT_SCENE);
         }
     }
 
