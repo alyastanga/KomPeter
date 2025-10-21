@@ -36,6 +36,46 @@ import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 public class MonitoringStockService {
 
     private static final Logger LOGGER = KompeterLogger.getLogger(MonitoringInventoryService.class);
+
+    public static void main(String[] args) throws IOException, SQLException {
+        // find db file
+        AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+
+        // initialize V1 schema
+        Migrator migrator = factory.getMigrator();
+        migrator.migrate();
+
+        // initialize seeder
+        SqliteSeeder seeder = new SqliteSeeder();
+        seeder.seed();
+
+        MonitoringStockService service = new MonitoringStockService(new SqliteStockDao());
+        // sample timestamp values
+        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
+        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+
+        System.out.println("PURCHASE UNIT - FROM 10/14 TO 10/21");
+        service.printPurchaseUnitReport();
+        System.out.println("\n");
+
+        System.out.println("SALES UNIT - FROM 10/14 TO 10/21");
+        service.printSalesUnitReport();
+        System.out.println("\n");
+
+        System.out.println("ON HAND UNIT - FROM 10/14 TO 10/21");
+        service.printOnhandUnitReport();
+        System.out.println("\n");
+
+        System.out.println("TOP 10 LOW STOCK ITEMS");
+        service.printTop10LowStockItems();
+        System.out.println("\n");
+
+        System.out.println("TOP 10 OLD ITEMS");
+        service.printTop10OldItemsReport();
+
+        Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
+    }
+
     private final SqliteStockDao stockDAO;
 
     public MonitoringStockService(SqliteStockDao stockDAO) {
@@ -147,46 +187,5 @@ public class MonitoringStockService {
         for (T dto : results) {
             System.out.println(dto);
         }
-    }
-
-    public static void main(String[] args) throws IOException, SQLException {
-    // find db file
-    AbstractMigratorFactory factory =
-    AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
-    
-    // initialize V1 schema
-    Migrator migrator = factory.getMigrator();
-    migrator.migrate();
-    
-    // initialize seeder
-    SqliteSeeder seeder = new SqliteSeeder();
-    seeder.seed();
-    
-    MonitoringStockService service = new MonitoringStockService(new
-    SqliteStockDao());
-    // sample timestamp values
-    Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
-    Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-    
-    System.out.println("PURCHASE UNIT - FROM 10/14 TO 10/21");
-    service.printPurchaseUnitReport(from, to);
-    System.out.println("\n");
-    
-    System.out.println("SALES UNIT - FROM 10/14 TO 10/21");
-    service.printSalesUnitReport(from, to);
-    System.out.println("\n");
-    
-    System.out.println("ON HAND UNIT - FROM 10/14 TO 10/21");
-    service.printOnhandUnitReport(from, to);
-    System.out.println("\n");
-    
-    System.out.println("TOP 10 LOW STOCK ITEMS");
-    service.printTop10LowStockItems();
-    System.out.println("\n");
-    
-    System.out.println("TOP 10 OLD ITEMS");
-    service.printTop10OldItemsReport();
-    
-    Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
     }
 }
