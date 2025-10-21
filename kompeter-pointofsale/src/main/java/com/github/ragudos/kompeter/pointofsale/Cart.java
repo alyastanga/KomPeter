@@ -14,8 +14,17 @@ import java.util.function.Consumer;
 
 public class Cart implements Observer<Void> {
     private ArrayList<CartItem> items = new ArrayList<>();
-
     private ArrayList<Consumer<Void>> subscribers = new ArrayList<>();
+
+    private static Cart instance;
+
+    public static synchronized Cart getInstance() {
+        if (instance == null) {
+            instance = new Cart();
+        }
+
+        return instance;
+    }
 
     public void addItem(CartItem item) {
         for (int i = 0; i < items.size(); i++) {
@@ -68,13 +77,16 @@ public class Cart implements Observer<Void> {
     }
 
     public double totalPrice() {
-        double sum = 0;
+        return items.stream().mapToDouble((item) -> item.getTotalPrice()).sum();
+    }
 
-        for (int i = 0; i < items.size(); i++) {
-            sum += items.get(i).getTotalPrice();
-        }
+    public int totalQuantity() {
+        return items.stream().mapToInt((item) -> item.qty()).sum();
+    }
 
-        return sum;
+    public void destroy() {
+        items.clear();
+        subscribers.clear();
     }
 
     public ArrayList<CartItem> getAllItems() {

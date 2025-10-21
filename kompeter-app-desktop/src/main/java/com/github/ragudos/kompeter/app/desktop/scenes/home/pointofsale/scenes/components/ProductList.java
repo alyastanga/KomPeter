@@ -77,13 +77,10 @@ public class ProductList implements SceneComponent {
 
     private final JPanel view = new JPanel(new BorderLayout());
 
-    private final Consumer<UpdatePayload> addToCartConsumer;
-
     private final AddButtonListener addButtonListener = new AddButtonListener();
     private final AddToCartDialog addToCartDialog;
 
     public ProductList(Consumer<UpdatePayload> addToCartConsumer) {
-        this.addToCartConsumer = addToCartConsumer;
         this.addToCartDialog = new AddToCartDialog(SwingUtilities.getWindowAncestor(view),
                 addToCartConsumer);
     }
