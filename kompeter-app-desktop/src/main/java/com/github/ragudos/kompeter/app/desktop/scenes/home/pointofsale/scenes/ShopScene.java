@@ -30,7 +30,7 @@ public final class ShopScene implements Scene {
 
     private final ProductList productList = new ProductList(new AddToCartConsumer());
     private final ShopHeader shopHeader = new ShopHeader();
-    private final Cart cart = new Cart();
+    private final Cart cart = Cart.getInstance();
     private final Consumer<SearchData> shopHeaderSubscriber = new Consumer<SearchData>() {
         public void accept(SearchData arg0) {
             productList.searchItems(arg0);
@@ -73,27 +73,27 @@ public final class ShopScene implements Scene {
         view.add(shopHeader.view(), "growx");
         view.add(productList.view(), "grow");
 
-        cart.subscribe(cartSubscriber);
-
         shopHeader.initialize();
         productList.initialize();
     }
 
     @Override
     public void onDestroy() {
-        cart.unsubscribe(cartSubscriber);
-
         shopHeader.destroy();
         productList.destroy();
+
+        cart.destroy();
     }
 
     @Override
     public void onHide() {
+        cart.unsubscribe(cartSubscriber);
         shopHeader.unsubscribe(shopHeaderSubscriber);
     }
 
     @Override
     public void onShow() {
+        cart.subscribe(cartSubscriber);
         shopHeader.subscribe(shopHeaderSubscriber);
     }
 

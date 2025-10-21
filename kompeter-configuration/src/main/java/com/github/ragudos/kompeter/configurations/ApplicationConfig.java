@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.configurations;
 
+import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.util.logging.Logger;
 
@@ -18,7 +19,7 @@ public class ApplicationConfig {
 
         @Override
         public String getFileName() {
-            return ApplicationConfig.class.getSimpleName();
+            return ApplicationConfig.class.getSimpleName() + "-" + Metadata.APP_ENV;
         }
     }
 
@@ -29,7 +30,7 @@ public class ApplicationConfig {
 
         @Override
         public String getFileName() {
-            return ApplicationConfig.class.getSimpleName();
+            return ApplicationConfig.class.getSimpleName() + "-" + Metadata.APP_ENV;
         }
 
         @Override
