@@ -24,25 +24,27 @@ import java.util.regex.Pattern;
 /**
  * A wrapper for {@link PreparedStatement} that allows named parameters in SQL.
  *
- * <p>This is useful to have a clearer and more readable SQL query file instead of using '?'.
+ * <p>
+ * This is useful to have a clearer and more readable SQL query file instead of
+ * using '?'.
  *
- * <p>It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
+ * <p>
+ * It has the DELIMITER {@link NamedPreparedStatement.DELIMITER}
  */
 public final class NamedPreparedStatement implements AutoCloseable {
-    private final PreparedStatement prepStmt;
+    public static final char DELIMITER = ':';
+    private static final Pattern PARAM_PATTERN = Pattern.compile("[A-Za-z0-9_]+");
     private final Map<String, List<Integer>> fields = new HashMap<>();
+
     private final String parsedSql;
 
-    private static final Pattern PARAM_PATTERN = Pattern.compile("[A-Za-z0-9_]+");
-
-    public static final char DELIMITER = ':';
+    private final PreparedStatement prepStmt;
 
     public NamedPreparedStatement(final Connection conn, final String sql) throws SQLException {
         this(conn, sql, Statement.NO_GENERATED_KEYS);
     }
 
-    public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag)
-            throws SQLException {
+    public NamedPreparedStatement(final Connection conn, String sql, int autoGenerateKeysFlag) throws SQLException {
         final int SQL_QUERY_LENGTH = sql.length();
         StringBuilder parsedSqlBuilder = new StringBuilder();
         int jdbcStartingIndex = 1; // JDBC parameter index starts at 1
@@ -62,11 +64,7 @@ public final class NamedPreparedStatement implements AutoCloseable {
 
             if (!matcher.find()) {
                 throw new SQLException(
-                        "Delimiter "
-                                + DELIMITER
-                                + " has no following name. Should be "
-                                + DELIMITER
-                                + "name_something");
+                        "Delimiter " + DELIMITER + " has no following name. Should be " + DELIMITER + "name_something");
             }
 
             final int PARAM_NAME_LAST_INDEX = matcher.end();
@@ -74,9 +72,7 @@ public final class NamedPreparedStatement implements AutoCloseable {
             parsedSqlBuilder.append(sql, currentLoopIndex, DELIMITER_INDEX);
             parsedSqlBuilder.append('?');
 
-            fields
-                    .computeIfAbsent(
-                            sql.substring(DELIMITER_INDEX + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
+            fields.computeIfAbsent(sql.substring(DELIMITER_INDEX + 1, PARAM_NAME_LAST_INDEX), v -> new ArrayList<>())
                     .add(jdbcStartingIndex++);
 
             // Move to after the parameter
@@ -87,21 +83,36 @@ public final class NamedPreparedStatement implements AutoCloseable {
         prepStmt = conn.prepareStatement(parsedSql, autoGenerateKeysFlag);
     }
 
+    @Override
+    public void close() throws SQLException {
+        prepStmt.close();
+
+        fields.clear();
+    }
+
     public ResultSet executeQuery() throws SQLException {
         return prepStmt.executeQuery();
+    }
+
+    public int executeUpdate() throws SQLException {
+        return prepStmt.executeUpdate();
     }
 
     public PreparedStatement getPreparedStatement() {
         return prepStmt;
     }
 
-    public void setInt(final String name, final int value) throws SQLException {
+    public String getSql() {
+        return parsedSql;
+    }
+
+    public void setBigDecimal(final String name, final BigDecimal value) throws SQLException {
         List<Integer> positions = fields.get(name);
         if (positions == null) {
             throw new IllegalArgumentException("Parameter not found: " + name);
         }
         for (int pos : positions) {
-            prepStmt.setInt(pos, value);
+            prepStmt.setBigDecimal(pos, value);
         }
     }
 
@@ -115,13 +126,13 @@ public final class NamedPreparedStatement implements AutoCloseable {
         }
     }
 
-    public void setBigDecimal(final String name, final BigDecimal value) throws SQLException {
+    public void setInt(final String name, final int value) throws SQLException {
         List<Integer> positions = fields.get(name);
         if (positions == null) {
             throw new IllegalArgumentException("Parameter not found: " + name);
         }
         for (int pos : positions) {
-            prepStmt.setBigDecimal(pos, value);
+            prepStmt.setInt(pos, value);
         }
     }
 
@@ -143,20 +154,5 @@ public final class NamedPreparedStatement implements AutoCloseable {
         for (int pos : positions) {
             prepStmt.setTimestamp(pos, value);
         }
-    }
-
-    public int executeUpdate() throws SQLException {
-        return prepStmt.executeUpdate();
-    }
-
-    public String getSql() {
-        return parsedSql;
-    }
-
-    @Override
-    public void close() throws SQLException {
-        prepStmt.close();
-
-        fields.clear();
     }
 }

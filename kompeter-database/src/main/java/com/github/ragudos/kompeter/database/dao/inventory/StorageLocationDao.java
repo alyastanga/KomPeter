@@ -14,7 +14,7 @@ import java.sql.SQLException;
  * @author Peter M. Dela Cruz
  */
 public interface StorageLocationDao {
-    int insertStorageLocation(String name, String description) throws SQLException, IOException;
-
     int deleteStorageLocationById(int id) throws SQLException, IOException;
+
+    int insertStorageLocation(String name, String description) throws SQLException, IOException;
 }

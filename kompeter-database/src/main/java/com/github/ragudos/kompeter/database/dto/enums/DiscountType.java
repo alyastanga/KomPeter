@@ -10,8 +10,7 @@ package com.github.ragudos.kompeter.database.dto.enums;
 import org.jetbrains.annotations.NotNull;
 
 public enum DiscountType {
-    PERCENTAGE,
-    FIXED;
+    PERCENTAGE, FIXED;
 
     public static DiscountType fromString(@NotNull final String name) {
         if (name == null) {

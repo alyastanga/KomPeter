@@ -1,9 +1,9 @@
 WITH RECURSIVE calendar(date) AS (
-    SELECT DATE((SELECT MIN(sale_date) FROM sales)) -- start date, e.g. '2025-01-01'
+    SELECT DATE(?) -- start date, e.g. '2025-01-01'
     UNION ALL
     SELECT DATE(date, '+1 day')
     FROM calendar
-    WHERE date < DATE(?) -- end date, e.g. '2025-12-31'
+    WHERE date < DATE('now') -- end date, e.g. '2025-12-31'
 )
 SELECT 
     c.date,

@@ -1,9 +1,9 @@
 WITH RECURSIVE calendar(date) AS (
-  SELECT DATE((SELECT MIN(purchase_date) FROM purchases))                -- start date (bind as param 1)
+  SELECT DATE(?)                -- start date (bind as param 1)
   UNION ALL
   SELECT DATE(date, '+1 day')
   FROM calendar
-  WHERE date < DATE(?)          -- end date (bind as param 2)
+  WHERE date < DATE('now')          -- end date (bind as param 2)
 ),
 daily_purchases AS (
   SELECT 

@@ -1,11 +1,5 @@
 WITH RECURSIVE calendar(date) AS (
-    SELECT DATE(
-        COALESCE(
-            (SELECT MIN(purchase_date) FROM purchases),
-            (SELECT MIN(sale_date) FROM sales),
-            DATE('now', '-30 day')  -- fallback: last 30 days
-        )
-    ) AS date              -- start date
+    SELECT DATE(?) AS date              -- start date
     UNION ALL
     SELECT DATE(date, '+1 day')
     FROM calendar

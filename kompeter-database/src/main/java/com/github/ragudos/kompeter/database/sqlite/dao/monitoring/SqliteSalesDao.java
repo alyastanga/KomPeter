@@ -7,16 +7,6 @@
 */
 package com.github.ragudos.kompeter.database.sqlite.dao.monitoring;
 
-import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
-import com.github.ragudos.kompeter.database.dao.DateUtils;
-import com.github.ragudos.kompeter.database.dao.monitoring.SalesDao;
-import com.github.ragudos.kompeter.database.dto.monitoring.ExpensesDto;
-import com.github.ragudos.kompeter.database.dto.monitoring.ProfitDto;
-import com.github.ragudos.kompeter.database.dto.monitoring.RevenueDto;
-import com.github.ragudos.kompeter.database.dto.monitoring.TopSellingDto;
-import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
-import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,74 +16,31 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.dao.DateUtils;
+import com.github.ragudos.kompeter.database.dao.monitoring.SalesDao;
+import com.github.ragudos.kompeter.database.dto.enums.FromTo;
+import com.github.ragudos.kompeter.database.dto.monitoring.ExpensesDto;
+import com.github.ragudos.kompeter.database.dto.monitoring.ProfitDto;
+import com.github.ragudos.kompeter.database.dto.monitoring.RevenueDto;
+import com.github.ragudos.kompeter.database.dto.monitoring.Top10SellingItemsDto;
+import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
+import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
+
 public class SqliteSalesDao implements SalesDao {
 
     @Override
-    public List<RevenueDto> getRevenue() throws SQLException {
-        return getRevenue(null, null);
-    }
-
-    @Override
-    public List<RevenueDto> getRevenue(Timestamp from) throws SQLException {
-        return getRevenue(from, null);
-    }
-
-    @Override
-    public List<RevenueDto> getRevenue(Timestamp from, Timestamp to) throws SQLException {
-        List<RevenueDto> results = new ArrayList<>();
-
-        String sqlFileName;
-        if (from == null && to == null) {
-            sqlFileName = "revenue_all";
-        } else if (to == null) {
-            sqlFileName = "revenue_to";
-        } else {
-            sqlFileName = "revenue_range";
-        }
-
-        String query;
-        try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(
-                                    sqlFileName, // filename without .sql
-                                    "items", // folder name under /select/
-                                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
-        } catch (IOException e) {
-            throw new SQLException("Failed to load SQL file for inventory count", e);
-        }
-
-        try (Connection conn = SqliteFactoryDao.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            int paramIndex = 1;
-            if (from != null) {
-                stmt.setString(paramIndex++, from.toString());
-            }
-            if (to != null) {
-                stmt.setString(paramIndex, to.toString());
-            }
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    RevenueDto dto =
-                            new RevenueDto(DateUtils.safeGetTimestamp(rs, "date"), rs.getFloat("total_revenue"));
-                    results.add(KompeterLogger.log(dto));
-                }
-            }
-        }
-
-        return results;
-    }
-
-    @Override
     public List<ExpensesDto> getExpenses() throws SQLException {
-        return getExpenses(null, null);
+        return getExpenses((Timestamp) null, (Timestamp) null);
     }
 
     @Override
-    public List<ExpensesDto> getExpenses(Timestamp from) throws SQLException {
-        return getExpenses(from, null);
+    public List<ExpensesDto> getExpenses(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getExpenses(date, (Timestamp) null);
+        } else {
+            return getExpenses((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -101,22 +48,23 @@ public class SqliteSalesDao implements SalesDao {
         List<ExpensesDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "expenses_all";
-        } else if (to == null) {
+        } else if (to == null && from != null) { // if from is not null, put it in sql, if to is null, to is 'now' date
+            // in sql
+            sqlFileName = "expenses_from";
+        } else if (from == null && to != null) { // if from is null, from is the latest date, if to is not null, put it
+            // in sql
             sqlFileName = "expenses_to";
         } else {
-            sqlFileName = "expenses_range";
+            sqlFileName = "expenses_range"; // if both not null, put both in sql
         }
 
         String query;
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(
-                                    sqlFileName, // filename without .sql
-                                    "items", // folder name under /select/
-                                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query = SqliteQueryLoader.getInstance().get(sqlFileName, // filename without .sql
+                    "items", // folder name under /select/
+                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Failed to load SQL file for inventory count", e);
         }
@@ -134,9 +82,9 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    ExpensesDto dto =
-                            new ExpensesDto(DateUtils.safeGetTimestamp(rs, "date"), rs.getFloat("total_expense"));
-                    results.add(KompeterLogger.log(dto));
+                    ExpensesDto dto = new ExpensesDto(DateUtils.safeGetTimestamp(rs, "date"),
+                            rs.getFloat("total_expense"));
+                    results.add(dto);
                 }
             }
         }
@@ -146,12 +94,16 @@ public class SqliteSalesDao implements SalesDao {
 
     @Override
     public List<ProfitDto> getProfit() throws SQLException {
-        return getProfit(null, null);
+        return getProfit((Timestamp) null, (Timestamp) null);
     }
 
     @Override
-    public List<ProfitDto> getProfit(Timestamp from) throws SQLException {
-        return getProfit(from, null);
+    public List<ProfitDto> getProfit(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getProfit(date, (Timestamp) null);
+        } else {
+            return getProfit((Timestamp) null, date);
+        }
     }
 
     @Override
@@ -159,22 +111,23 @@ public class SqliteSalesDao implements SalesDao {
         List<ProfitDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
+        if (from == null && to == null) { // if both null, from is the latest date and to is the now date in sql
             sqlFileName = "profit_all";
-        } else if (to == null) {
+        } else if (to == null && from != null) { // if from is not null, put it in sql, if to is null, to is 'now' date
+            // in sql
+            sqlFileName = "profit_from";
+        } else if (from == null && to != null) { // if from is null, from is the latest date, if to is not null, put it
+            // in sql
             sqlFileName = "profit_to";
         } else {
-            sqlFileName = "profit_range";
+            sqlFileName = "profit_range"; // if both not null, put both in sql
         }
 
         String query;
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(
-                                    sqlFileName, // filename without .sql
-                                    "items", // folder name under /select/
-                                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query = SqliteQueryLoader.getInstance().get(sqlFileName, // filename without .sql
+                    "items", // folder name under /select/
+                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Failed to load SQL file for inventory count", e);
         }
@@ -192,13 +145,9 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    ProfitDto dto =
-                            new ProfitDto(
-                                    DateUtils.safeGetTimestamp(rs, "date"),
-                                    rs.getFloat("total_profit"),
-                                    rs.getFloat("total_revenue"),
-                                    rs.getFloat("total_expenses"));
-                    results.add(KompeterLogger.log(dto));
+                    ProfitDto dto = new ProfitDto(DateUtils.safeGetTimestamp(rs, "date"), rs.getFloat("total_profit"),
+                            rs.getFloat("total_revenue"), rs.getFloat("total_expense"));
+                    results.add(dto);
                 }
             }
         }
@@ -207,36 +156,41 @@ public class SqliteSalesDao implements SalesDao {
     }
 
     @Override
-    public List<TopSellingDto> getTopSellingItems() throws SQLException {
-        return getTopSellingItems(null, null);
+    public List<RevenueDto> getRevenue() throws SQLException {
+        return getRevenue((Timestamp) null, (Timestamp) null);
     }
 
     @Override
-    public List<TopSellingDto> getTopSellingItems(Timestamp from) throws SQLException {
-        return getTopSellingItems(from, null);
+    public List<RevenueDto> getRevenue(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getRevenue(date, (Timestamp) null);
+        } else {
+            return getRevenue((Timestamp) null, date);
+        }
     }
 
     @Override
-    public List<TopSellingDto> getTopSellingItems(Timestamp from, Timestamp to) throws SQLException {
-        List<TopSellingDto> results = new ArrayList<>();
+    public List<RevenueDto> getRevenue(Timestamp from, Timestamp to) throws SQLException {
+        List<RevenueDto> results = new ArrayList<>();
 
         String sqlFileName;
-        if (from == null && to == null) {
-            sqlFileName = "topsellingitems_all";
-        } else if (to == null) {
-            sqlFileName = "topsellingitems_to";
+        if (from == null && to == null) { // if both null, from is the latest date and to is the now date in sql
+            sqlFileName = "revenue_all";
+        } else if (to == null && from != null) { // if from is not null, put it in sql, if to is null, to is 'now' date
+            // in sql
+            sqlFileName = "revenue_from";
+        } else if (from == null && to != null) { // if from is null, from is the latest date, if to is not null, put it
+            // in sql
+            sqlFileName = "revenue_to";
         } else {
-            sqlFileName = "topsellingitems_range";
+            sqlFileName = "revenue_range"; // if both not null, put both in sql
         }
 
         String query;
         try {
-            query =
-                    SqliteQueryLoader.getInstance()
-                            .get(
-                                    sqlFileName, // filename without .sql
-                                    "items", // folder name under /select/
-                                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
+            query = SqliteQueryLoader.getInstance().get(sqlFileName, // filename without .sql
+                    "items", // folder name under /select/
+                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
         } catch (IOException e) {
             throw new SQLException("Failed to load SQL file for inventory count", e);
         }
@@ -254,14 +208,73 @@ public class SqliteSalesDao implements SalesDao {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    TopSellingDto dto =
-                            new TopSellingDto(
-                                    rs.getString("item_name"),
-                                    rs.getString("brand_name"),
-                                    rs.getString("category_name"),
-                                    rs.getInt("total_sold"),
-                                    rs.getFloat("total_revenue"));
-                    results.add(KompeterLogger.log(dto));
+                    RevenueDto dto = new RevenueDto(DateUtils.safeGetTimestamp(rs, "date"),
+                            rs.getFloat("total_revenue"));
+                    results.add(dto);
+                }
+            }
+        }
+
+        return results;
+    }
+
+    @Override
+    public List<Top10SellingItemsDto> getTop10SellingItems() throws SQLException {
+        return getTop10SellingItems((Timestamp) null, (Timestamp) null);
+    }
+
+    @Override
+    public List<Top10SellingItemsDto> getTop10SellingItems(Timestamp date, FromTo fromto) throws SQLException {
+        if (fromto == FromTo.FROM) {
+            return getTop10SellingItems(date, (Timestamp) null);
+        } else {
+            return getTop10SellingItems((Timestamp) null, date);
+        }
+    }
+
+    @Override
+    public List<Top10SellingItemsDto> getTop10SellingItems(Timestamp from, Timestamp to) throws SQLException {
+        List<Top10SellingItemsDto> results = new ArrayList<>();
+
+        String sqlFileName;
+        if (from == null && to == null) { // if both null, from is the latest date and to is the now date in sql
+            sqlFileName = "top_10_selling_items_all";
+        } else if (to == null && from != null) { // if from is not null, put it in sql, if to is null, to is 'now' date
+            // in sql
+            sqlFileName = "top_10_selling_items_from";
+        } else if (from == null && to != null) { // if from is null, from is the latest date, if to is not null, put it
+            // in sql
+            sqlFileName = "top_10_selling_items_to";
+        } else {
+            sqlFileName = "top_10_selling_items_range"; // if both not null, put both in sql
+        }
+
+        String query;
+        try {
+            query = SqliteQueryLoader.getInstance().get(sqlFileName, // filename without .sql
+                    "items", // folder name under /select/
+                    AbstractSqlQueryLoader.SqlQueryType.SELECT);
+        } catch (IOException e) {
+            throw new SQLException("Failed to load SQL file for inventory count", e);
+        }
+
+        try (Connection conn = SqliteFactoryDao.getInstance().getConnection();
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            int paramIndex = 1;
+            if (from != null) {
+                stmt.setString(paramIndex++, from.toString());
+            }
+            if (to != null) {
+                stmt.setString(paramIndex, to.toString());
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Top10SellingItemsDto dto = new Top10SellingItemsDto(rs.getString("item_name"),
+                            rs.getString("brand_name"), rs.getString("category_name"), rs.getInt("total_sold"),
+                            rs.getFloat("total_revenue"));
+                    results.add(dto);
                 }
             }
         }
