@@ -73,12 +73,16 @@ public final class ShopScene implements Scene {
         view.add(shopHeader.view(), "growx");
         view.add(productList.view(), "grow");
 
+        cart.subscribe(cartSubscriber);
+
         shopHeader.initialize();
         productList.initialize();
     }
 
     @Override
     public void onDestroy() {
+        cart.unsubscribe(cartSubscriber);
+
         shopHeader.destroy();
         productList.destroy();
 

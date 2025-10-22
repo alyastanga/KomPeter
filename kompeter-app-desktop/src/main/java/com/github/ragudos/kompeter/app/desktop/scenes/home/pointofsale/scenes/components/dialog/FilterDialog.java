@@ -14,20 +14,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -35,7 +31,6 @@ import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemBrandOption;
 import com.github.ragudos.kompeter.app.desktop.objects.ComboBoxItemCategoryOption;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
@@ -46,29 +41,29 @@ import com.github.ragudos.kompeter.inventory.ItemService;
 import net.miginfocom.swing.MigLayout;
 
 public final class FilterDialog extends JDialog {
-    private @NotNull final ComponentAdapter componentListener;
-
-    private @NotNull final Runnable onUpdate;
-
-    private @NotNull final Window owner;
-    private @NotNull final WindowAdapter windowListener;
-
     private @NotNull final JComboBox<ComboBoxItemBrandOption> brandComboBox;
+
     private @NotNull final JComboBox<ComboBoxItemCategoryOption> categoryComboBox;
+
+    private @NotNull final ComponentAdapter componentListener;
+    private String currentSelectedBrand = "";
+
+    private int currentSelectedBrandIndex = 0;
+    private String currentSelectedCategory = "";
+
+    private int currentSelectedCategoryIndex = 0;
 
     private ExecutorService executorService;
 
     private @NotNull final AtomicBoolean isBusy;
-
+    private @NotNull final Runnable onUpdate;
+    private @NotNull final Window owner;
     private @NotNull JButton resetBtn;
+
+    private @NotNull ActionListener resetBtnListener;
     private @NotNull JButton submitBtn;
     private @NotNull ActionListener submitBtnListener;
-    private @NotNull ActionListener resetBtnListener;
-
-    private int currentSelectedCategoryIndex = 0;
-    private int currentSelectedBrandIndex = 0;
-    private String currentSelectedCategory = "";
-    private String currentSelectedBrand = "";
+    private @NotNull final WindowAdapter windowListener;
 
     public FilterDialog(@NotNull Window owner, Runnable onUpdateCb) {
         super(owner, "Filter products", Dialog.ModalityType.APPLICATION_MODAL);
@@ -132,6 +127,32 @@ public final class FilterDialog extends JDialog {
         setLocationRelativeTo(owner);
     }
 
+    public void destroy() {
+        submitBtn.removeActionListener(submitBtnListener);
+
+        executorService.shutdownNow();
+
+        brandComboBox.removeAllItems();
+        categoryComboBox.removeAllItems();
+
+        removeWindowListener(windowListener);
+        removeComponentListener(componentListener);
+
+        dispose();
+    }
+
+    public String getSelectedBrand() {
+        ComboBoxItemBrandOption brandOption = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
+
+        return brandOption._itemBrandId() == -1 ? "" : brandOption.name();
+    }
+
+    public String getSelectedCategory() {
+        ComboBoxItemCategoryOption categoryOption = (ComboBoxItemCategoryOption) categoryComboBox.getSelectedItem();
+
+        return categoryOption._itemCategoryId() == -1 ? "" : categoryOption.name();
+    }
+
     public void initialize() {
         addWindowListener(windowListener);
         addComponentListener(componentListener);
@@ -150,55 +171,6 @@ public final class FilterDialog extends JDialog {
         resetBtn.addActionListener(resetBtnListener);
     }
 
-    public void destroy() {
-        submitBtn.removeActionListener(submitBtnListener);
-
-        executorService.shutdown();
-
-        brandComboBox.removeAllItems();
-        categoryComboBox.removeAllItems();
-
-        removeWindowListener(windowListener);
-        removeComponentListener(componentListener);
-    }
-
-    public String getSelectedCategory() {
-        ComboBoxItemCategoryOption categoryOption = (ComboBoxItemCategoryOption) categoryComboBox.getSelectedItem();
-
-        return categoryOption._itemCategoryId() == -1 ? "" : categoryOption.name();
-    }
-
-    public String getSelectedBrand() {
-        ComboBoxItemBrandOption brandOption = (ComboBoxItemBrandOption) brandComboBox.getSelectedItem();
-
-        return brandOption._itemBrandId() == -1 ? "" : brandOption.name();
-    }
-
-    private void submit() {
-        if (!currentSelectedBrand.equals(getSelectedBrand())
-                || !currentSelectedCategory.equals(getSelectedCategory())) {
-            onUpdate.run();
-
-            currentSelectedBrand = getSelectedBrand();
-            currentSelectedCategory = getSelectedCategory();
-            currentSelectedBrandIndex = brandComboBox.getSelectedIndex();
-            currentSelectedCategoryIndex = categoryComboBox.getSelectedIndex();
-        }
-
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }
-
-    private void reset() {
-        currentSelectedBrandIndex = 0;
-        currentSelectedCategoryIndex = 0;
-        categoryComboBox.setSelectedIndex(0);
-        brandComboBox.setSelectedIndex(0);
-
-        onUpdate.run();
-
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }
-
     private void populateComboBoxes() {
         isBusy.set(true);
 
@@ -215,19 +187,42 @@ public final class FilterDialog extends JDialog {
 
                 itemCategories.forEach((category) -> {
                     categoryComboBox
-                            .addItem(new ComboBoxItemCategoryOption(category._itemCategoryId(),
-                                    category.name()));
+                            .addItem(new ComboBoxItemCategoryOption(category._itemCategoryId(), category.name()));
                 });
             });
         } catch (InventoryException e) {
             SwingUtilities.invokeLater(() -> {
                 JOptionPane.showMessageDialog(this,
-                        "Failed to get item categories and brands. Filtering by these criterion won't"
-                                + " work.",
+                        "Failed to get item categories and brands. Filtering by these criterion won't" + " work.",
                         "Something went wrong", JOptionPane.ERROR_MESSAGE);
             });
         } finally {
             isBusy.set(false);
         }
+    }
+
+    private void reset() {
+        currentSelectedBrandIndex = 0;
+        currentSelectedCategoryIndex = 0;
+        categoryComboBox.setSelectedIndex(0);
+        brandComboBox.setSelectedIndex(0);
+
+        onUpdate.run();
+
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    }
+
+    private void submit() {
+        if (!currentSelectedBrand.equals(getSelectedBrand())
+                || !currentSelectedCategory.equals(getSelectedCategory())) {
+            onUpdate.run();
+
+            currentSelectedBrand = getSelectedBrand();
+            currentSelectedCategory = getSelectedCategory();
+            currentSelectedBrandIndex = brandComboBox.getSelectedIndex();
+            currentSelectedCategoryIndex = categoryComboBox.getSelectedIndex();
+        }
+
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 }

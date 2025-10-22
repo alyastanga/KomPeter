@@ -7,12 +7,13 @@
 */
 package com.github.ragudos.kompeter.inventory;
 
-import com.github.ragudos.kompeter.database.dto.inventory.SupplierDto;
-import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteSupplierDao;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+
+import com.github.ragudos.kompeter.database.dto.inventory.SupplierDto;
+import com.github.ragudos.kompeter.database.sqlite.dao.inventory.SqliteSupplierDao;
 
 /**
  * @author Peter M. Dela Cruz
@@ -25,18 +26,10 @@ public class SupplierService implements Supplier {
     }
 
     @Override
-    public int addSupplier(
-            String name,
-            String email,
-            String street,
-            String city,
-            String state,
-            String postalCode,
-            String country)
-            throws InventoryException {
+    public int addSupplier(String name, String email, String street, String city, String state, String postalCode,
+            String country) throws InventoryException {
         try {
-            return sqliteSupplierDao.insertSupplier(
-                    name, email, street, city, state, postalCode, country);
+            return sqliteSupplierDao.insertSupplier(name, email, street, city, state, postalCode, country);
         } catch (SQLException | IOException e) {
             throw new InventoryException("Failed to add supplier in the database", e);
         }
@@ -56,8 +49,7 @@ public class SupplierService implements Supplier {
         try {
             return sqliteSupplierDao.getSupplierByID(id);
         } catch (SQLException | IOException e) {
-            throw new InventoryException(
-                    "Failed to get supplier in the database for supplier id: " + id, e);
+            throw new InventoryException("Failed to get supplier in the database for supplier id: " + id, e);
         }
     }
 }

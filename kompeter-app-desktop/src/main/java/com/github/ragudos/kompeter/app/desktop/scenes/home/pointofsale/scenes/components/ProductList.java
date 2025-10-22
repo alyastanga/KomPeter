@@ -32,17 +32,15 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.jdesktop.swingx.border.DropShadowBorder;
 import org.jetbrains.annotations.NotNull;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.ui.FlatRoundBorder;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetManager;
 import com.github.ragudos.kompeter.app.desktop.components.icons.AvatarIcon;
-import com.github.ragudos.kompeter.app.desktop.components.spinner.SpinnerProgress;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.navigation.SceneComponent;
@@ -61,28 +59,27 @@ public class ProductList implements SceneComponent {
 
     private static Logger LOGGER = KompeterLogger.getLogger(ProductList.class);
 
+    private final AddButtonListener addButtonListener = new AddButtonListener();
+
+    private final AddToCartDialog addToCartDialog;
+
     private ExecutorService executorService;
 
     private final JaroWinklerSimilarity fuzzyFinder = new JaroWinklerSimilarity();
-
     private final AtomicBoolean initialized = new AtomicBoolean(false);
-
     private final AtomicBoolean isBusy = new AtomicBoolean(false);
+
     private final AtomicReference<List<InventoryMetadataDto>> items = new AtomicReference<>();
     private final JPanel itemsContainer = new JPanel(
             new ResponsiveLayout(ResponsiveLayout.JustifyContent.CENTER, new Dimension(-1, -1), 9, 9));
 
     private final JScrollPane itemsContainerScroller = new JScrollPane(itemsContainer);
+
     private final AtomicReference<SearchData> prevSearchData = new AtomicReference<>();
-
-    private final JPanel view = new JPanel(new BorderLayout());
-
-    private final AddButtonListener addButtonListener = new AddButtonListener();
-    private final AddToCartDialog addToCartDialog;
+    private final JPanel view = new JPanel(new MigLayout("insets 0", "[grow, fill]", "[grow, fill]"));
 
     public ProductList(Consumer<UpdatePayload> addToCartConsumer) {
-        this.addToCartDialog = new AddToCartDialog(SwingUtilities.getWindowAncestor(view),
-                addToCartConsumer);
+        this.addToCartDialog = new AddToCartDialog(SwingUtilities.getWindowAncestor(view), addToCartConsumer);
     }
 
     @Override
@@ -91,7 +88,7 @@ public class ProductList implements SceneComponent {
         view.removeAll();
 
         addToCartDialog.destroy();
-        executorService.shutdown();
+        executorService.shutdownNow();
 
         initialized.set(false);
     }
@@ -104,16 +101,18 @@ public class ProductList implements SceneComponent {
 
         executorService = Executors.newSingleThreadExecutor();
 
-        itemsContainerScroller.getHorizontalScrollBar().setUnitIncrement(16);
-        itemsContainerScroller.getVerticalScrollBar().setUnitIncrement(16);
+        itemsContainerScroller.getHorizontalScrollBar().setUnitIncrement(10);
+        itemsContainerScroller.getVerticalScrollBar().setUnitIncrement(10);
         itemsContainerScroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:5;");
+                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
         itemsContainerScroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:5;");
-        itemsContainerScroller.setBorder(BorderFactory.createEmptyBorder(9, 9, 9, 9));
+                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+        itemsContainerScroller.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
+        itemsContainer.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        itemsContainer.putClientProperty(FlatClientProperties.STYLE_CLASS, "monochrome");
         itemsContainer.add(new LoadingPanel());
-        view.add(itemsContainerScroller, BorderLayout.CENTER);
+        view.add(itemsContainerScroller, "grow");
         addToCartDialog.initialize();
 
         initialized.set(true);
@@ -140,7 +139,7 @@ public class ProductList implements SceneComponent {
 
                 items.set((itemService.showInventoryItems()));
 
-                searchItems(prevSearchData.getAcquire(), false);
+                searchItems(prevSearchData.get(), false);
             } catch (InventoryException e) {
                 SwingUtilities.invokeLater(() -> {
                     removeAllItems();
@@ -164,7 +163,7 @@ public class ProductList implements SceneComponent {
 
     public void searchItems(SearchData searchData, boolean returnIfSame) {
         if (returnIfSame) {
-            if (searchData.equals(prevSearchData.getAcquire())) {
+            if (searchData.equals(prevSearchData.get())) {
                 return;
             }
         }
@@ -182,10 +181,10 @@ public class ProductList implements SceneComponent {
                 if (searchData == null) {
                     layout.setJustifyContent(JustifyContent.FIT_CONTENT);
 
-                    items.getAcquire().forEach(this::createItemCard);
+                    items.get().forEach(this::createItemCard);
                 } else {
                     ArrayList<InventoryMetadataDto> filteredItems = new ArrayList<>(
-                            items.getAcquire().stream().filter((item) -> {
+                            items.get().stream().filter((item) -> {
                                 double itemNameSimilarity = searchData.searchText().isEmpty()
                                         ? THRESHOLD
                                         : fuzzyFinder.apply(searchData.searchText(), item.itemName());
@@ -231,52 +230,49 @@ public class ProductList implements SceneComponent {
     }
 
     private void createItemCard(InventoryMetadataDto item) {
-        JPanel itemContainer = new JPanel(new MigLayout("insets 3, gapx 9px", "[grow 0][grow, fill]", "[grow, fill]"));
+        JPanel itemContainer = new JPanel(new MigLayout("insets 9, gapx 9px", "[grow 0][grow, fill]", "[grow, fill]"));
 
         AvatarIcon avatarIcon = new AvatarIcon(AssetManager.class.getResource("placeholder.png"), 120, 120, 8);
         JLabel itemImage = new JLabel(avatarIcon);
 
-        JPanel contentContainer = new JPanel(new MigLayout("insets 0, gapy 2px, flowy", "[grow]", "[][][]push[]"));
+        JPanel contentContainer = new JPanel(
+                new MigLayout("insets 0, gapy 2px, gapx 6px", "[grow]", "[][]4px[]push[]"));
 
-        JButton addButton = new JButton("add", AssetManager.getOrLoadIcon("plus.svg", 0.75f, "foreground.primary"));
+        JButton addButton = new JButton("add", AssetManager.getOrLoadIcon("plus.svg", 0.5f, "foreground.primary"));
         JLabel itemName = new JLabel(HtmlUtils.wrapInHtml(item.itemName()));
         JLabel brand = new JLabel(HtmlUtils.wrapInHtml(item.brandName()));
         JLabel category = new JLabel(HtmlUtils.wrapInHtml(item.categoryName()));
+        JLabel quantity = new JLabel(HtmlUtils.wrapInHtml(item.quantity() + " items left"));
+
+        addButton.setLayout(new MigLayout("insets 0", "[]push[]"));
 
         addButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
-        addButton.putClientProperty(FlatClientProperties.STYLE, "margin:3,9,3,9;" + "arc:8;");
+        addButton.putClientProperty(FlatClientProperties.STYLE, "margin:3,6,3,6;" + "arc:8;");
         addButton.addActionListener(addButtonListener);
-        addButton.setActionCommand(String.format("%s;%s;%s", item._itemId(), item._itemStockId(),
-                item._stockLocationId()));
+        addButton.setActionCommand(
+                String.format("%s;%s;%s", item._itemId(), item._itemStockId(), item._stockLocationId()));
 
-        itemName.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
-        brand.putClientProperty(FlatClientProperties.STYLE_CLASS, "h6");
-        category.putClientProperty(FlatClientProperties.STYLE_CLASS, "h6");
+        itemName.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
 
-        contentContainer.add(itemName);
-        contentContainer.add(brand);
-        contentContainer.add(category);
+        contentContainer.add(itemName, "wrap");
+        contentContainer.add(brand, "split 2");
+        contentContainer.add(category, "wrap");
+        contentContainer.add(quantity, "wrap");
         contentContainer.add(addButton, "growx");
 
-        FlatRoundBorder b = new FlatRoundBorder();
-
-        b.applyStyleProperty("arc", 16);
         itemContainer.putClientProperty(FlatClientProperties.STYLE,
-                "[light]background:darken($Panel.background,3%);" + "[dark]background:lighten($Panel.background,3%);");
-        itemContainer.setBorder(b);
+                "[light]background:darken($Panel.background,3%);" + "[dark]background:lighten($Panel.background,3%);"
+                        + "arc: 16;" + String.format("border:%s;", DropShadowBorder.class.getPackageName()));
+        contentContainer.putClientProperty(FlatClientProperties.STYLE, "background:fade($Panel.background, 0%);");
         itemContainer.add(itemImage);
         itemContainer.add(contentContainer);
 
         itemsContainer.add(itemContainer);
     }
 
-    private void removeAllItems() {
-        removeAllButtonListeners(itemsContainer);
-        itemsContainer.removeAll();
-    }
-
     private void removeAllButtonListeners(Container container) {
         for (Component component : container.getComponents()) {
+            System.out.println("Removing Button Listener!");
             if (component instanceof JButton) {
                 JButton button = (JButton) component;
 
@@ -289,40 +285,9 @@ public class ProductList implements SceneComponent {
         }
     }
 
-    private class ErrorPanel extends JPanel {
-        public ErrorPanel(String message) {
-            add(new JLabel("Failed to show items. Try again."));
-        }
-    }
-
-    private class LoadingPanel extends JPanel {
-        public LoadingPanel() {
-            setLayout(new BorderLayout());
-
-            SpinnerProgress spinner = new SpinnerProgress();
-
-            spinner.setHorizontalTextPosition(SwingConstants.CENTER);
-            spinner.setVerticalTextPosition(SwingConstants.BOTTOM);
-
-            spinner.setStringPainted(true);
-            spinner.setString("Loading...");
-
-            spinner.setIndeterminate(true);
-
-            add(spinner, BorderLayout.CENTER);
-        }
-    }
-
-    private class NoResultsPanel extends JPanel {
-        public NoResultsPanel() {
-            setLayout(new BorderLayout());
-
-            JLabel label = new JLabel("No results were found. :(");
-
-            label.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
-
-            add(label, BorderLayout.CENTER);
-        }
+    private void removeAllItems() {
+        removeAllButtonListeners(itemsContainer);
+        itemsContainer.removeAll();
     }
 
     private class AddButtonListener implements ActionListener {
@@ -334,9 +299,9 @@ public class ProductList implements SceneComponent {
                 int itemId = Integer.parseUnsignedInt(stringData[0]);
                 int itemStockId = Integer.parseUnsignedInt(stringData[1]);
                 int itemStockLocationId = Integer.parseUnsignedInt(stringData[2]);
-                Optional<InventoryMetadataDto> chosenItem = items
-                        .getAcquire().stream().filter((item) -> item._itemId() == itemId
-                                && item._itemStockId() == itemStockId && item._stockLocationId() == itemStockLocationId)
+                Optional<InventoryMetadataDto> chosenItem = items.get().stream()
+                        .filter((item) -> item._itemId() == itemId && item._itemStockId() == itemStockId
+                                && item._stockLocationId() == itemStockLocationId)
                         .findFirst();
 
                 if (chosenItem.isEmpty()) {
@@ -354,9 +319,34 @@ public class ProductList implements SceneComponent {
             } catch (NumberFormatException err) {
                 JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(view),
                         "Can't add item to cart because of bad logic.\n\nReason:\n" + err.getMessage(),
-                        "Something went wrong",
-                        JOptionPane.ERROR_MESSAGE);
+                        "Something went wrong", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private class ErrorPanel extends JPanel {
+        public ErrorPanel(String message) {
+            add(new JLabel("Failed to show items. Try again."));
+        }
+    }
+
+    private class LoadingPanel extends JPanel {
+        public LoadingPanel() {
+            setLayout(new BorderLayout());
+
+            add(new JLabel("Loading..."), BorderLayout.CENTER);
+        }
+    }
+
+    private class NoResultsPanel extends JPanel {
+        public NoResultsPanel() {
+            setLayout(new BorderLayout());
+
+            JLabel label = new JLabel("No results were found. :(");
+
+            label.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
+
+            add(label, BorderLayout.CENTER);
         }
     }
 }
