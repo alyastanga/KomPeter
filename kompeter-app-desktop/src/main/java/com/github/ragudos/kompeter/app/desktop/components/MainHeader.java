@@ -12,7 +12,6 @@ import java.util.function.Consumer;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +43,7 @@ public class MainHeader implements SceneComponent {
     private final RefreshLine refreshLine = new RefreshLine();
     private final JLabel sceneTitle = new JLabel();
 
-    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[grow]"));
+    private final JPanel view = new JPanel(new MigLayout("insets n 16 n 16, flowy", "[grow, fill]", "[grow]"));
 
     public MainHeader() {
         sceneTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1");
@@ -69,14 +68,14 @@ public class MainHeader implements SceneComponent {
             return;
         }
 
-        JPanel container = new JPanel(new MigLayout("insets 0", "[]push[]", "[grow, center]"));
+        JPanel container = new JPanel(new MigLayout("insets n 16 n 16", "[]push[]", "[grow, center]"));
 
         view.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 5%);");
+        container.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 5%);");
 
         container.add(sceneTitle);
 
         view.add(container, "grow");
-        view.add(new JSeparator(JSeparator.HORIZONTAL), "grow, height 2!");
         view.add(refreshLine, "grow, height 2!");
 
         SceneNavigator.getInstance().subscribe(navigationListenerClassConsumer);

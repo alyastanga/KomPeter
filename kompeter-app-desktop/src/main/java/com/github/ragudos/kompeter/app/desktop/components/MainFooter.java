@@ -64,7 +64,7 @@ public class MainFooter implements SceneComponent {
 
     private final JLabel osLabel;
 
-    private final JPanel view = new JPanel(new MigLayout("flowy", "[grow]", "[top, grow 0][grow]"));
+    private final JPanel view = new JPanel(new MigLayout("flowy, insets 0", "[grow]", "[top, grow 0][grow]"));
 
     public MainFooter() {
         appVersionJLabel = new JLabel(HtmlUtils.wrapInHtml(Metadata.APP_TITLE + ": v" + Metadata.APP_VERSION));

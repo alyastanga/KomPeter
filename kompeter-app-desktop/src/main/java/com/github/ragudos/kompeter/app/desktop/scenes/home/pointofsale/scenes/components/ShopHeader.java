@@ -7,22 +7,15 @@
 */
 package com.github.ragudos.kompeter.app.desktop.scenes.home.pointofsale.scenes.components;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import javax.swing.Action;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -54,22 +47,22 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
 
     private ExecutorService executorService;
 
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
+    private final JButton filterButton = new JButton(
+            AssetManager.getOrLoadIcon("filter.svg", 0.75f, "foreground.background"));
 
+    private final FilterActionListener filterButtonListener = new FilterActionListener();
+
+    private final FilterDialog filterDialog = new FilterDialog(SwingUtilities.getWindowAncestor(view), this::onSearch);
+
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final AtomicBoolean isBusy = new AtomicBoolean(false);
 
     private final JTextField searchField = TextFieldFactory.createSearchTextField(JTextField.LEFT, this::onClearSearch);
 
     private final SearchListener searchListener = new SearchListener();
     private final ArrayList<Consumer<SearchData>> subscribers = new ArrayList<>();
-
     private final JPanel view = new JPanel(
             new MigLayout("flowx, insets 3 9 3 9, gapx 9px", "[grow 50, shrink 25]9px[]48px[]", "[grow, fill]"));
-
-    private final FilterDialog filterDialog = new FilterDialog(SwingUtilities.getWindowAncestor(view), this::onSearch);
-    private final JButton filterButton = new JButton(
-            AssetManager.getOrLoadIcon("filter.svg", 0.75f, "foreground.background"));
-    private final FilterActionListener filterButtonListener = new FilterActionListener();
 
     public void changeCartQty(int qty) {
         cartButton.setBadgeNumber(qty);
@@ -81,7 +74,7 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
 
         filterDialog.destroy();
 
-        executorService.shutdown();
+        executorService.shutdownNow();
 
         filterButton.removeActionListener(filterButtonListener);
         cartButton.removeActionListener(cartButtonListener);
@@ -158,13 +151,6 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
         });
     }
 
-    private class FilterActionListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            filterDialog.setVisible(true);
-        }
-    }
-
     private class CartActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -176,6 +162,14 @@ public final class ShopHeader implements SceneComponent, Observer<SearchData> {
             }
 
             SceneNavigator.getInstance().navigateTo(SceneNames.HomeScenes.PointOfSaleScenes.CHECKOUT_SCENE);
+        }
+    }
+
+    private class FilterActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            filterDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(view));
+            filterDialog.setVisible(true);
         }
     }
 

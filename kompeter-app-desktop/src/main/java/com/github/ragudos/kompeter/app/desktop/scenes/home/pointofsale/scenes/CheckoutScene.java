@@ -33,32 +33,62 @@ import net.miginfocom.swing.MigLayout;
 public final class CheckoutScene implements Scene {
     public static final String SCENE_NAME = "checkout";
 
-    private final JPanel view = new JPanel(new MigLayout("insets 0, fill, flowy", "[grow, fill, center]",
-            "[top, grow 0, shrink][grow, fill, center]"));
-
-    private final Cart cart = Cart.getInstance();
-
-    private final JPanel header = new JPanel(new MigLayout("insets 9, flowx", "[]push[]push[]", "[grow, fill]"));
     private final JButton backButton = ButtonFactory.createButton("Back", "arrow-left.svg",
             SceneNames.HomeScenes.PointOfSaleScenes.SHOP_SCENE, "ghost");
-    private final JLabel checkoutTitle = new JLabel("Checkout");
-    private final JLabel totalTitle = new JLabel("");
 
     private final JPanel body = new JPanel(
             new ResponsiveLayout(ResponsiveLayout.JustifyContent.FIT_CONTENT, new Dimension(-1, -1), 9, 9));
+
+    private final Cart cart = Cart.getInstance();
+    private final JPanel controlsPanel = new JPanel(new MigLayout("insets 0, flowx, gapx 3px"));
+    private final JPanel header = new JPanel(new MigLayout("insets 9, flowx", "[]push[]push[]", "[grow, fill]"));
+    private final JButton placeOrder = ButtonFactory.createButton("Order", "package-check.svg", "", "ghost");
     private final JScrollPane scrollPane = new JScrollPane(body);
+
+    private final JLabel totalTitle = new JLabel("");
+    private final JPanel view = new JPanel(new MigLayout("insets 0, fill, flowy", "[grow, fill, center]",
+            "[top, grow 0, shrink][grow, fill, center]"));
+
+    @Override
+    public boolean canHide() {
+        return Scene.super.canHide();
+    }
+
+    @Override
+    public boolean canShow() {
+        return Scene.super.canShow();
+    }
+
+    @Override
+    public @NotNull String name() {
+        return SCENE_NAME;
+    }
 
     @Override
     public void onCreate() {
-        header.add(backButton);
-        header.add(checkoutTitle);
-        header.add(totalTitle);
+        controlsPanel.add(placeOrder);
 
-        checkoutTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h0");
-        totalTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
+        header.add(backButton);
+        header.add(totalTitle);
+        header.add(controlsPanel);
+
+        totalTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1");
 
         view.add(header, "growx");
         view.add(scrollPane, "grow");
+    }
+
+    @Override
+    public void onDestroy() {
+        body.removeAll();
+        backButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
+        cart.destroy();
+    }
+
+    @Override
+    public void onHide() {
+        body.removeAll();
+        backButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
     }
 
     @Override
@@ -80,15 +110,25 @@ public final class CheckoutScene implements Scene {
             JLabel category = new JLabel(HtmlUtils.wrapInHtml(item.category()));
             JLabel quantity = new JLabel(HtmlUtils.wrapInHtml("Quantity: " + item.qty()));
 
+            JButton editButton = new JButton("edit",
+                    AssetManager.getOrLoadIcon("pen.svg", 0.75f, "foreground.primary"));
+
             itemName.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
             brand.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
             category.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
             quantity.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
 
+            editButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+            editButton.putClientProperty(FlatClientProperties.STYLE, "margin:3,9,3,9;" + "arc:8;");
+            // addButton.addActionListener(addButtonListener);
+            editButton.setActionCommand(String.format("%s", item._itemStockId()));
+
             contentContainer.add(itemName, "wrap");
             contentContainer.add(brand);
             contentContainer.add(category, "wrap");
-            contentContainer.add(quantity);
+            contentContainer.add(quantity, "wrap, pushy");
+
+            contentContainer.add(editButton);
 
             FlatRoundBorder b = new FlatRoundBorder();
 
@@ -102,32 +142,6 @@ public final class CheckoutScene implements Scene {
 
             body.add(itemContainer);
         });
-    }
-
-    @Override
-    public void onHide() {
-        body.removeAll();
-        backButton.removeActionListener(ButtonSceneNavigationActionListener.LISTENER);
-    }
-
-    @Override
-    public void onDestroy() {
-        cart.destroy();
-    }
-
-    @Override
-    public boolean canHide() {
-        return Scene.super.canHide();
-    }
-
-    @Override
-    public boolean canShow() {
-        return Scene.super.canShow();
-    }
-
-    @Override
-    public @NotNull String name() {
-        return SCENE_NAME;
     }
 
     @Override

@@ -17,6 +17,7 @@ module kompeter.app.desktop {
     requires org.jfree.jfreechart;
     requires org.apache.pdfbox;
     requires org.apache.commons.text;
+    requires swingx.all;
     requires static org.jetbrains.annotations;
 
     exports com.github.ragudos.kompeter.app.desktop;
