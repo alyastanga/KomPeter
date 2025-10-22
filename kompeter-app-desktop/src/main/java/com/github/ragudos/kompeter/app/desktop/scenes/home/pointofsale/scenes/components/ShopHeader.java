@@ -39,30 +39,35 @@ import com.github.ragudos.kompeter.utilities.observer.Observer;
 import net.miginfocom.swing.MigLayout;
 
 public final class ShopHeader implements SceneComponent, Observer<SearchData> {
-    private final BadgeButton cartButton = new BadgeButton(
-            AssetManager.getOrLoadIcon("shopping-cart.svg", 0.75f, "foreground.primary"));
-    private final ActionListener cartButtonListener = new CartActionListener();
-
-    private final Debouncer debouncer = new Debouncer(250);
-
+    private final BadgeButton cartButton;
+    private final ActionListener cartButtonListener;
+    private final Debouncer debouncer;
     private ExecutorService executorService;
+    private final JButton filterButton;
+    private final FilterActionListener filterButtonListener;
+    private final FilterDialog filterDialog;
+    private final AtomicBoolean initialized;
+    private final AtomicBoolean isBusy;
+    private final JTextField searchField;
+    private final SearchListener searchListener;
+    private final ArrayList<Consumer<SearchData>> subscribers;
+    private final JPanel view;
 
-    private final JButton filterButton = new JButton(
-            AssetManager.getOrLoadIcon("filter.svg", 0.75f, "foreground.background"));
-
-    private final FilterActionListener filterButtonListener = new FilterActionListener();
-
-    private final FilterDialog filterDialog = new FilterDialog(SwingUtilities.getWindowAncestor(view), this::onSearch);
-
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
-    private final AtomicBoolean isBusy = new AtomicBoolean(false);
-
-    private final JTextField searchField = TextFieldFactory.createSearchTextField(JTextField.LEFT, this::onClearSearch);
-
-    private final SearchListener searchListener = new SearchListener();
-    private final ArrayList<Consumer<SearchData>> subscribers = new ArrayList<>();
-    private final JPanel view = new JPanel(
-            new MigLayout("flowx, insets 3 9 3 9, gapx 9px", "[grow 50, shrink 25]9px[]48px[]", "[grow, fill]"));
+    public ShopHeader() {
+        filterButton = new JButton(AssetManager.getOrLoadIcon("filter.svg", 0.75f, "foreground.background"));
+        filterButtonListener = new FilterActionListener();
+        initialized = new AtomicBoolean(false);
+        isBusy = new AtomicBoolean(false);
+        searchField = TextFieldFactory.createSearchTextField(JTextField.LEFT, this::onClearSearch);
+        searchListener = new SearchListener();
+        subscribers = new ArrayList<>();
+        view = new JPanel(
+                new MigLayout("flowx, insets 3 9 3 9, gapx 9px", "[grow 50, shrink 25]9px[]48px[]", "[grow, fill]"));
+        debouncer = new Debouncer(250);
+        cartButton = new BadgeButton(AssetManager.getOrLoadIcon("shopping-cart.svg", 0.75f, "foreground.primary"));
+        cartButtonListener = new CartActionListener();
+        filterDialog = new FilterDialog(SwingUtilities.getWindowAncestor(view), this::onSearch);
+    }
 
     public void changeCartQty(int qty) {
         cartButton.setBadgeNumber(qty);
