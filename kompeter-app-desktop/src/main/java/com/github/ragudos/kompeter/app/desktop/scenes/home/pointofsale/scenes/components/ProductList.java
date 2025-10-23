@@ -35,7 +35,6 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
-import org.jdesktop.swingx.border.DropShadowBorder;
 import org.jetbrains.annotations.NotNull;
 
 import com.formdev.flatlaf.FlatClientProperties;
@@ -59,27 +58,31 @@ public class ProductList implements SceneComponent {
 
     private static Logger LOGGER = KompeterLogger.getLogger(ProductList.class);
 
-    private final AddButtonListener addButtonListener = new AddButtonListener();
+    private final @NotNull AddButtonListener addButtonListener;
 
-    private final AddToCartDialog addToCartDialog;
-
+    private final @NotNull AddToCartDialog addToCartDialog;
     private ExecutorService executorService;
-
-    private final JaroWinklerSimilarity fuzzyFinder = new JaroWinklerSimilarity();
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
-    private final AtomicBoolean isBusy = new AtomicBoolean(false);
-
-    private final AtomicReference<List<InventoryMetadataDto>> items = new AtomicReference<>();
-    private final JPanel itemsContainer = new JPanel(
-            new ResponsiveLayout(ResponsiveLayout.JustifyContent.CENTER, new Dimension(-1, -1), 9, 9));
-
-    private final JScrollPane itemsContainerScroller = new JScrollPane(itemsContainer);
-
-    private final AtomicReference<SearchData> prevSearchData = new AtomicReference<>();
-    private final JPanel view = new JPanel(new MigLayout("insets 0", "[grow, fill]", "[grow, fill]"));
+    private final @NotNull JaroWinklerSimilarity fuzzyFinder;
+    private final @NotNull AtomicBoolean initialized;
+    private final @NotNull AtomicBoolean isBusy;
+    private final @NotNull AtomicReference<List<InventoryMetadataDto>> items;
+    private final @NotNull JPanel itemsContainer;
+    private final @NotNull JScrollPane itemsContainerScroller;
+    private final @NotNull AtomicReference<SearchData> prevSearchData;
+    private final @NotNull JPanel view;
 
     public ProductList(Consumer<UpdatePayload> addToCartConsumer) {
+        this.view = new JPanel(new MigLayout("insets 0", "[grow, fill]", "[grow, fill]"));
         this.addToCartDialog = new AddToCartDialog(SwingUtilities.getWindowAncestor(view), addToCartConsumer);
+        this.addButtonListener = new AddButtonListener();
+        this.fuzzyFinder = new JaroWinklerSimilarity();
+        this.initialized = new AtomicBoolean(false);
+        this.isBusy = new AtomicBoolean(false);
+        this.items = new AtomicReference<>();
+        this.itemsContainer = new JPanel(
+                new ResponsiveLayout(ResponsiveLayout.JustifyContent.CENTER, new Dimension(-1, -1), 9, 9));
+        this.itemsContainerScroller = new JScrollPane(itemsContainer);
+        this.prevSearchData = new AtomicReference<>();
     }
 
     @Override
@@ -247,7 +250,7 @@ public class ProductList implements SceneComponent {
         addButton.setLayout(new MigLayout("insets 0", "[]push[]"));
 
         addButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
-        addButton.putClientProperty(FlatClientProperties.STYLE, "margin:3,6,3,6;" + "arc:8;");
+        addButton.putClientProperty(FlatClientProperties.STYLE, "margin:3,6,3,6;arc:8;");
         addButton.addActionListener(addButtonListener);
         addButton.setActionCommand(
                 String.format("%s;%s;%s", item._itemId(), item._itemStockId(), item._stockLocationId()));
@@ -262,7 +265,7 @@ public class ProductList implements SceneComponent {
 
         itemContainer.putClientProperty(FlatClientProperties.STYLE,
                 "[light]background:darken($Panel.background,3%);" + "[dark]background:lighten($Panel.background,3%);"
-                        + "arc: 16;" + String.format("border:%s;", DropShadowBorder.class.getPackageName()));
+                        + "arc:16;");
         contentContainer.putClientProperty(FlatClientProperties.STYLE, "background:fade($Panel.background, 0%);");
         itemContainer.add(itemImage);
         itemContainer.add(contentContainer);
@@ -327,12 +330,16 @@ public class ProductList implements SceneComponent {
     private class ErrorPanel extends JPanel {
         public ErrorPanel(String message) {
             add(new JLabel("Failed to show items. Try again."));
+
+            putClientProperty(FlatClientProperties.STYLE, "monochrome");
         }
     }
 
     private class LoadingPanel extends JPanel {
         public LoadingPanel() {
             setLayout(new BorderLayout());
+
+            putClientProperty(FlatClientProperties.STYLE_CLASS, "monochrome");
 
             add(new JLabel("Loading..."), BorderLayout.CENTER);
         }
@@ -345,6 +352,7 @@ public class ProductList implements SceneComponent {
             JLabel label = new JLabel("No results were found. :(");
 
             label.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
+            putClientProperty(FlatClientProperties.STYLE_CLASS, "monochrome");
 
             add(label, BorderLayout.CENTER);
         }

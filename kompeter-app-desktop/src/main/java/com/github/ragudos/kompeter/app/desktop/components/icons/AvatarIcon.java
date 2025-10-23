@@ -20,7 +20,6 @@ import javax.swing.*;
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.HiDPIUtils;
 import com.formdev.flatlaf.util.UIScale;
-import com.github.ragudos.kompeter.app.desktop.components.SuperEllipse2D;
 
 public class AvatarIcon implements Icon {
 

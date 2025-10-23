@@ -32,40 +32,34 @@ public class MainSidebar implements SceneComponent {
 
     private ButtonGroup buttonGroup = new ButtonGroup();
     private final HashMap<String, JButton> buttons = new HashMap<>();
-    private final Consumer<String> navigationListenerClass =
-            new Consumer<String>() {
-                @Override
-                public void accept(String sceneName) {
-                    int firstSeparatorOccurence = sceneName.indexOf(ParsedSceneName.SEPARATOR);
-                    int secondSeparatorOcurrence =
-                            sceneName.indexOf(ParsedSceneName.SEPARATOR, firstSeparatorOccurence + 1);
+    private final Consumer<String> navigationListenerClass = new Consumer<String>() {
+        @Override
+        public void accept(String sceneName) {
+            int firstSeparatorOccurence = sceneName.indexOf(ParsedSceneName.SEPARATOR);
+            int secondSeparatorOcurrence = sceneName.indexOf(ParsedSceneName.SEPARATOR, firstSeparatorOccurence + 1);
 
-                    JButton pressedButton =
-                            buttons.get(
-                                    secondSeparatorOcurrence == -1
-                                            ? sceneName
-                                            : sceneName.subSequence(0, secondSeparatorOcurrence));
+            JButton pressedButton = buttons.get(
+                    secondSeparatorOcurrence == -1 ? sceneName : sceneName.subSequence(0, secondSeparatorOcurrence));
 
-                    if (pressedButton == null) {
-                        return;
-                    }
+            if (pressedButton == null) {
+                return;
+            }
 
-                    buttonGroup.setSelected(pressedButton.getModel(), true);
-                    pressedButton.requestFocusInWindow();
-                }
-            };
+            buttonGroup.setSelected(pressedButton.getModel(), true);
+            pressedButton.requestFocusInWindow();
+        }
+    };
 
     public MainSidebar() {
         view = new JPanel();
     }
 
     private void createLogisticsOfficerSidebar() {
-        JButton inventoryButton =
-                ButtonFactory.createButton(
-                        "Inventory",
-                        "package.svg",
-                        SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE,
-                        "ghost");
+        JButton inventoryButton = ButtonFactory.createButton(
+                "Inventory",
+                "package.svg",
+                SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE,
+                "ghost");
 
         buttons.put(inventoryButton.getActionCommand(), inventoryButton);
 
@@ -73,18 +67,16 @@ public class MainSidebar implements SceneComponent {
     }
 
     private void createPurchasingOfficerSidebar() {
-        JButton inventoryButton =
-                ButtonFactory.createButton(
-                        "Inventory",
-                        "package.svg",
-                        SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE,
-                        "ghost");
-        JButton monitoringButton =
-                ButtonFactory.createButton(
-                        "Monitoring",
-                        "chart-no-axes-combined.svg",
-                        SceneNames.HomeScenes.MonitoringScenes.MONITORING_SCENE,
-                        "ghost");
+        JButton inventoryButton = ButtonFactory.createButton(
+                "Inventory",
+                "package.svg",
+                SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE,
+                "ghost");
+        JButton monitoringButton = ButtonFactory.createButton(
+                "Monitoring",
+                "chart-no-axes-combined.svg",
+                SceneNames.HomeScenes.MonitoringScenes.MONITORING_SCENE,
+                "ghost");
 
         buttons.put(inventoryButton.getActionCommand(), inventoryButton);
         buttons.put(monitoringButton.getActionCommand(), monitoringButton);
@@ -94,12 +86,11 @@ public class MainSidebar implements SceneComponent {
     }
 
     private void createClerkSidebar() {
-        JButton pointOfSaleButton =
-                ButtonFactory.createButton(
-                        "Point Of Sale",
-                        "boxes.svg",
-                        SceneNames.HomeScenes.PointOfSaleScenes.POINT_OF_SALE_SCENE,
-                        "ghost");
+        JButton pointOfSaleButton = ButtonFactory.createButton(
+                "Point Of Sale",
+                "boxes.svg",
+                SceneNames.HomeScenes.PointOfSaleScenes.POINT_OF_SALE_SCENE,
+                "ghost");
 
         buttons.put(pointOfSaleButton.getActionCommand(), pointOfSaleButton);
 
@@ -107,24 +98,21 @@ public class MainSidebar implements SceneComponent {
     }
 
     private void createAdminSidebar() {
-        JButton pointOfSaleButton =
-                ButtonFactory.createButton(
-                        "Point Of Sale",
-                        "boxes.svg",
-                        SceneNames.HomeScenes.PointOfSaleScenes.POINT_OF_SALE_SCENE,
-                        "ghost");
-        JButton inventoryButton =
-                ButtonFactory.createButton(
-                        "Inventory",
-                        "package.svg",
-                        SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE,
-                        "ghost");
-        JButton monitoringButton =
-                ButtonFactory.createButton(
-                        "Monitoring",
-                        "chart-no-axes-combined.svg",
-                        SceneNames.HomeScenes.MonitoringScenes.MONITORING_SCENE,
-                        "ghost");
+        JButton pointOfSaleButton = ButtonFactory.createButton(
+                "Point Of Sale",
+                "boxes.svg",
+                SceneNames.HomeScenes.PointOfSaleScenes.POINT_OF_SALE_SCENE,
+                "ghost");
+        JButton inventoryButton = ButtonFactory.createButton(
+                "Inventory",
+                "package.svg",
+                SceneNames.HomeScenes.InventoryScenes.INVENTORY_SCENE,
+                "ghost");
+        JButton monitoringButton = ButtonFactory.createButton(
+                "Monitoring",
+                "chart-no-axes-combined.svg",
+                SceneNames.HomeScenes.MonitoringScenes.MONITORING_SCENE,
+                "ghost");
 
         buttons.put(inventoryButton.getActionCommand(), inventoryButton);
         buttons.put(monitoringButton.getActionCommand(), monitoringButton);
@@ -135,7 +123,8 @@ public class MainSidebar implements SceneComponent {
         view.add(monitoringButton, "growx,h 48!");
     }
 
-    private void createRoleLessSidebar() {}
+    private void createRoleLessSidebar() {
+    }
 
     @Override
     public void destroy() {
@@ -164,18 +153,16 @@ public class MainSidebar implements SceneComponent {
 
         Session session = SessionManager.getInstance().session();
 
-        JButton profileButton =
-                ButtonFactory.createButton(
-                        "Profile",
-                        "user-circle.svg",
-                        SceneNames.HomeScenes.ProfileScenes.PROFILE_SCENE,
-                        "ghost");
-        JButton settingsButton =
-                ButtonFactory.createButton(
-                        "Settings",
-                        "settings.svg",
-                        SceneNames.HomeScenes.SettingsScenes.SETTINGS_SCENE,
-                        "ghost");
+        JButton profileButton = ButtonFactory.createButton(
+                "Profile",
+                "user-circle.svg",
+                SceneNames.HomeScenes.ProfileScenes.PROFILE_SCENE,
+                "ghost");
+        JButton settingsButton = ButtonFactory.createButton(
+                "Settings",
+                "settings.svg",
+                SceneNames.HomeScenes.SettingsScenes.SETTINGS_SCENE,
+                "ghost");
 
         buttons.put(profileButton.getActionCommand(), profileButton);
         buttons.put(settingsButton.getActionCommand(), settingsButton);

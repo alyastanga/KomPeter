@@ -50,7 +50,9 @@
                 "isDefault": false
             },
             "problemMatcher": [],
-            "dependsOn": ["Check Formatting"]
+            "dependsOn": [
+                "Check Formatting"
+            ]
         },
         {
             "label": "Maven Build (Dev)",
@@ -61,7 +63,9 @@
                 "isDefault": true
             },
             "problemMatcher": [],
-            "dependsOn": ["Check Formatting"]
+            "dependsOn": [
+                "Check Formatting"
+            ]
         },
         {
             "label": "Run Desktop App (Dev)",
@@ -71,16 +75,13 @@
                 "-pl",
                 "kompeter-app-desktop",
                 "exec:java",
-                "-D",
-                "exec.mainClass=com.github.ragudos.kompeter.app.desktop/com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp",
-                "-Pdev"
+                "-Pprod"
             ],
             "group": {
                 "kind": "test",
                 "isDefault": true
             },
             "problemMatcher": [],
-            "dependsOn": ["Maven Build (Dev)"]
         },
         {
             "label": "Run Desktop App (Prod)",
@@ -90,16 +91,13 @@
                 "-pl",
                 "kompeter-app-desktop",
                 "exec:java",
-                "-D",
-                "exec.mainClass=com.github.ragudos.kompeter.app.desktop/com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp",
-                "-Pprod"
+                "-Pprod",
             ],
             "group": {
                 "kind": "test",
                 "isDefault": false
             },
             "problemMatcher": [],
-            "dependsOn": ["Maven Build (Prod)"]
         }
     ]
 }
