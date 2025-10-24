@@ -7,21 +7,38 @@
 */
 package com.github.ragudos.kompeter.app.desktop;
 
-import com.github.ragudos.kompeter.app.desktop.exceptions.GlobalUncaughtExceptionHandler;
-import com.github.ragudos.kompeter.app.desktop.frames.MainFrame;
-import com.github.ragudos.kompeter.app.desktop.laf.KompeterLightFlatLaf;
-import com.github.ragudos.kompeter.auth.Authentication;
-import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
-import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
-import com.github.ragudos.kompeter.utilities.io.FileUtils;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-public class KompeterDesktopApp {
+import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.menu.KompeterDrawerBuilder;
+import com.github.ragudos.kompeter.app.desktop.system.FormManager;
+import com.github.ragudos.kompeter.app.desktop.system.MainForm;
+import com.github.ragudos.kompeter.auth.Authentication;
+import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
+import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
+import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
+import com.github.ragudos.kompeter.utilities.constants.Metadata;
+import com.github.ragudos.kompeter.utilities.io.FileUtils;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+
+import raven.modal.Drawer;
+
+public class KompeterDesktopApp extends JFrame {
     private static final Logger LOGGER = KompeterLogger.getLogger(KompeterDesktopApp.class);
+    private static JFrame ROOT_FRAME;
+
+    public static JFrame getRootFrame() {
+        return ROOT_FRAME;
+    }
 
     public static void main(String[] args) {
         FileUtils.setupConfig();
@@ -38,20 +55,48 @@ public class KompeterDesktopApp {
         try {
             Authentication.signInFromStoredSessionToken();
         } catch (AuthenticationException e) {
-            JOptionPane.showMessageDialog(
-                    null,
+            JOptionPane.showMessageDialog(null,
                     "Application cannot be started safely. Please contact the developers.\nReason:\n\n"
                             + e.getMessage(),
-                    "Failed to start up",
-                    JOptionPane.ERROR_MESSAGE);
+                    "Failed to start up", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        SwingUtilities.invokeLater(
-                () -> {
-                    MainFrame mainFrame = new MainFrame();
+        SwingUtilities.invokeLater(() -> {
+            new KompeterDesktopApp().setVisible(true);
+        });
+    }
 
-                    mainFrame.setVisible(true);
-                });
+    private final MainFrameWindowListener windowListener = new MainFrameWindowListener();
+
+    public KompeterDesktopApp() {
+        Drawer.installDrawer(this, KompeterDrawerBuilder.getInstance());
+
+        FormManager.install(this);
+        getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+        addWindowListener(windowListener);
+        setTitle(Metadata.APP_TITLE + " " + Metadata.APP_VERSION);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setPreferredSize(new Dimension(1280, 720));
+        setSize(getPreferredSize());
+        setLocationRelativeTo(null);
+
+        ROOT_FRAME = this;
+    }
+
+    private class MainFrameWindowListener extends WindowAdapter {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            try {
+                AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE).shutdown();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+
+            MainForm.getMemoryBar().uninstallMemoryBar();
+            removeWindowListener(windowListener);
+
+            dispose();
+        }
     }
 }

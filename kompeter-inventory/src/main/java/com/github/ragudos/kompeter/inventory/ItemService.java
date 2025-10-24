@@ -103,6 +103,14 @@ public class ItemService implements Items {
         }
     }
 
+    public List<InventoryMetadataDto> getAllItems() throws InventoryException {
+        try {
+            return sqliteInventoryDao.getAllData();
+        } catch (SQLException | IOException e) {
+            throw new InventoryException("Failed to retrieve complete inventory listing.", e);
+        }
+    }
+
     @Override
     public List<InventoryMetadataDto> searchItem(String search) throws InventoryException {
         try {
