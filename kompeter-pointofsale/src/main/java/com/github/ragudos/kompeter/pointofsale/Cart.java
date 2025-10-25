@@ -4,26 +4,19 @@
 * Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
 * (C) 2025
 *
- */
+*/
 package com.github.ragudos.kompeter.pointofsale;
-
-import com.github.ragudos.kompeter.utilities.observer.Observer;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
+
+import com.github.ragudos.kompeter.utilities.observer.Observer;
 
 public class Cart implements Observer<Void> {
     private ArrayList<CartItem> items = new ArrayList<>();
     private ArrayList<Consumer<Void>> subscribers = new ArrayList<>();
 
-    private static Cart instance;
-
-    public static synchronized Cart getInstance() {
-        if (instance == null) {
-            instance = new Cart();
-        }
-
-        return instance;
+    public Cart() {
     }
 
     public void addItem(CartItem item) {
@@ -52,9 +45,8 @@ public class Cart implements Observer<Void> {
                 int newQty = exist.qty() - item.qty();
 
                 if (newQty > 0) {
-                    items.set(i,
-                            new CartItem(exist._itemStockId(), exist.productName(), exist.category(), exist.brand(),
-                                    newQty, exist.price()));
+                    items.set(i, new CartItem(exist._itemStockId(), exist.productName(), exist.category(),
+                            exist.brand(), newQty, exist.price()));
                 } else {
                     items.remove(i);
                 }
@@ -63,25 +55,6 @@ public class Cart implements Observer<Void> {
                 break;
             }
         }
-    }
-
-    public void removeItem(int _itemStockId) {
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i)._itemStockId() == _itemStockId) {
-                items.remove(i);
-                notifySubscribers(null);
-
-                break;
-            }
-        }
-    }
-
-    public double totalPrice() {
-        return items.stream().mapToDouble((item) -> item.getTotalPrice()).sum();
-    }
-
-    public int totalQuantity() {
-        return items.stream().mapToInt((item) -> item.qty()).sum();
     }
 
     public void destroy() {
@@ -98,9 +71,28 @@ public class Cart implements Observer<Void> {
         subscribers.forEach((cb) -> cb.accept(value));
     }
 
+    public void removeItem(int _itemStockId) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i)._itemStockId() == _itemStockId) {
+                items.remove(i);
+                notifySubscribers(null);
+
+                break;
+            }
+        }
+    }
+
     @Override
     public void subscribe(Consumer<Void> subscriber) {
         subscribers.add(subscriber);
+    }
+
+    public double totalPrice() {
+        return items.stream().mapToDouble((item) -> item.getTotalPrice()).sum();
+    }
+
+    public int totalQuantity() {
+        return items.stream().mapToInt((item) -> item.qty()).sum();
     }
 
     @Override

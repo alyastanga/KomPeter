@@ -1,5 +1,5 @@
 module kompeter.app.desktop {
-    requires java.desktop;
+    requires transitive java.desktop;
     requires java.management;
     requires java.base;
     requires kompeter.auth;
@@ -17,8 +17,8 @@ module kompeter.app.desktop {
     requires org.jfree.jfreechart;
     requires org.apache.pdfbox;
     requires org.apache.commons.text;
-    requires swingx.all;
     requires static org.jetbrains.annotations;
+    requires modal.dialog;
 
     exports com.github.ragudos.kompeter.app.desktop;
 }

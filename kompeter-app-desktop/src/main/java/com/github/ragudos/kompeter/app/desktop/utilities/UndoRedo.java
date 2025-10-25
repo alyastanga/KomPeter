@@ -25,14 +25,6 @@ public class UndoRedo<T> implements Iterable<T> {
         secondStack.clear();
     }
 
-    public boolean canRedo() {
-        return !secondStack.isEmpty();
-    }
-
-    public boolean canUndo() {
-        return firstStack.size() > 1;
-    }
-
     public void clear() {
         firstStack.clear();
         secondStack.clear();
@@ -48,6 +40,14 @@ public class UndoRedo<T> implements Iterable<T> {
         }
 
         return Optional.of(firstStack.getLast());
+    }
+
+    public boolean isRedoAble() {
+        return !secondStack.isEmpty();
+    }
+
+    public boolean isUndoAble() {
+        return firstStack.size() > 1;
     }
 
     @Override

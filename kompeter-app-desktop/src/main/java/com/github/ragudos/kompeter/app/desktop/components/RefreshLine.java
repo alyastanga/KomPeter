@@ -7,46 +7,44 @@
 */
 package com.github.ragudos.kompeter.app.desktop.components;
 
-import com.formdev.flatlaf.util.Animator;
-import com.formdev.flatlaf.util.CubicBezierEasing;
-import com.formdev.flatlaf.util.UIScale;
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
+
 import javax.swing.JPanel;
 import javax.swing.UIManager;
+
+import com.formdev.flatlaf.util.Animator;
+import com.formdev.flatlaf.util.CubicBezierEasing;
+import com.formdev.flatlaf.util.UIScale;
 
 // @see
 // https://github.com/DJ-Raven/swing-modal-dialog/blob/main/demo/src/main/java/raven/modal/demo/component/RefreshLine.java#L11
 public class RefreshLine extends JPanel {
-    private Animator animator;
     private float animate;
+    private Animator animator;
 
     public RefreshLine() {
-        animator =
-                new Animator(
-                        500,
-                        new Animator.TimingTarget() {
-                            @Override
-                            public void timingEvent(float v) {
-                                animate = v;
-                                RefreshLine.this.repaint();
-                            }
+        animator = new Animator(500, new Animator.TimingTarget() {
+            @Override
+            public void end() {
+                animate = 0f;
+                repaint();
+            }
 
-                            @Override
-                            public void end() {
-                                animate = 0f;
-                                repaint();
-                            }
-                        });
+            @Override
+            public void timingEvent(float v) {
+                animate = v;
+                RefreshLine.this.repaint();
+            }
+        });
 
         animator.setInterpolator(CubicBezierEasing.EASE_OUT);
     }
 
     public void refresh() {
-        System.out.println("Refreshing");
         if (animator.isRunning()) {
             animator.stop();
         }
