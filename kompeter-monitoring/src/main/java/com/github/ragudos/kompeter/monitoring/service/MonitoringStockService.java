@@ -8,8 +8,6 @@
 package com.github.ragudos.kompeter.monitoring.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -25,7 +23,6 @@ import com.github.ragudos.kompeter.database.dto.monitoring.SalesUnitDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10LowStockItemsDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10OldItemsDto;
 import com.github.ragudos.kompeter.database.migrations.Migrator;
-import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteStockDao;
 import com.github.ragudos.kompeter.database.sqlite.seeder.SqliteSeeder;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -38,18 +35,25 @@ public class MonitoringStockService {
     private static final Logger LOGGER = KompeterLogger.getLogger(MonitoringInventoryService.class);
 
     public static void main(String[] args) throws IOException, SQLException {
-        // find db file
         AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
 
-        // initialize V1 schema
+        // initialize schema
         Migrator migrator = factory.getMigrator();
-        migrator.migrate();
+        try {
+            migrator.migrate();
+        } catch (Exception e) {
+
+        }
 
         // initialize seeder
         SqliteSeeder seeder = new SqliteSeeder();
-        seeder.seed();
+        try {
+            seeder.seed();
+        } catch (Exception e) {
 
+        }
         MonitoringStockService service = new MonitoringStockService(new SqliteStockDao());
+
         // sample timestamp values
         Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
         Timestamp to = Timestamp.valueOf(LocalDateTime.now());
@@ -72,8 +76,6 @@ public class MonitoringStockService {
 
         System.out.println("TOP 10 OLD ITEMS");
         service.printTop10OldItemsReport();
-
-        Files.deleteIfExists(Paths.get(SqliteFactoryDao.MAIN_DB_FILE_NAME));
     }
 
     private final SqliteStockDao stockDAO;
