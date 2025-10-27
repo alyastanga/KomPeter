@@ -58,15 +58,15 @@ public class MonitoringSalesService {
         Timestamp to = Timestamp.valueOf(LocalDateTime.now());
 
         System.out.println("REVENUE - FROM 10/14 TO 10/21");
-        service.printRevenueReport(from, to);
+        service.printRevenueReport();
         System.out.println("\n");
 
         System.out.println("EXPENSES - FROM 10/14 TO 10/21");
-        service.printExpensesReport(from, to);
+        service.printExpensesReport();
         System.out.println("\n");
 
         System.out.println("PROFIT - FROM 10/14 TO 10/21");
-        service.printProfitReport(from, to);
+        service.printProfitReport();
         System.out.println("\n");
 
         System.out.println("TOP 10 SELLING ITEMS");

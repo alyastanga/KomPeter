@@ -7,10 +7,8 @@
 */
 package com.github.ragudos.kompeter.database.dto.monitoring;
 
-import java.sql.Timestamp;
-
 /**
  * @author Hanz Mapua
  */
-public record RevenueForecastDto(Timestamp date, float predictedRevenue) {
+public record MappedProfitDto(int ordinalDay, float totalProfit) {
 }
