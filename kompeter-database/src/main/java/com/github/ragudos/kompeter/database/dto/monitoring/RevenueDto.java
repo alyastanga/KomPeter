@@ -13,9 +13,4 @@ import java.sql.Timestamp;
  * @author Hanz Mapua
  */
 public record RevenueDto(Timestamp date, float totalRevenue) {
-
-    @Override
-    public String toString() {
-        return "RevenueDto{" + "date=" + date + ", totalRevenue=" + totalRevenue + '}';
-    }
 }

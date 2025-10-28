@@ -12,20 +12,6 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public record InventoryValueDto(
-        Timestamp date, float totalInventoryValue, float totalPurchaseValue, float totalSalesValue) {
-
-    @Override
-    public String toString() {
-        return "InventoryValueDto{"
-                + "date="
-                + date
-                + ", totalInventoryValue="
-                + totalInventoryValue
-                + ", totalPurchaseValue="
-                + totalPurchaseValue
-                + ", totalSalesValue="
-                + totalSalesValue
-                + '}';
-    }
+public record InventoryValueDto(Timestamp date, float totalInventoryValue, float totalPurchaseValue,
+        float totalSalesValue) {
 }

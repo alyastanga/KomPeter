@@ -12,10 +12,4 @@ package com.github.ragudos.kompeter.database.dto.monitoring;
  */
 public record Top10SellingItemsDto(String itemName, String brandName, String categoryName, int totalSold,
         float totalRevenue) {
-
-    @Override
-    public String toString() {
-        return "TopSellingDto{" + "itemName=" + itemName + ", brandName=" + brandName + ", categoryName=" + categoryName
-                + ", totalSold=" + totalSold + ", totalRevenue=" + totalRevenue + '}';
-    }
 }
