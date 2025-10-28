@@ -219,15 +219,8 @@ public class PredictedValues {
         for (int i = 0; i < DaystoPredict; i++) {
             int predictedDayNumber = maxHistoricalDay + i + 1;
 
-            Double predictedNextValue = linearRegression.LinearRegression(XValues, YValues, (double) predictedDayNumber // The
-            // new
-            // X-value
-            // we
-            // want
-            // to
-            // predict
-            // for
-            );
+            Double predictedNextValue = linearRegression.LinearRegression(XValues, YValues,
+                    (double) predictedDayNumber);
 
             MappedRevenueDto predictedDto = new MappedRevenueDto(predictedDayNumber, predictedNextValue.floatValue());
 

@@ -15,7 +15,8 @@ CREATE TABLE
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     display_name TEXT NOT NULL UNIQUE,
     first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL
+    last_name TEXT NOT NULL,
+    display_image TEXT
   );
 
 CREATE TABLE
@@ -78,7 +79,8 @@ CREATE TABLE
     _item_id INTEGER PRIMARY KEY AUTOINCREMENT,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     name TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    display_image TEXT
   );
 
 CREATE TABLE
