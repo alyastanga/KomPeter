@@ -7,6 +7,8 @@
 */
 package com.github.ragudos.kompeter.app.desktop.menu;
 
+import java.util.Optional;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 
@@ -122,11 +124,25 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                     return;
                 }
 
-                System.out.println(action);
-
                 @SuppressWarnings("unchecked") // already has been checked above if it is a clazz that extends Form
                 Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
-                FormManager.showForm(AllForms.getForm(formClass));
+                Form form = AllForms.getForm(formClass);
+
+                Optional<Form> currentForm = FormManager.FORMS.current();
+
+                if (currentForm.isPresent()) {
+                    currentForm.get().formBeforeClose((p) -> {
+                        if (!p) {
+                            action.consume();
+
+                            return;
+                        }
+
+                        FormManager.showForm(form);
+                    });
+                } else {
+                    FormManager.showForm(form);
+                }
             }
         });
 

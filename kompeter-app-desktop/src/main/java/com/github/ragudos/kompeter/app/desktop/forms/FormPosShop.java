@@ -18,6 +18,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -35,6 +37,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -50,6 +54,7 @@ import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
 import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.inventory.ItemService;
 import com.github.ragudos.kompeter.pointofsale.Cart;
+import com.github.ragudos.kompeter.pointofsale.CartItem;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 
 import net.miginfocom.swing.MigLayout;
@@ -57,41 +62,92 @@ import raven.extras.AvatarIcon;
 import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
 import raven.modal.component.SimpleModalBorder;
+import raven.modal.listener.ModalCallback;
+import raven.modal.listener.ModalController;
 
 @SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
 public class FormPosShop extends Form {
     private ArrayList<JCheckBoxMenuItem> brandCheckBoxes;
     private AtomicReference<ArrayList<String>> brandFilters;
+    private JButton cancelButton;
     private AtomicReference<Cart> cart;
+    private JPanel cartPanel;
+    // No need atomic reference since we'll always access these in EDT
     private ArrayList<JCheckBoxMenuItem> categoryCheckBoxes;
-    private AtomicBoolean isFetching;
-
     private AtomicReference<ArrayList<String>> categoryFilters;
+    private JPanel cartButtonsContainer;
+    private JButton checkoutButton;
     private JSplitPane containerSplitPane;
     private JButton filterButtonTrigger;
     private JPopupMenu filterPopupMenu;
+    private JaroWinklerSimilarity fuzzySimilarity;
+    private AtomicBoolean isFetching;
     private AtomicReference<ArrayList<InventoryMetadataDto>> items;
-
     private JPanel leftPanel;
     private JPanel leftPanelContentContainer;
     private JPanel leftPanelHeader;
     private JPanel rightPanel;
     private JTextField searchTextField;
 
-    public FormPosShop() {
-        init();
-        formRefresh();
+    @Override
+    public void formBeforeClose(FormBeforeCloseCallback cb) {
+        Cart cart = this.cart.getAcquire();
+
+        if (cart.isEmpty()) {
+            cb.beforeClose(true);
+
+            return;
+        }
+
+        ModalDialog.showModal(this,
+                new SimpleMessageModal(SimpleMessageModal.Type.WARNING,
+                        "Cart is not empty. Would you like to save the current cart's state?", "Save or Remove",
+                        SimpleModalBorder.YES_NO_CANCEL_OPTION, new ModalCallback() {
+                            @Override
+                            public void action(ModalController controller, int action) {
+                                switch (action) {
+                                    case SimpleModalBorder.CANCEL_OPTION:
+                                        controller.close();
+                                        cb.beforeClose(false);
+                                        break;
+                                    case SimpleModalBorder.YES_OPTION:
+                                        controller.consume();
+                                        cb.beforeClose(true);
+                                        break;
+                                    case SimpleModalBorder.NO_OPTION:
+                                        cart.clearCart();
+                                        removeActionListeners(cartPanel);
+                                        cartPanel.removeAll();
+                                        controller.consume();
+                                        cb.beforeClose(true);
+                                        break;
+                                }
+
+                            }
+                        }));
     }
 
     @Override
-    public void formOpen() {
+    public void formInit() {
+        init();
+        formRefresh();
         repaint();
         revalidate();
     }
 
     @Override
+    public void formOpen() {
+    }
+
+    @Override
     public void formRefresh() {
         new Thread(this::loadData, "Load Point of Sale Shop Data").start();
+    }
+
+    private void applyShadowBorder(JPanel panel) {
+        if (panel != null) {
+            panel.setBorder(new DropShadowBorder(new Insets(4, 8, 12, 8), 1, 25));
+        }
     }
 
     private void buildFilterPopupMenu() {
@@ -118,10 +174,6 @@ public class FormPosShop extends Form {
 
             c.addItemListener(new PopupMenuCheckboxItemListener());
         }));
-    }
-
-    private List<InventoryMetadataDto> filterItems() {
-        return items.getAcquire();
     }
 
     private void buildLeftPanelContent() {
@@ -155,10 +207,10 @@ public class FormPosShop extends Form {
             };
 
             JPanel itemContentContainer = new JPanel(
-                    new MigLayout("flowx, wrap, insets 3", "[grow, center, fill, 120]"));
+                    new MigLayout("flowx, wrap, insets 3", "[grow, center, fill, 100]"));
 
             AvatarIcon itemIcon = new AvatarIcon(new FlatSVGIcon(SVGIconUIColor.ICONS_BASE_PATH + "placeholder.svg"),
-                    100, 100, 0f);
+                    90, 90, 0f);
             JLabel itemName = new JLabel(HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
             JLabel itemPrice = new JLabel(
                     String.format(HtmlUtils.wrapInHtml("<p align='center'>₱ %s"), item.itemPricePhp()));
@@ -169,9 +221,7 @@ public class FormPosShop extends Form {
             itemName.setHorizontalAlignment(JLabel.CENTER);
             itemPrice.setHorizontalAlignment(JLabel.CENTER);
 
-            itemPanel.setName(
-                    String.format("%s;%s;%s", item._itemId(), item._itemStockId(), item._stockLocationId()));
-
+            itemPanel.setName(String.format("%s;%s;%s", item._itemId(), item._itemStockId(), item._stockLocationId()));
             itemIcon.setType(AvatarIcon.Type.MASK_SQUIRCLE);
 
             itemContentContainer.add(new JLabel(itemIcon), "grow");
@@ -182,31 +232,61 @@ public class FormPosShop extends Form {
 
             leftPanelContentContainer.add(itemPanel, BorderLayout.CENTER);
 
-            itemPanel.addMouseListener(new ItemPanelMouseListener());
+            itemPanel.addMouseListener(new ItemPanelMouseListener(item));
         }
 
         leftPanelContentContainer.repaint();
         leftPanelContentContainer.revalidate();
     }
 
-    private void applyShadowBorder(JPanel panel) {
-        if (panel != null) {
-            panel.setBorder(new DropShadowBorder(new Insets(4, 8, 12, 8), 1, 25));
+    private void buildRightPanelContent() {
+        Cart cart = this.cart.getAcquire();
+
+        removeActionListeners(cartPanel);
+        cartPanel.removeAll();
+
+        if (cart.isEmpty()) {
+            rightPanel.remove(cartButtonsContainer);
+            cartPanel.add(new NoItemsInCartPanel());
+
+            rightPanel.repaint();
+            rightPanel.revalidate();
+
+            return;
+        }
+
+        for (CartItem item : cart.getAllItems()) {
+            cartPanel.add(createCartItemCard(item), "growx");
+        }
+
+        rightPanel.add(cartButtonsContainer, "growx");
+        rightPanel.repaint();
+        rightPanel.revalidate();
+    }
+
+    private void removeActionListeners(JComponent component) {
+        for (Component c : component.getComponents()) {
+            if (c instanceof JButton button) {
+                Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
+            } else if (c instanceof JComponent co) {
+                removeActionListeners(co);
+            }
         }
     }
 
     private void createContainers() {
         containerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         leftPanel = new JPanel(
-                new MigLayout("flowy, gapy 18px, al center center", "[grow, fill]", "[top][top][grow,fill]"));
-        rightPanel = new JPanel();
-        leftPanelHeader = new JPanel(
-                new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]push[]"));
+                new MigLayout("flowy, al center center", "[grow, fill]", "[top]16px[top]4px[top]8px[grow,fill]"));
+        rightPanel = new JPanel(new MigLayout("gapy 14px,wrap", "[grow, fill]", "[grow, fill][]"));
+        leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
                 new ResponsiveLayout(JustifyContent.CENTER, new Dimension(-1, -1), 9, 9));
         JLabel title = new JLabel("Products");
+        JLabel subtitle = new JLabel("Click a product card to add them to cart.");
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h2");
+        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h3");
 
         JScrollPane scroller = new JScrollPane(leftPanelContentContainer);
 
@@ -228,6 +308,7 @@ public class FormPosShop extends Form {
 
         leftPanel.add(leftPanelHeader, "growx");
         leftPanel.add(title, "growx");
+        leftPanel.add(subtitle, "growx");
         leftPanel.add(scroller, "grow");
 
         containerSplitPane.add(leftPanel);
@@ -259,6 +340,61 @@ public class FormPosShop extends Form {
         leftPanelHeader.add(filterButtonTrigger);
     }
 
+    private void createRightPanel() {
+        JPanel container = new JPanel(new BorderLayout()) {
+            @Override
+            public void updateUI() {
+                super.updateUI();
+                applyShadowBorder(this);
+            }
+        };
+
+        JPanel contentContainer = new JPanel(new MigLayout("insets 6, flowx, wrap", "[grow, fill]"));
+        JLabel title = new JLabel("Cart", new SVGIconUIColor("shopping-cart.svg", 0.75f, "foreground.background"),
+                JLabel.RIGHT);
+        cartPanel = new JPanel(new MigLayout("insets 0, flowx, wrap, al center center", "[grow, fill]", ""));
+        JScrollPane scroller = new JScrollPane(cartPanel);
+        checkoutButton = new JButton("Checkout");
+        cancelButton = new JButton("Cancel");
+        cartButtonsContainer = new JPanel(new MigLayout("insets 0, fillx, gapx 9px"));
+
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
+        title.setHorizontalAlignment(JLabel.LEFT);
+
+        rightPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 25%);");
+
+        scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+        scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+        scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        cartButtonsContainer.putClientProperty(FlatClientProperties.STYLE, "background: null;");
+
+        cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h3");
+        checkoutButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h3");
+
+        cartButtonsContainer.add(cancelButton);
+        cartButtonsContainer.add(checkoutButton);
+
+        contentContainer.add(title);
+        contentContainer.add(scroller, "grow");
+
+        buildRightPanelContent();
+
+        container.add(contentContainer, BorderLayout.CENTER);
+
+        rightPanel.add(container, "grow");
+
+        checkoutButton.addActionListener(new CheckoutButtonActionListener(this));
+        cancelButton.addActionListener(new CancelButtonActionListener());
+    }
+
+    private List<InventoryMetadataDto> filterItems() {
+        return items.getAcquire();
+    }
+
     private void init() {
         isFetching = new AtomicBoolean(true);
         cart = new AtomicReference<>(new Cart());
@@ -272,6 +408,7 @@ public class FormPosShop extends Form {
 
         createContainers();
         createLeftPanel();
+        createRightPanel();
     }
 
     private void loadData() {
@@ -314,9 +451,6 @@ public class FormPosShop extends Form {
 
                 buildFilterPopupMenu();
                 buildLeftPanelContent();
-
-                repaint();
-                revalidate();
             });
         } catch (InventoryException err) {
             ModalDialog.showModal(this, new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
@@ -336,12 +470,73 @@ public class FormPosShop extends Form {
         }
     }
 
+    private JPanel createCartItemCard(CartItem cartItem) {
+        JPanel container = new JPanel(new MigLayout("flowx, gapx 9px, insets 6", "[150][grow, fill]", "fill"));
+
+        container.setName(String.format("_itemStockId:%s", cartItem._itemStockId()));
+
+        AvatarIcon itemIcon = new AvatarIcon(new FlatSVGIcon(SVGIconUIColor.ICONS_BASE_PATH + "placeholder.svg"),
+                76, 76, 1f);
+        JPanel contentContainer = new JPanel(new MigLayout("insets 0"));
+        JLabel name = new JLabel(cartItem.productName());
+        JLabel categoryLabel = new JLabel(cartItem.category());
+        JLabel brandLabel = new JLabel(cartItem.brand());
+        JLabel priceLabel = new JLabel(String.format("₱ %s", cartItem.getTotalPrice()));
+
+        JButton minusButton = new JButton(new SVGIconUIColor("minus.svg", 0.5f, "foreground.background"));
+        JLabel quantityLabel = new JLabel(cartItem.qty() + "");
+        JButton plusButton = new JButton(new SVGIconUIColor("plus.svg", 0.5f, "foreground.background"));
+
+        minusButton.setName("minus");
+        quantityLabel.setName("quantity");
+        plusButton.setName("plus");
+
+        name.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+
+        minusButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+        plusButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+
+        contentContainer.add(name, "wrap");
+        contentContainer.add(categoryLabel, "split 2, gapy 6px");
+        contentContainer.add(brandLabel, "wrap, gapx 2px");
+        contentContainer.add(priceLabel);
+        contentContainer.add(minusButton, "split 3, gapy 18px");
+        contentContainer.add(quantityLabel, "gapx 6px");
+        contentContainer.add(plusButton, "gapx 6px, wrap");
+
+        container.add(new JLabel(itemIcon));
+        container.add(contentContainer, "grow");
+
+        return container;
+    }
+
     private void search() {
     }
 
-    private class ItemPanelMouseListener extends MouseAdapter {
+    private class NoItemsInCartPanel extends JPanel {
+        public NoItemsInCartPanel() {
+            setLayout(new BorderLayout());
+
+            add(new JLabel("No items in cart yet :("), BorderLayout.CENTER);
+        }
+    }
+
+    private class CancelButtonActionListener implements ActionListener {
         @Override
-        public void mouseClicked(MouseEvent e) {
+        public void actionPerformed(ActionEvent e) {
+
+        }
+    }
+
+    private class CheckoutButtonActionListener implements ActionListener {
+        private FormPosShop formPosShop;
+
+        public CheckoutButtonActionListener(FormPosShop formPosShop) {
+            this.formPosShop = formPosShop;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
 
         }
     }
@@ -353,15 +548,24 @@ public class FormPosShop extends Form {
         }
     }
 
-    private class NoResultsPanel extends JPanel {
-        public NoResultsPanel() {
-            setLayout(new BorderLayout());
+    private class ItemPanelMouseListener extends MouseAdapter {
+        private InventoryMetadataDto item;
 
-            putClientProperty(FlatClientProperties.STYLE, "background: null;");
+        public ItemPanelMouseListener(InventoryMetadataDto item) {
+            this.item = item;
+        }
 
-            JLabel noResults = new JLabel("No results were found :(");
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            Cart c = cart.getAcquire();
 
-            add(noResults, BorderLayout.CENTER);
+            CartItem newItem = new CartItem(item._itemStockId(), item.itemName(), item.categoryName(), item.brandName(),
+                    1,
+                    item.itemPricePhp());
+
+            c.addItem(newItem);
+
+            buildRightPanelContent();
         }
     }
 
@@ -376,6 +580,18 @@ public class FormPosShop extends Form {
             loading.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
 
             add(loading, BorderLayout.CENTER);
+        }
+    }
+
+    private class NoResultsPanel extends JPanel {
+        public NoResultsPanel() {
+            setLayout(new BorderLayout());
+
+            putClientProperty(FlatClientProperties.STYLE, "background: null;");
+
+            JLabel noResults = new JLabel("No results were found :(");
+
+            add(noResults, BorderLayout.CENTER);
         }
     }
 

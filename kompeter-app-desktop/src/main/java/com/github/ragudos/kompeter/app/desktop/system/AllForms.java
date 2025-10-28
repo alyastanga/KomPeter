@@ -37,6 +37,10 @@ public class AllForms {
         }
     }
 
+    public static void clear() {
+        getInstance().formsMap.clear();
+    }
+
     private static AllForms getInstance() {
         if (instance == null) {
             instance = new AllForms();

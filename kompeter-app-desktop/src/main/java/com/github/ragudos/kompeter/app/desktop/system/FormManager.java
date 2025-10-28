@@ -65,6 +65,7 @@ public class FormManager {
         getMainAuthForm().setForm(getWelcome());
 
         FORMS.clear();
+        AllForms.clear();
 
         frame.repaint();
         frame.revalidate();

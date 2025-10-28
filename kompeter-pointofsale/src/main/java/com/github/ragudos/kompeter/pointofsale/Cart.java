@@ -19,7 +19,29 @@ public class Cart implements Observer<Void> {
     public Cart() {
     }
 
-    public void addItem(CartItem item) {
+    public boolean exists(int _itemStockId) {
+        for (CartItem item : items) {
+            if (item._itemStockId() == _itemStockId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void clearCart() {
+        items.clear();
+    }
+
+    public CartItem getLast() {
+        return items.getLast();
+    }
+
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
+    public int addItem(CartItem item) {
         for (int i = 0; i < items.size(); i++) {
             CartItem exist = items.get(i);
             if (exist._itemStockId() == item._itemStockId()) {
@@ -29,12 +51,13 @@ public class Cart implements Observer<Void> {
 
                 notifySubscribers(null);
 
-                return;
+                return newQty;
             }
         }
 
         items.add(item);
         notifySubscribers(null);
+        return -1;
     }
 
     public void decItem(CartItem item) {

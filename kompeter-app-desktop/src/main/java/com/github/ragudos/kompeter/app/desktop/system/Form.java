@@ -25,6 +25,16 @@ public class Form extends JPanel {
         }
     }
 
+    /**
+     * For operations with asynchronous operations.
+     * 
+     * @param cb - a cb that accepts a predicate put by the caller
+     * 
+     */
+    public void formBeforeClose(FormBeforeCloseCallback cb) {
+        cb.beforeClose(true);
+    }
+
     public void formInit() {
     }
 
@@ -32,5 +42,10 @@ public class Form extends JPanel {
     }
 
     public void formRefresh() {
+    }
+
+    @FunctionalInterface
+    public interface FormBeforeCloseCallback {
+        void beforeClose(boolean predicate);
     }
 }
