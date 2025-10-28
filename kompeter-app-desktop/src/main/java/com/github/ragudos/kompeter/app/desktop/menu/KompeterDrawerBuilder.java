@@ -65,7 +65,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     private static MenuOption createSimpleMenuOption() {
         MenuOption menuOption = new MenuOption();
 
-        MenuItem[] items = new MenuItem[] { new Item("Profile", "user.svg", FormProfile.class),
+        MenuItem[] items = new MenuItem[]{new Item("Profile", "user.svg", FormProfile.class),
                 new Item("Dashboard", "circle-gauge.svg", FormDashboard.class),
                 new Item("Point of Sale", "store.svg").subMenu(new Item("Shop", "shopping-cart.svg", FormPosShop.class))
                         .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormPosTransactions.class)),
@@ -78,7 +78,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                         .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
                         .subMenu(new Item("Audits", "notepad-text.svg")),
                 new Item("Users", "users.svg", FormUsers.class),
-                new Item("Settings", "settings.svg", FormSettings.class), new Item("Logout", "logout.svg") };
+                new Item("Settings", "settings.svg", FormSettings.class), new Item("Logout", "logout.svg")};
 
         menuOption.setMenuStyle(new MenuStyle() {
             @Override

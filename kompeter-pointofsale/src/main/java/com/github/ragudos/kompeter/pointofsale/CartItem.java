@@ -11,4 +11,12 @@ public record CartItem(int _itemStockId, String productName, String category, St
     public double getTotalPrice() {
         return qty * price;
     }
+
+    public CartItem decrement() {
+        return new CartItem(_itemStockId, productName, category, brand, qty - 1, price);
+    }
+
+    public CartItem increment() {
+        return new CartItem(_itemStockId, productName, category, brand, qty + 1, price);
+    }
 }

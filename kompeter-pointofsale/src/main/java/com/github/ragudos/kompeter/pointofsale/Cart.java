@@ -19,28 +19,6 @@ public class Cart implements Observer<Void> {
     public Cart() {
     }
 
-    public boolean exists(int _itemStockId) {
-        for (CartItem item : items) {
-            if (item._itemStockId() == _itemStockId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public void clearCart() {
-        items.clear();
-    }
-
-    public CartItem getLast() {
-        return items.getLast();
-    }
-
-    public boolean isEmpty() {
-        return items.isEmpty();
-    }
-
     public int addItem(CartItem item) {
         for (int i = 0; i < items.size(); i++) {
             CartItem exist = items.get(i);
@@ -58,6 +36,10 @@ public class Cart implements Observer<Void> {
         items.add(item);
         notifySubscribers(null);
         return -1;
+    }
+
+    public void clearCart() {
+        items.clear();
     }
 
     public void decItem(CartItem item) {
@@ -85,8 +67,26 @@ public class Cart implements Observer<Void> {
         subscribers.clear();
     }
 
+    public boolean exists(int _itemStockId) {
+        for (CartItem item : items) {
+            if (item._itemStockId() == _itemStockId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public ArrayList<CartItem> getAllItems() {
         return items;
+    }
+
+    public CartItem getLast() {
+        return items.getLast();
+    }
+
+    public boolean isEmpty() {
+        return items.isEmpty();
     }
 
     @Override
@@ -103,6 +103,22 @@ public class Cart implements Observer<Void> {
                 break;
             }
         }
+    }
+
+    public void replaceItem(CartItem item) {
+        for (int i = 0; i < items.size(); i++) {
+            CartItem exist = items.get(i);
+
+            if (exist._itemStockId() == item._itemStockId()) {
+                items.set(i, item);
+
+                notifySubscribers(null);
+                return;
+            }
+        }
+
+        items.add(item);
+        notifySubscribers(null);
     }
 
     @Override

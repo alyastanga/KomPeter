@@ -10,8 +10,11 @@ package com.github.ragudos.kompeter.app.desktop.forms;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -28,16 +31,21 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.DefaultCaret;
 
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 
@@ -288,6 +296,9 @@ public class FormPosShop extends Form {
             cartPanel.add(cartItemPanel, "growx, wrap");
         }
 
+        cartTotalPriceLabel.setText(String.format("₱%s", cart.totalPrice()));
+        cartTotalQuantityLabel.setText(String.format("%s", cart.totalQuantity()));
+
         cartContentContainer.add(cartMetadataContainer);
 
         rightPanel.add(cartButtonsContainer, "growx");
@@ -487,7 +498,7 @@ public class FormPosShop extends Form {
 
         try {
             List<ItemBrandDto> itemBrands = itemService.showAllBrands();
-            List<ItemCategoryDto> itemCatetgories = itemService.showAllCategories();
+            List<ItemCategoryDto> itemCategories = itemService.showAllCategories();
             List<InventoryMetadataDto> items = itemService.getAllItems();
 
             this.items.set((ArrayList<InventoryMetadataDto>) items);
@@ -502,7 +513,7 @@ public class FormPosShop extends Form {
                     brandCheckBoxes.add(c);
                 });
 
-                itemCatetgories.forEach((category) -> {
+                itemCategories.forEach((category) -> {
                     JCheckBoxMenuItem c = new JCheckBoxMenuItem(category.name());
 
                     categoryCheckBoxes.add(c);
@@ -521,10 +532,11 @@ public class FormPosShop extends Form {
 
     private void removeActionListeners(JComponent component) {
         for (Component c : component.getComponents()) {
-            if (c instanceof JButton button) {
-                Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
-            } else if (c instanceof JComponent co) {
-                removeActionListeners(co);
+            switch (c) {
+                case JButton button -> Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
+                case JComponent co -> removeActionListeners(co);
+                default -> {
+                }
             }
         }
     }
@@ -542,6 +554,90 @@ public class FormPosShop extends Form {
     private void search() {
     }
 
+    private class AddToCartDialog extends JDialog {
+        final InventoryMetadataDto item;
+        final Window owner;
+
+        public AddToCartDialog(InventoryMetadataDto item, Window owner) {
+            super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
+
+            this.item = item;
+            this.owner = owner;
+
+            putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
+            setLayout(new MigLayout("insets 9, flowx, wrap", "[grow, fill, center]"));
+
+            JTextArea subtitle = new JTextArea("This will add " + item.itemName() + " to the cart.");
+
+            subtitle.setCaret(new DefaultCaret() {
+                @Override
+                public void paint(Graphics g) {
+                    // TODO Auto-generated method stub
+                }
+            });
+
+            subtitle.setWrapStyleWord(true);
+            subtitle.setEditable(false);
+
+            subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
+            subtitle.putClientProperty(FlatClientProperties.STYLE, "margin:0,0,0,0;foreground:$color.muted;");
+
+            JLabel quantityLabel = new JLabel("Quantity");
+            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+
+            JButton cancelButton = new JButton("Cancel");
+            JButton confirmButton = new JButton("Confirm");
+
+            quantityLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+
+            cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+            confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+
+            cancelButton.addActionListener(new CancelButtonActionListener());
+            confirmButton.addActionListener(new ConfirmButtonActionListener(quantitySpinner));
+
+            add(subtitle);
+
+            add(quantityLabel, "gapy 9px");
+            add(quantitySpinner, "push, gapy 2px");
+
+            add(cancelButton, "split 2, gapy 32px");
+            add(confirmButton, "gapx 9px");
+
+            pack();
+            setLocationRelativeTo(owner);
+        }
+
+        private class CancelButtonActionListener implements ActionListener {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        }
+
+        private class ConfirmButtonActionListener implements ActionListener {
+            private final JSpinner numberSpinner;
+
+            public ConfirmButtonActionListener(JSpinner numberSpinner) {
+                this.numberSpinner = numberSpinner;
+            }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Integer val = (Integer) numberSpinner.getValue();
+                Cart cartVal = cart.getAcquire();
+
+                cartVal.addItem(new CartItem(item._itemStockId(), item.itemName(), item.categoryName(),
+                        item.brandName(), val, item.itemPricePhp()));
+                dispose();
+
+                SwingUtilities.invokeLater(() -> {
+                    buildRightPanelContent();
+                });
+            }
+        }
+    }
+
     private class CheckoutButtonActionListener implements ActionListener {
         private FormPosShop formPosShop;
 
@@ -557,6 +653,8 @@ public class FormPosShop extends Form {
     private class ClearCartActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            cart.getAcquire().clearCart();
+            buildRightPanelContent();
         }
     }
 
@@ -569,6 +667,8 @@ public class FormPosShop extends Form {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            cart.getAcquire().replaceItem(item.decrement());
+            buildRightPanelContent();
         }
     }
 
@@ -590,12 +690,14 @@ public class FormPosShop extends Form {
         public void action(ModalController controller, int action) {
             switch (action) {
                 case SimpleModalBorder.CANCEL_OPTION :
-                    controller.close();
                     cb.beforeClose(false);
+                    controller.consume();
+                    controller.close();
                     break;
                 case SimpleModalBorder.YES_OPTION :
-                    controller.consume();
                     cb.beforeClose(true);
+                    controller.consume();
+                    controller.close();
                     break;
                 case SimpleModalBorder.NO_OPTION :
                     cart.getAcquire().clearCart();
@@ -605,8 +707,9 @@ public class FormPosShop extends Form {
                     rightPanel.repaint();
                     rightPanel.revalidate();
 
-                    controller.consume();
                     cb.beforeClose(true);
+                    controller.consume();
+                    controller.close();
                     break;
             }
         }
@@ -621,6 +724,8 @@ public class FormPosShop extends Form {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            cart.getAcquire().replaceItem(item.increment());
+            buildRightPanelContent();
         }
     }
 
@@ -633,14 +738,7 @@ public class FormPosShop extends Form {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            Cart c = cart.getAcquire();
-
-            CartItem newItem = new CartItem(item._itemStockId(), item.itemName(), item.categoryName(), item.brandName(),
-                    1, item.itemPricePhp());
-
-            c.addItem(newItem);
-
-            buildRightPanelContent();
+            new AddToCartDialog(item, SwingUtilities.getWindowAncestor(containerSplitPane)).setVisible(true);
         }
     }
 
