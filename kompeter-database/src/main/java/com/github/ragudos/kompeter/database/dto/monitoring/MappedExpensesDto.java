@@ -7,10 +7,8 @@
 */
 package com.github.ragudos.kompeter.database.dto.monitoring;
 
-import java.sql.Timestamp;
-
 /**
  * @author Hanz Mapua
  */
-public record InventoryCountDto(Timestamp date, int totalInventoryCount, int totalPurchaseCount, int totalSalesCount) {
+public record MappedExpensesDto(int ordinalDay, float totalExpenses) {
 }

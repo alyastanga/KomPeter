@@ -13,16 +13,4 @@ import java.sql.Timestamp;
  * @author Hanz Mapua
  */
 public record SalesUnitDto(Timestamp date, int totalSalesUnit, int cumulativeSalesUnit) {
-
-    @Override
-    public String toString() {
-        return "SalesUnitDto{"
-                + "date="
-                + date
-                + ", totalSalesUnit="
-                + totalSalesUnit
-                + ", cumulativeSalesUnit="
-                + cumulativeSalesUnit
-                + '}';
-    }
 }

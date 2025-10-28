@@ -14,11 +14,4 @@ import java.sql.Timestamp;
  */
 public record Top10OldItemsDto(String itemName, String brandName, String categoryName, int totalQuantity,
         Timestamp stockedDate, int daysInStock) {
-
-    @Override
-    public String toString() {
-        return "OldItemsDto{" + "itemName=" + itemName + ", brandName=" + brandName + ", categoryName=" + categoryName
-                + ", totalQuantity=" + totalQuantity + ", stockedDate=" + stockedDate + ", daysInStock=" + daysInStock
-                + '}';
-    }
 }
