@@ -18,21 +18,15 @@ public class Form extends JPanel {
     public void formAfterOpen() {
     }
 
+    public boolean formBeforeClose() {
+        return true;
+    }
+
     public final void formCheck() {
         if (oldTheme != UIManager.getLookAndFeel()) {
             oldTheme = UIManager.getLookAndFeel();
             SwingUtilities.updateComponentTreeUI(this);
         }
-    }
-
-    /**
-     * For operations with asynchronous operations.
-     * 
-     * @param cb - a cb that accepts a predicate put by the caller
-     * 
-     */
-    public void formBeforeClose(FormBeforeCloseCallback cb) {
-        cb.beforeClose(true);
     }
 
     public void formInit() {

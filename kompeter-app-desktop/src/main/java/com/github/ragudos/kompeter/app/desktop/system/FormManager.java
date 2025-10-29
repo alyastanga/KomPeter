@@ -73,23 +73,7 @@ public class FormManager {
 
     public static void redo() {
         if (FORMS.isRedoAble()) {
-
-            if (FORMS.current().isPresent()) {
-                Form current = FORMS.current().get();
-
-                current.formBeforeClose((canShow) -> {
-                    if (!canShow) {
-                        return;
-                    }
-
-                    Form form = FORMS.redo().get();
-
-                    form.formCheck();
-                    form.formOpen();
-                    mainForm.setForm(form);
-                    Drawer.setSelectedItemClass(form.getClass());
-                });
-
+            if (FORMS.current().isPresent() && !FORMS.current().get().formBeforeClose()) {
                 return;
             }
 
@@ -132,21 +116,7 @@ public class FormManager {
 
     public static void undo() {
         if (FORMS.isUndoAble()) {
-            if (FORMS.current().isPresent()) {
-                Form current = FORMS.current().get();
-
-                current.formBeforeClose((canShow) -> {
-                    if (!canShow) {
-                        return;
-                    }
-                    Form form = FORMS.undo().get();
-
-                    form.formCheck();
-                    form.formOpen();
-                    mainForm.setForm(form);
-                    Drawer.setSelectedItemClass(form.getClass());
-                });
-
+            if (FORMS.current().isPresent() && !FORMS.current().get().formBeforeClose()) {
                 return;
             }
 

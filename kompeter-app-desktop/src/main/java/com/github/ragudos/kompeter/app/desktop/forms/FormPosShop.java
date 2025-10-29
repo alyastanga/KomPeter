@@ -34,6 +34,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -71,8 +72,6 @@ import raven.extras.AvatarIcon;
 import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
 import raven.modal.component.SimpleModalBorder;
-import raven.modal.listener.ModalCallback;
-import raven.modal.listener.ModalController;
 
 @SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
 public class FormPosShop extends Form {
@@ -105,17 +104,32 @@ public class FormPosShop extends Form {
     private JTextField searchTextField;
 
     @Override
-    public void formBeforeClose(FormBeforeCloseCallback cb) {
+    public boolean formBeforeClose() {
         if (cart.getAcquire().isEmpty()) {
-            cb.beforeClose(true);
-
-            return;
+            return true;
         }
 
-        ModalDialog.showModal(this,
-                new SimpleMessageModal(SimpleMessageModal.Type.WARNING,
-                        "Cart is not empty. Would you like to save the current cart's state?", "Save or Remove",
-                        SimpleModalBorder.YES_NO_CANCEL_OPTION, new FormBeforeCloseModalActionCallback(cb)));
+        int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(this),
+                "Cart is not empty. Would you like to save the current cart's state?", "Save or Remove",
+                JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        boolean returnVal = false;
+
+        switch (chosenOption) {
+            case JOptionPane.CANCEL_OPTION :
+                returnVal = false;
+                break;
+            case JOptionPane.YES_OPTION :
+                returnVal = true;
+                break;
+            case JOptionPane.NO_OPTION :
+                cart.getAcquire().clearCart();
+                buildRightPanelContent();
+                returnVal = true;
+                break;
+        };
+
+        return returnVal;
     }
 
     @Override
@@ -572,7 +586,7 @@ public class FormPosShop extends Form {
             subtitle.setCaret(new DefaultCaret() {
                 @Override
                 public void paint(Graphics g) {
-                    // TODO Auto-generated method stub
+                    // empty to not paint caret
                 }
             });
 
@@ -582,8 +596,8 @@ public class FormPosShop extends Form {
             subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
             subtitle.putClientProperty(FlatClientProperties.STYLE, "margin:0,0,0,0;foreground:$color.muted;");
 
-            JLabel quantityLabel = new JLabel("Quantity");
-            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+            JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", item.quantity()));
+            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, item.quantity(), 1));
 
             JButton cancelButton = new JButton("Cancel");
             JButton confirmButton = new JButton("Confirm");
@@ -676,42 +690,6 @@ public class FormPosShop extends Form {
         @Override
         public void actionPerformed(ActionEvent e) {
             filterPopupMenu.show(filterButtonTrigger, 0, filterButtonTrigger.getHeight());
-        }
-    }
-
-    private final class FormBeforeCloseModalActionCallback implements ModalCallback {
-        private final FormBeforeCloseCallback cb;
-
-        public FormBeforeCloseModalActionCallback(FormBeforeCloseCallback cb) {
-            this.cb = cb;
-        }
-
-        @Override
-        public void action(ModalController controller, int action) {
-            switch (action) {
-                case SimpleModalBorder.CANCEL_OPTION :
-                    cb.beforeClose(false);
-                    controller.consume();
-                    controller.close();
-                    break;
-                case SimpleModalBorder.YES_OPTION :
-                    cb.beforeClose(true);
-                    controller.consume();
-                    controller.close();
-                    break;
-                case SimpleModalBorder.NO_OPTION :
-                    cart.getAcquire().clearCart();
-                    removeActionListeners(cartPanel);
-                    cartPanel.removeAll();
-                    rightPanel.remove(cartButtonsContainer);
-                    rightPanel.repaint();
-                    rightPanel.revalidate();
-
-                    cb.beforeClose(true);
-                    controller.consume();
-                    controller.close();
-                    break;
-            }
         }
     }
 

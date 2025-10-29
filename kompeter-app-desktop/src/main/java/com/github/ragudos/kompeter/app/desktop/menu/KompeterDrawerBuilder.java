@@ -130,19 +130,13 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
 
                 Optional<Form> currentForm = FormManager.FORMS.current();
 
-                if (currentForm.isPresent()) {
-                    currentForm.get().formBeforeClose((p) -> {
-                        if (!p) {
-                            action.consume();
+                if (currentForm.isPresent() && !currentForm.get().formBeforeClose()) {
+                    action.consume();
 
-                            return;
-                        }
-
-                        FormManager.showForm(form);
-                    });
-                } else {
-                    FormManager.showForm(form);
+                    return;
                 }
+
+                FormManager.showForm(form);
             }
         });
 
