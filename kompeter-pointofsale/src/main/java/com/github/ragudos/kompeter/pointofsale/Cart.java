@@ -8,67 +8,56 @@
 package com.github.ragudos.kompeter.pointofsale;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import com.github.ragudos.kompeter.utilities.observer.Observer;
 
-public class Cart implements Observer<Void> {
-    private ArrayList<CartItem> items = new ArrayList<>();
-    private ArrayList<Consumer<Void>> subscribers = new ArrayList<>();
+public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Cart.CartEvent> {
+    private AtomicReference<ArrayList<CartItem>> items = new AtomicReference<>(new ArrayList<>());
+    private AtomicReference<ArrayList<Consumer<CartEvent>>> subscribers = new AtomicReference<>(new ArrayList<>());
 
-    public Cart() {
+    public record CartEvent(CartEventType eventType, CartItem payload, CartItem previousPayload) {
     }
 
-    public int addItem(CartItem item) {
-        for (int i = 0; i < items.size(); i++) {
-            CartItem exist = items.get(i);
-            if (exist._itemStockId() == item._itemStockId()) {
-                int newQty = exist.qty() + item.qty();
-                items.set(i, new CartItem(exist._itemStockId(), exist.productName(), exist.category(), exist.brand(),
-                        newQty, exist.price()));
+    public void addItem(CartItem item) {
+        items.getAcquire().add(item);
 
-                notifySubscribers(null);
-
-                return newQty;
-            }
-        }
-
-        items.add(item);
-        notifySubscribers(null);
-        return -1;
+        notifySubscribers(new CartEvent(CartEventType.ADD_ITEM, item, null));
     }
 
     public void clearCart() {
-        items.clear();
+        items.getAcquire().clear();
+
+        notifySubscribers(new CartEvent(CartEventType.CLEAR, null, null));
     }
 
-    public void decItem(CartItem item) {
-        for (int i = 0; i < items.size(); i++) {
-            CartItem exist = items.get(i);
+    public void decreaseItemQty(int _itemStockId, int qty) throws NegativeQuantityException {
+        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+                .findFirst().orElseThrow();
 
-            if (exist._itemStockId() == item._itemStockId()) {
-                int newQty = exist.qty() - item.qty();
+        CartItem prev = cartItem.clone();
+        cartItem.decreaseQty(qty);
 
-                if (newQty > 0) {
-                    items.set(i, new CartItem(exist._itemStockId(), exist.productName(), exist.category(),
-                            exist.brand(), newQty, exist.price()));
-                } else {
-                    items.remove(i);
-                }
-                notifySubscribers(null);
+        notifySubscribers(new CartEvent(CartEventType.DECREASE_ITEM_QTY, cartItem, prev));
+    }
 
-                break;
-            }
-        }
+    public void decrementItem(int _itemStockId) throws NegativeQuantityException {
+        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+                .findFirst().orElseThrow();
+
+        CartItem prev = cartItem.clone();
+        cartItem.decrement();
+
+        notifySubscribers(new CartEvent(CartEventType.DECREMENT_ITEM, cartItem, prev));
     }
 
     public void destroy() {
-        items.clear();
-        subscribers.clear();
+        items.getAcquire().clear();
     }
 
     public boolean exists(int _itemStockId) {
-        for (CartItem item : items) {
+        for (CartItem item : items.getAcquire()) {
             if (item._itemStockId() == _itemStockId) {
                 return true;
             }
@@ -78,64 +67,69 @@ public class Cart implements Observer<Void> {
     }
 
     public ArrayList<CartItem> getAllItems() {
-        return items;
+        return items.getAcquire();
     }
 
     public CartItem getLast() {
-        return items.getLast();
+        return items.getAcquire().getLast();
+    }
+
+    public void increaseItemQty(int _itemStockId, int qty) throws InsufficientStockException {
+        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+                .findFirst().orElseThrow();
+
+        CartItem prev = cartItem.clone();
+        cartItem.increaseQty(qty);
+
+        notifySubscribers(new CartEvent(CartEventType.INCREASE_ITEM_QTY, cartItem, prev));
+    }
+
+    public void incrementItem(int _itemStockId) throws InsufficientStockException {
+        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+                .findFirst().orElseThrow();
+
+        CartItem prev = cartItem.clone();
+        cartItem.increment();
+
+        notifySubscribers(new CartEvent(CartEventType.INCREMENT_ITEM, cartItem, prev));
     }
 
     public boolean isEmpty() {
-        return items.isEmpty();
+        return items.getAcquire().isEmpty();
     }
 
     @Override
-    public void notifySubscribers(Void value) {
-        subscribers.forEach((cb) -> cb.accept(value));
-    }
-
-    public void removeItem(int _itemStockId) {
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i)._itemStockId() == _itemStockId) {
-                items.remove(i);
-                notifySubscribers(null);
-
-                break;
-            }
+    public void notifySubscribers(CartEvent value) {
+        for (Consumer<CartEvent> acquire : subscribers.getAcquire()) {
+            acquire.accept(value);
         }
     }
 
-    public void replaceItem(CartItem item) {
-        for (int i = 0; i < items.size(); i++) {
-            CartItem exist = items.get(i);
+    public void removeItem(CartItem item) {
+        items.getAcquire().remove(item);
 
-            if (exist._itemStockId() == item._itemStockId()) {
-                items.set(i, item);
-
-                notifySubscribers(null);
-                return;
-            }
-        }
-
-        items.add(item);
-        notifySubscribers(null);
+        notifySubscribers(new CartEvent(CartEventType.REMOVE_ITEM, item, null));
     }
 
     @Override
-    public void subscribe(Consumer<Void> subscriber) {
-        subscribers.add(subscriber);
+    public void subscribe(Consumer<CartEvent> subscriber) {
+        subscribers.getAcquire().add(subscriber);
     }
 
     public double totalPrice() {
-        return items.stream().mapToDouble((item) -> item.getTotalPrice()).sum();
+        return items.getAcquire().stream().mapToDouble((item) -> item.getTotalPrice()).sum();
     }
 
     public int totalQuantity() {
-        return items.stream().mapToInt((item) -> item.qty()).sum();
+        return items.getAcquire().stream().mapToInt((item) -> item.qty()).sum();
     }
 
     @Override
-    public void unsubscribe(Consumer<Void> subscriber) {
-        subscribers.remove(subscriber);
+    public void unsubscribe(Consumer<CartEvent> subscriber) {
+        subscribers.getAcquire().remove(subscriber);
+    }
+
+    public enum CartEventType {
+        ADD_ITEM, CLEAR, DECREASE_ITEM_QTY, DECREMENT_ITEM, INCREASE_ITEM_QTY, INCREMENT_ITEM, REMOVE_ITEM;
     }
 }

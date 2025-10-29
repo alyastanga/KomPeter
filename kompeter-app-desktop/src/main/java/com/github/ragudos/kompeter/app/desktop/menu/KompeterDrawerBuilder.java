@@ -103,17 +103,28 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                 int i = index[0];
 
                 if (i == 7) {
+                    action.consume();
+
+                    Optional<Form> currentForm = FormManager.FORMS.current();
+
+                    if (currentForm.isPresent() && !currentForm.get().formBeforeLogout()) {
+                        return;
+                    }
+
                     try {
                         Authentication.signOut();
                     } catch (AuthenticationException err) {
                         JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), err.getMessage(),
-                                "Sign Out Failure :()", JOptionPane.ERROR_MESSAGE);
+                                "Sign Out Failure :(", JOptionPane.ERROR_MESSAGE);
 
                         return;
                     }
 
-                    action.consume();
-                    FormManager.logout();
+                    SwingUtilities.invokeLater(() -> {
+                        FormManager.logout();
+                    });
+
+                    return;
                 }
 
                 if (itemClass == null || !Form.class.isAssignableFrom(itemClass)) {

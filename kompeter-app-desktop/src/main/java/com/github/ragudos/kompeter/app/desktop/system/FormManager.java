@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.app.desktop.system;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
 import com.github.ragudos.kompeter.app.desktop.forms.auth.FormAuthWelcome;
@@ -61,8 +62,8 @@ public class FormManager {
         MainForm.getMemoryBar().uninstallMemoryBar();
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainAuthForm());
-        frame.getContentPane().add(getMainAuthForm());
 
+        getMainForm().setForm(AllForms.getForm(FormProfile.class));
         getMainAuthForm().setForm(getWelcome());
 
         FORMS.clear();
@@ -82,7 +83,9 @@ public class FormManager {
 
     public static void refresh() {
         if (!FORMS.current().isEmpty()) {
-            FORMS.current().get().formRefresh();
+            SwingUtilities.invokeLater(() -> {
+                FORMS.current().get().formRefresh();
+            });
             mainForm.refresh();
         }
     }
@@ -98,6 +101,7 @@ public class FormManager {
     }
 
     public static void showForm(Form form) {
+        System.out.println("hi");
         if (FORMS.recentAction() == RecentAction.REDO || FORMS.recentAction() == RecentAction.UNDO) {
             if (FORMS.recentAction() == RecentAction.REDO) {
                 FORMS.redo();
@@ -105,12 +109,14 @@ public class FormManager {
                 FORMS.undo();
             }
 
+            FORMS.setRecentAction(null);
             form.formCheck();
             form.formOpen();
             mainForm.setForm(form);
 
             return;
         }
+        System.out.println("hello");
 
         if (FORMS.current().isEmpty() || form != FORMS.current().get()) {
             FORMS.add(form);

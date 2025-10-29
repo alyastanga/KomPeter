@@ -11,7 +11,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jetbrains.annotations.NotNull;
@@ -93,19 +92,6 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
         FileUtils.createDirectoryIfNotExists(Directories.SQLITE_DIRECTORY);
         FileUtils.createFileIfNotExists(MAIN_DB_FILE_NAME);
-
-        writeLock.lock();
-
-        try {
-            for (int i = 0; i < POOL_CONNECTION_COUNT; ++i) {
-                pooledConnections.add(createProxy(createConnection()));
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Failed to create connections", e);
-            throw new RuntimeException("Failed to initialize FactoryDao");
-        } finally {
-            writeLock.unlock();
-        }
     }
 
     @Override
@@ -216,19 +202,6 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public @NotNull UserRoleDao getUserRoleDao() {
         return new SqliteUserRoleDao();
-    }
-
-    @Override
-    public void shutdown() throws SQLException {
-        super.shutdown();
-
-        writeLock.lock();
-
-        try {
-            instance = null;
-        } finally {
-            writeLock.unlock();
-        }
     }
 
     @Override

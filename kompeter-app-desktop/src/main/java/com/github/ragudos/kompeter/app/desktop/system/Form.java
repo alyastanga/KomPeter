@@ -22,6 +22,10 @@ public class Form extends JPanel {
         return true;
     }
 
+    public boolean formBeforeLogout() {
+        return true;
+    }
+
     public final void formCheck() {
         if (oldTheme != UIManager.getLookAndFeel()) {
             oldTheme = UIManager.getLookAndFeel();

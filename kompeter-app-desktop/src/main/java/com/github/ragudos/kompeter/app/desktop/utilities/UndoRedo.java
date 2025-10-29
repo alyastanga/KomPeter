@@ -29,11 +29,13 @@ public class UndoRedo<T> implements Iterable<T> {
     }
 
     public void clear() {
+        recentAction = null;
         firstStack.clear();
         secondStack.clear();
     }
 
     public void clearRedo() {
+        recentAction = null;
         secondStack.clear();
     }
 
@@ -82,6 +84,10 @@ public class UndoRedo<T> implements Iterable<T> {
 
         recentAction = RecentAction.REDO;
         return Optional.of(secondStack.getLast());
+    }
+
+    public void setRecentAction(RecentAction recentAction) {
+        this.recentAction = recentAction;
     }
 
     public @NotNull Optional<T> undo() {
