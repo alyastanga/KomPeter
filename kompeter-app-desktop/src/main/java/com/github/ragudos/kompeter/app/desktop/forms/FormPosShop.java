@@ -72,7 +72,7 @@ import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
 public class FormPosShop extends Form {
     private static final double SIMILARITY_SEARCH_THRESHOLD = 0.7;
     private ArrayList<JCheckBoxMenuItem> brandCheckBoxes;
@@ -118,13 +118,13 @@ public class FormPosShop extends Form {
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION :
+            case JOptionPane.CANCEL_OPTION:
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION :
+            case JOptionPane.YES_OPTION:
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION :
+            case JOptionPane.NO_OPTION:
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -220,10 +220,12 @@ public class FormPosShop extends Form {
             JPanel itemContentContainer = new JPanel(
                     new MigLayout("flowx, wrap, insets 0", "[grow, fill, center, 190]"));
 
+            String imagePath = item.displayImage() == null || item.displayImage().isEmpty()
+                    ? "Acer Nitro 5 Laptop.png"
+                    : item.displayImage();
+
             ImagePanel imagePanel = new ImagePanel(
-                    AssetLoader.loadImage(item.displayImage() == null || item.displayImage().isEmpty()
-                            ? "Acer Nitro 5 Laptop.png"
-                            : item.displayImage()));
+                    AssetLoader.loadImage(imagePath, true));
             JLabel itemName = new JLabel(HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
             JLabel itemPrice = new JLabel(
                     String.format(HtmlUtils.wrapInHtml("<p align='center'>₱ %s"), item.itemPricePhp()));
@@ -233,8 +235,6 @@ public class FormPosShop extends Form {
 
             itemName.setHorizontalAlignment(JLabel.CENTER);
             itemPrice.setHorizontalAlignment(JLabel.CENTER);
-
-            itemPanel.setName(String.format("%s;%s;%s", item._itemId(), item._itemStockId(), item._stockLocationId()));
 
             itemContentContainer.add(imagePanel, "grow");
             itemContentContainer.add(itemName, "growx, gaptop 9px");
@@ -575,10 +575,13 @@ public class FormPosShop extends Form {
     private void removeActionListeners(JComponent component) {
         for (Component c : component.getComponents()) {
             switch (c) {
-                case JButton button -> Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
-                case JComponent co -> removeActionListeners(co);
-                default -> {
-                }
+                case JButton button:
+                    Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
+                    break;
+                case JComponent co:
+                    removeActionListeners(co);
+                    break;
+                default:
             }
         }
     }
@@ -596,7 +599,17 @@ public class FormPosShop extends Form {
     private void search() {
         debouncer.call(() -> {
             SwingUtilities.invokeLater(() -> {
-                buildLeftPanelContent();
+                leftPanelContentContainer.removeAll();
+
+                ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
+
+                leftPanelContentContainer.add(new LoadingPanel());
+                leftPanelContentContainer.repaint();
+                leftPanelContentContainer.revalidate();
+
+                SwingUtilities.invokeLater(() -> {
+                    buildLeftPanelContent();
+                });
             });
         });
     }
@@ -704,7 +717,7 @@ public class FormPosShop extends Form {
                     JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION :
+                case JOptionPane.YES_OPTION:
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
                     break;
@@ -802,14 +815,14 @@ public class FormPosShop extends Form {
             String name = item.getName();
 
             switch (e.getStateChange()) {
-                case ItemEvent.DESELECTED :
+                case ItemEvent.DESELECTED:
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().remove(text);
                     } else if (name.equals("category")) {
                         categoryFilters.getAcquire().remove(text);
                     }
                     break;
-                case ItemEvent.SELECTED :
+                case ItemEvent.SELECTED:
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().add(text);
                     } else if (name.equals("category")) {

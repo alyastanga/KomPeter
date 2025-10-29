@@ -25,23 +25,21 @@ public class SqliteSeeder implements Seeder {
     @Override
     public void seed() throws SQLException {
         String query = SqliteMigratorFactory.getSeederQuery();
-        AbstractSqlFactoryDao factory =
-                AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        AbstractSqlFactoryDao factory = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
         try (Connection conn = factory.getConnection();
                 Statement stmnt = conn.createStatement()) {
             conn.setAutoCommit(false);
 
-            String[] queries =
-                    Arrays.stream(query.split(";"))
-                            .filter((s) -> !s.isBlank())
-                            .map((s) -> s.trim())
-                            .toArray(String[]::new);
+            String[] queries = Arrays.stream(query.split(";"))
+                    .filter((s) -> !s.isBlank())
+                    .map((s) -> s.trim())
+                    .toArray(String[]::new);
 
             for (int i = 0; i < queries.length; ++i) {
                 LOGGER.info("Seeding... \n\n-----\n" + queries[i] + "\n-----\n\n");
 
-                stmnt.execute(queries[i]);
+                stmnt.executeUpdate(queries[i]);
                 try {
                     conn.commit();
                 } catch (SQLException e) {
