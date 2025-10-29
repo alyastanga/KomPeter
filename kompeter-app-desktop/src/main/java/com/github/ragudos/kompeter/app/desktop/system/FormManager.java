@@ -101,7 +101,6 @@ public class FormManager {
     }
 
     public static void showForm(Form form) {
-        System.out.println("hi");
         if (FORMS.recentAction() == RecentAction.REDO || FORMS.recentAction() == RecentAction.UNDO) {
             if (FORMS.recentAction() == RecentAction.REDO) {
                 FORMS.redo();
@@ -116,7 +115,6 @@ public class FormManager {
 
             return;
         }
-        System.out.println("hello");
 
         if (FORMS.current().isEmpty() || form != FORMS.current().get()) {
             FORMS.add(form);

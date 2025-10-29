@@ -74,7 +74,7 @@ import com.github.ragudos.kompeter.utilities.StringUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
 public class FormPosShop extends Form {
     private static final double SIMILARITY_SEARCH_THRESHOLD = 0.7;
     private ArrayList<JCheckBoxMenuItem> brandCheckBoxes;
@@ -120,13 +120,13 @@ public class FormPosShop extends Form {
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION :
+            case JOptionPane.CANCEL_OPTION:
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION :
+            case JOptionPane.YES_OPTION:
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION :
+            case JOptionPane.NO_OPTION:
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -285,7 +285,7 @@ public class FormPosShop extends Form {
 
     private void createContainers() {
         containerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        leftPanel = new JPanel(new MigLayout("insets 0, flowy, al center center", "[grow, fill]",
+        leftPanel = new JPanel(new MigLayout("insets 0 12 0 0, flowy, al center center", "[grow, fill]",
                 "[top]16px[top]4px[top]8px[grow,fill]"));
         JPanel rightPanelWrapper = new JPanel(
                 new MigLayout("insets 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
@@ -654,13 +654,13 @@ public class FormPosShop extends Form {
     private void removeActionListeners(JComponent component) {
         for (Component c : component.getComponents()) {
             switch (c) {
-                case JButton button :
+                case JButton button:
                     Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
                     break;
-                case JComponent co :
+                case JComponent co:
                     removeActionListeners(co);
                     break;
-                default :
+                default:
             }
         }
     }
@@ -793,10 +793,10 @@ public class FormPosShop extends Form {
 
             SwingUtilities.invokeLater(() -> {
                 switch (cartEvent.eventType()) {
-                    case INCREASE_ITEM_QTY :
-                    case INCREMENT_ITEM :
-                    case DECREASE_ITEM_QTY :
-                    case DECREMENT_ITEM : {
+                    case INCREASE_ITEM_QTY:
+                    case INCREMENT_ITEM:
+                    case DECREASE_ITEM_QTY:
+                    case DECREMENT_ITEM: {
                         JComponent parent = (JComponent) getComponent(cartPanel,
                                 String.format("_itemStockId:%s", cartItem._itemStockId()));
                         JButton decrementButton = (JButton) getComponent(parent, "decrement");
@@ -804,8 +804,8 @@ public class FormPosShop extends Form {
                         JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
 
                         switch (cartEvent.eventType()) {
-                            case INCREASE_ITEM_QTY :
-                            case INCREMENT_ITEM : {
+                            case INCREASE_ITEM_QTY:
+                            case INCREMENT_ITEM: {
                                 if (previousCartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("minus.svg", 0.5f, "foregorund.background"));
@@ -818,8 +818,8 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            case DECREASE_ITEM_QTY :
-                            case DECREMENT_ITEM : {
+                            case DECREASE_ITEM_QTY:
+                            case DECREMENT_ITEM: {
                                 if (cartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
@@ -832,11 +832,11 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            default :
+                            default:
                         }
                     }
                         break;
-                    case REMOVE_ITEM : {
+                    case REMOVE_ITEM: {
                         if (acquiredCart.isEmpty()) {
                             buildRightPanelContent();
                         } else {
@@ -849,11 +849,11 @@ public class FormPosShop extends Form {
                         }
                     }
                         break;
-                    case CLEAR : {
+                    case CLEAR: {
                         buildRightPanelContent();
                     }
                         break;
-                    case ADD_ITEM : {
+                    case ADD_ITEM: {
                         if (acquiredCart.getAllItems().size() == 1) {
                             buildRightPanelContent();
                         } else {
@@ -891,7 +891,7 @@ public class FormPosShop extends Form {
                     JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION :
+                case JOptionPane.YES_OPTION:
                     cart.getAcquire().clearCart();
                     break;
             }
@@ -1023,14 +1023,14 @@ public class FormPosShop extends Form {
             String name = item.getName();
 
             switch (e.getStateChange()) {
-                case ItemEvent.DESELECTED :
+                case ItemEvent.DESELECTED:
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().remove(text);
                     } else if (name.equals("category")) {
                         categoryFilters.getAcquire().remove(text);
                     }
                     break;
-                case ItemEvent.SELECTED :
+                case ItemEvent.SELECTED:
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().add(text);
                     } else if (name.equals("category")) {
