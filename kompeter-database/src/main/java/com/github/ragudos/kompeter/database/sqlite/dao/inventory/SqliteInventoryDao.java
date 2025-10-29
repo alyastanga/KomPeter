@@ -35,7 +35,7 @@ public class SqliteInventoryDao implements InventoryDao {
                         rs.getInt("_item_stock_id"), rs.getInt("_item_stock_storage_location_id"),
                         rs.getTimestamp("_created_at"), rs.getString("category_name"), rs.getString("item_name"),
                         rs.getString("description"), rs.getString("brand_name"), rs.getDouble("unit_price_php"),
-                        rs.getInt("quantity"), rs.getString("location_name"));
+                        rs.getInt("quantity"), rs.getString("location_name"), rs.getString("display_image"));
                 inventory.add(metadata);
             }
         }
@@ -61,7 +61,7 @@ public class SqliteInventoryDao implements InventoryDao {
                         rs.getInt("_item_stock_id"), rs.getInt("_item_stock_storage_location_id"),
                         rs.getTimestamp("_created_at"), rs.getString("category_name"), rs.getString("item_name"),
                         rs.getString("description"), rs.getString("brand_name"), rs.getDouble("unit_price_php"),
-                        rs.getInt("quantity"), rs.getString("location_name"));
+                        rs.getInt("quantity"), rs.getString("location_name"), rs.getString("display_image"));
                 inventory.add(metadata);
             }
         }

@@ -9,7 +9,8 @@ SELECT
     ib.name AS brand_name,
     ist.unit_price_php ,
     SUM(issl.quantity) as quantity,
-    GROUP_CONCAT(DISTINCT sl.name) AS location_name
+    GROUP_CONCAT(DISTINCT sl.name) AS location_name,
+    i.display_image
 FROM items as i
 INNER join item_stocks as ist ON i._item_id = ist._item_id
 INNER JOIN item_category_assignments AS ica oN i._item_id = ica._item_id

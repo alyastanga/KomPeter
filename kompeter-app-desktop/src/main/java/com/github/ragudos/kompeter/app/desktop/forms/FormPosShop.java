@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -51,9 +52,9 @@ import javax.swing.text.DefaultCaret;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
+import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
@@ -65,16 +66,15 @@ import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.inventory.ItemService;
 import com.github.ragudos.kompeter.pointofsale.Cart;
 import com.github.ragudos.kompeter.pointofsale.CartItem;
+import com.github.ragudos.kompeter.utilities.Debouncer;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 
 import net.miginfocom.swing.MigLayout;
-import raven.extras.AvatarIcon;
-import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
-import raven.modal.component.SimpleModalBorder;
 
 @SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
 public class FormPosShop extends Form {
+    private static final double SIMILARITY_SEARCH_THRESHOLD = 0.7;
     private ArrayList<JCheckBoxMenuItem> brandCheckBoxes;
     private AtomicReference<ArrayList<String>> brandFilters;
     private AtomicReference<Cart> cart;
@@ -92,6 +92,7 @@ public class FormPosShop extends Form {
     private JButton checkoutButton;
     private JButton clearCartButton;
     private JSplitPane containerSplitPane;
+    private Debouncer debouncer;
     private JButton filterButtonTrigger;
     private JPopupMenu filterPopupMenu;
     private JaroWinklerSimilarity fuzzySimilarity;
@@ -101,6 +102,7 @@ public class FormPosShop extends Form {
     private JPanel leftPanelContentContainer;
     private JPanel leftPanelHeader;
     private JPanel rightPanel;
+
     private JTextField searchTextField;
 
     @Override
@@ -123,11 +125,13 @@ public class FormPosShop extends Form {
                 returnVal = true;
                 break;
             case JOptionPane.NO_OPTION :
-                cart.getAcquire().clearCart();
-                buildRightPanelContent();
+                SwingUtilities.invokeLater(() -> {
+                    cart.getAcquire().clearCart();
+                    buildRightPanelContent();
+                });
                 returnVal = true;
                 break;
-        };
+        }
 
         return returnVal;
     }
@@ -190,7 +194,9 @@ public class FormPosShop extends Form {
 
         ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
 
-        if (items.getAcquire().isEmpty()) {
+        List<InventoryMetadataDto> items = filterItems();
+
+        if (items.isEmpty()) {
             layout.setJustifyContent(JustifyContent.CENTER);
             leftPanelContentContainer.add(new NoResultsPanel());
 
@@ -200,9 +206,9 @@ public class FormPosShop extends Form {
             return;
         }
 
-        layout.setJustifyContent(JustifyContent.CENTER);
+        layout.setJustifyContent(JustifyContent.SPACE_AROUND);
 
-        for (InventoryMetadataDto item : filterItems()) {
+        for (InventoryMetadataDto item : items) {
             JPanel itemPanel = new JPanel(new BorderLayout()) {
                 @Override
                 public void updateUI() {
@@ -212,10 +218,12 @@ public class FormPosShop extends Form {
             };
 
             JPanel itemContentContainer = new JPanel(
-                    new MigLayout("flowx, wrap, insets 3", "[grow, center, fill, 100]"));
+                    new MigLayout("flowx, wrap, insets 0", "[grow, fill, center, 190]"));
 
-            AvatarIcon itemIcon = new AvatarIcon(new FlatSVGIcon(SVGIconUIColor.ICONS_BASE_PATH + "placeholder.svg"),
-                    90, 90, 0f);
+            ImagePanel imagePanel = new ImagePanel(
+                    AssetLoader.loadImage(item.displayImage() == null || item.displayImage().isEmpty()
+                            ? "Acer Nitro 5 Laptop.png"
+                            : item.displayImage()));
             JLabel itemName = new JLabel(HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
             JLabel itemPrice = new JLabel(
                     String.format(HtmlUtils.wrapInHtml("<p align='center'>₱ %s"), item.itemPricePhp()));
@@ -227,11 +235,10 @@ public class FormPosShop extends Form {
             itemPrice.setHorizontalAlignment(JLabel.CENTER);
 
             itemPanel.setName(String.format("%s;%s;%s", item._itemId(), item._itemStockId(), item._stockLocationId()));
-            itemIcon.setType(AvatarIcon.Type.MASK_SQUIRCLE);
 
-            itemContentContainer.add(new JLabel(itemIcon), "grow");
-            itemContentContainer.add(itemName, "growx, gapy 14px");
-            itemContentContainer.add(itemPrice, "growx, gapy 6px");
+            itemContentContainer.add(imagePanel, "grow");
+            itemContentContainer.add(itemName, "growx, gaptop 9px");
+            itemContentContainer.add(itemPrice, "growx, gaptop 4px");
 
             itemPanel.add(itemContentContainer);
 
@@ -329,7 +336,7 @@ public class FormPosShop extends Form {
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
         leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
-                new ResponsiveLayout(JustifyContent.CENTER, new Dimension(-1, -1), 9, 9));
+                new ResponsiveLayout(JustifyContent.CENTER, new Dimension(190, -1), 1, 1));
         JLabel title = new JLabel("Products");
         JLabel subtitle = new JLabel("Click a product card to add them to cart.");
 
@@ -476,7 +483,23 @@ public class FormPosShop extends Form {
     }
 
     private List<InventoryMetadataDto> filterItems() {
-        return items.getAcquire();
+        String searchQuery = searchTextField.getText();
+        ArrayList<String> brandFilters = this.brandFilters.getAcquire();
+        ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
+
+        if (searchQuery.isEmpty() && brandFilters.isEmpty() && categoryFilters.isEmpty()) {
+            return items.getAcquire();
+        }
+
+        return items.getAcquire().stream().filter((item) -> {
+            double similarity = searchQuery.isEmpty()
+                    ? SIMILARITY_SEARCH_THRESHOLD
+                    : fuzzySimilarity.apply(item.itemName(), searchQuery);
+            boolean isInBrandScope = brandFilters.isEmpty() || brandFilters.contains(item.brandName());
+            boolean isInCategoryScope = categoryFilters.isEmpty() || categoryFilters.contains(item.categoryName());
+
+            return similarity >= SIMILARITY_SEARCH_THRESHOLD && isInBrandScope && isInCategoryScope;
+        }).collect(Collectors.toCollection(ArrayList::new));
     }
 
     private void init() {
@@ -487,6 +510,8 @@ public class FormPosShop extends Form {
         items = new AtomicReference<>(new ArrayList<>());
         categoryCheckBoxes = new ArrayList<>();
         brandCheckBoxes = new ArrayList<>();
+        fuzzySimilarity = new JaroWinklerSimilarity();
+        debouncer = new Debouncer(250);
 
         setLayout(new BorderLayout());
 
@@ -524,11 +549,14 @@ public class FormPosShop extends Form {
                 itemBrands.forEach((brand) -> {
                     JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand.name());
 
+                    c.setName("brand");
+
                     brandCheckBoxes.add(c);
                 });
 
                 itemCategories.forEach((category) -> {
                     JCheckBoxMenuItem c = new JCheckBoxMenuItem(category.name());
+                    c.setName("category");
 
                     categoryCheckBoxes.add(c);
                 });
@@ -537,8 +565,8 @@ public class FormPosShop extends Form {
                 buildLeftPanelContent();
             });
         } catch (InventoryException err) {
-            ModalDialog.showModal(this, new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                    "Failed to load data", SimpleModalBorder.CLOSE_OPTION, null));
+            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                    "Failed to load data :()", JOptionPane.ERROR_MESSAGE);
         } finally {
             isFetching.set(false);
         }
@@ -566,17 +594,20 @@ public class FormPosShop extends Form {
     }
 
     private void search() {
+        debouncer.call(() -> {
+            SwingUtilities.invokeLater(() -> {
+                buildLeftPanelContent();
+            });
+        });
     }
 
     private class AddToCartDialog extends JDialog {
         final InventoryMetadataDto item;
-        final Window owner;
 
         public AddToCartDialog(InventoryMetadataDto item, Window owner) {
             super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
 
             this.item = item;
-            this.owner = owner;
 
             putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
             setLayout(new MigLayout("insets 9, flowx, wrap", "[grow, fill, center]"));
@@ -667,8 +698,17 @@ public class FormPosShop extends Form {
     private class ClearCartActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            cart.getAcquire().clearCart();
-            buildRightPanelContent();
+
+            int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(cartButtonsContainer),
+                    "Are you sure you want to clear your cart?", "Clear Cart", JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            switch (chosenOption) {
+                case JOptionPane.YES_OPTION :
+                    cart.getAcquire().clearCart();
+                    buildRightPanelContent();
+                    break;
+            }
         }
     }
 
@@ -757,6 +797,27 @@ public class FormPosShop extends Form {
     private class PopupMenuCheckboxItemListener implements ItemListener {
         @Override
         public void itemStateChanged(ItemEvent e) {
+            JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getItemSelectable();
+            String text = item.getText();
+            String name = item.getName();
+
+            switch (e.getStateChange()) {
+                case ItemEvent.DESELECTED :
+                    if (name.equals("brand")) {
+                        brandFilters.getAcquire().remove(text);
+                    } else if (name.equals("category")) {
+                        categoryFilters.getAcquire().remove(text);
+                    }
+                    break;
+                case ItemEvent.SELECTED :
+                    if (name.equals("brand")) {
+                        brandFilters.getAcquire().add(text);
+                    } else if (name.equals("category")) {
+                        categoryFilters.getAcquire().add(text);
+                    }
+                    break;
+            }
+
             search();
         }
     }

@@ -11,11 +11,12 @@ import java.util.Optional;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.forms.FormDashboard;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryBrowseProducts;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryTransactions;
@@ -34,8 +35,6 @@ import com.github.ragudos.kompeter.auth.Authentication;
 import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 
-import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
 import raven.modal.drawer.DrawerPanel;
 import raven.modal.drawer.item.Item;
 import raven.modal.drawer.item.MenuItem;
@@ -107,9 +106,8 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                     try {
                         Authentication.signOut();
                     } catch (AuthenticationException err) {
-                        ModalDialog.showModal(KompeterDesktopApp.getRootFrame(),
-                                new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                                        "Sign Out Failure :(", SimpleModalBorder.CLOSE_OPTION, null));
+                        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), err.getMessage(),
+                                "Sign Out Failure :()", JOptionPane.ERROR_MESSAGE);
 
                         return;
                     }
@@ -136,7 +134,9 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                     return;
                 }
 
-                FormManager.showForm(form);
+                SwingUtilities.invokeLater(() -> {
+                    FormManager.showForm(form);
+                });
             }
         });
 

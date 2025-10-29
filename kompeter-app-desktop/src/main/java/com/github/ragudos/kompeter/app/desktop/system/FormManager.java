@@ -13,6 +13,7 @@ import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
 import com.github.ragudos.kompeter.app.desktop.forms.auth.FormAuthWelcome;
 import com.github.ragudos.kompeter.app.desktop.menu.KompeterDrawerBuilder;
 import com.github.ragudos.kompeter.app.desktop.utilities.UndoRedo;
+import com.github.ragudos.kompeter.app.desktop.utilities.UndoRedo.RecentAction;
 import com.github.ragudos.kompeter.auth.SessionManager;
 
 import raven.modal.Drawer;
@@ -73,15 +74,8 @@ public class FormManager {
 
     public static void redo() {
         if (FORMS.isRedoAble()) {
-            if (FORMS.current().isPresent() && !FORMS.current().get().formBeforeClose()) {
-                return;
-            }
+            Form form = FORMS.redoDry().get();
 
-            Form form = FORMS.redo().get();
-
-            form.formCheck();
-            form.formOpen();
-            mainForm.setForm(form);
             Drawer.setSelectedItemClass(form.getClass());
         }
     }
@@ -104,6 +98,20 @@ public class FormManager {
     }
 
     public static void showForm(Form form) {
+        if (FORMS.recentAction() == RecentAction.REDO || FORMS.recentAction() == RecentAction.UNDO) {
+            if (FORMS.recentAction() == RecentAction.REDO) {
+                FORMS.redo();
+            } else if (FORMS.recentAction() == RecentAction.UNDO) {
+                FORMS.undo();
+            }
+
+            form.formCheck();
+            form.formOpen();
+            mainForm.setForm(form);
+
+            return;
+        }
+
         if (FORMS.current().isEmpty() || form != FORMS.current().get()) {
             FORMS.add(form);
             form.formCheck();
@@ -116,15 +124,8 @@ public class FormManager {
 
     public static void undo() {
         if (FORMS.isUndoAble()) {
-            if (FORMS.current().isPresent() && !FORMS.current().get().formBeforeClose()) {
-                return;
-            }
+            Form form = FORMS.undoDry().get();
 
-            Form form = FORMS.undo().get();
-
-            form.formCheck();
-            form.formOpen();
-            mainForm.setForm(form);
             Drawer.setSelectedItemClass(form.getClass());
         }
     }

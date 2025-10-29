@@ -15,12 +15,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class UndoRedo<T> implements Iterable<T> {
     private final Stack<T> firstStack = new Stack<>();
+    private RecentAction recentAction;
+
     private final Stack<T> secondStack = new Stack<>();
 
     public UndoRedo() {
     }
 
     public void add(@NotNull T item) {
+        recentAction = null;
         firstStack.push(item);
         secondStack.clear();
     }
@@ -55,6 +58,10 @@ public class UndoRedo<T> implements Iterable<T> {
         return new UndoRedoIterator();
     }
 
+    public RecentAction recentAction() {
+        return recentAction;
+    }
+
     public @NotNull Optional<T> redo() {
         if (secondStack.isEmpty()) {
             return Optional.empty();
@@ -63,8 +70,18 @@ public class UndoRedo<T> implements Iterable<T> {
         T item = secondStack.pop();
 
         firstStack.push(item);
+        recentAction = RecentAction.REDO;
 
         return Optional.of(item);
+    }
+
+    public @NotNull Optional<T> redoDry() {
+        if (secondStack.isEmpty()) {
+            return Optional.empty();
+        }
+
+        recentAction = RecentAction.REDO;
+        return Optional.of(secondStack.getLast());
     }
 
     public @NotNull Optional<T> undo() {
@@ -73,8 +90,22 @@ public class UndoRedo<T> implements Iterable<T> {
         }
 
         secondStack.push(firstStack.pop());
+        recentAction = RecentAction.UNDO;
 
         return Optional.of(firstStack.getLast());
+    }
+
+    public @NotNull Optional<T> undoDry() {
+        if (firstStack.size() <= 1) {
+            return Optional.empty();
+        }
+
+        recentAction = RecentAction.UNDO;
+        return Optional.of(firstStack.get(firstStack.size() - 2));
+    }
+
+    public enum RecentAction {
+        REDO, UNDO;
     }
 
     private class UndoRedoIterator implements Iterator<T> {

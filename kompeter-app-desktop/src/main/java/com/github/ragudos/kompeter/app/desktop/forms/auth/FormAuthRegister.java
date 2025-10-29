@@ -28,7 +28,6 @@ import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.system.FormManager;
 import com.github.ragudos.kompeter.auth.Authentication;
@@ -41,9 +40,7 @@ import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
 import net.miginfocom.swing.MigLayout;
 import raven.extras.SlidePane;
 import raven.extras.SlidePaneTransition;
-import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
-import raven.modal.component.SimpleModalBorder;
 import raven.modal.slider.PanelSlider.SliderCallback;
 
 public class FormAuthRegister extends Form {
@@ -509,18 +506,14 @@ public class FormAuthRegister extends Form {
                 Authentication.signUp(displayNameTextField.getText(), firstNameTextField.getText(),
                         lastNameTextField.getText(), emailTextField.getText(), passwordTextField.getPassword());
 
-                ModalDialog.showModal(owner,
-                        new SimpleMessageModal(SimpleMessageModal.Type.SUCCESS,
-                                "Your account has been registered. Please sign in.", "Registration Success :)",
-                                SimpleModalBorder.CLOSE_OPTION, null),
-                        TOOL_TIP_TEXT_KEY);
+                JOptionPane.showMessageDialog(owner, "Your account has been registered. Please sign in.",
+                        "Registration Success :)", JOptionPane.INFORMATION_MESSAGE);
 
                 SwingUtilities.invokeLater(() -> {
                     FormManager.showAuthForm(new FormAuthLogin());
                 });
             } catch (AuthenticationException err) {
-                ModalDialog.showModal(owner, new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                        "Sign Up Failure :(", SimpleModalBorder.CLOSE_OPTION, null), TOOL_TIP_TEXT_KEY);
+                JOptionPane.showMessageDialog(owner, err.getMessage(), "Sign Up Failure :(", JOptionPane.ERROR_MESSAGE);
             } finally {
                 isBusy.set(false);
             }

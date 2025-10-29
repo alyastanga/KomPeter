@@ -17,13 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.system.FormManager;
 import com.github.ragudos.kompeter.auth.Authentication;
@@ -33,9 +33,7 @@ import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
 import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
 
 import net.miginfocom.swing.MigLayout;
-import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
-import raven.modal.component.SimpleModalBorder;
 
 public class FormAuthLogin extends Form {
     private JLabel emailError;
@@ -220,8 +218,7 @@ public class FormAuthLogin extends Form {
                     FormManager.login();
                 });
             } catch (AuthenticationException err) {
-                ModalDialog.showModal(owner, new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                        "Sign In Failure :(", SimpleModalBorder.CLOSE_OPTION, null), TOOL_TIP_TEXT_KEY);
+                JOptionPane.showMessageDialog(owner, err.getMessage(), "Sign In Failure :(", JOptionPane.ERROR_MESSAGE);
             } finally {
                 isBusy.set(false);
             }
