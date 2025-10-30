@@ -10,6 +10,14 @@ package com.github.ragudos.kompeter.app.desktop.forms;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 
-@SystemForm(name = "Inventory Browse Products", description = "Shows all products", tags = {"inventory"})
+@SystemForm(name = "Inventory Browse Products", description = "Shows all products", tags = { "inventory" })
 public class FormInventoryBrowseProducts extends Form {
+    @Override
+    public void formInit() {
+    }
+
+    @Override
+    public void formRefresh() {
+
+    }
 }

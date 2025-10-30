@@ -241,8 +241,7 @@ public class FormPosShop extends Form {
             JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
                     StringUtils.formatDouble(item.itemPricePhp())));
 
-            itemName.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
-            itemPrice.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+            itemName.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
 
             itemName.setHorizontalAlignment(JLabel.CENTER);
             itemPrice.setHorizontalAlignment(JLabel.CENTER);
@@ -285,8 +284,8 @@ public class FormPosShop extends Form {
 
     private void createContainers() {
         containerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        leftPanel = new JPanel(new MigLayout("insets 0 12 0 0, flowy, al center center", "[grow, fill]",
-                "[top]16px[top]4px[top]8px[grow,fill]"));
+        leftPanel = new JPanel(new MigLayout("insets 0 12 0 0, flowy, al center center", "[grow, fill, center]",
+                "[top]16px[top]4px[top]8px[grow,fill, center]"));
         JPanel rightPanelWrapper = new JPanel(
                 new MigLayout("insets 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
@@ -297,7 +296,7 @@ public class FormPosShop extends Form {
         JLabel subtitle = new JLabel("Click a product card to add them to cart.");
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h2");
-        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h3");
+        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h4");
 
         JScrollPane scroller = new JScrollPane(leftPanelContentContainer);
 
@@ -372,6 +371,7 @@ public class FormPosShop extends Form {
     private void createLeftPanel() {
         searchTextField = new JTextField();
 
+        searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
         searchTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search products...");
@@ -420,7 +420,7 @@ public class FormPosShop extends Form {
 
         title.setBorder(BorderFactory.createEmptyBorder(6, 6, 0, 6));
         title.setIconTextGap(16);
-        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h1");
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h3");
         title.setHorizontalAlignment(JLabel.LEFT);
 
         rightPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 25%);");
@@ -445,10 +445,8 @@ public class FormPosShop extends Form {
                 BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.DARK_GRAY),
                         BorderFactory.createEmptyBorder(5, 0, 0, 0)));
 
-        totalPriceTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
-        totalQuantityTitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
-        cartTotalPriceLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
-        cartTotalQuantityLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+        totalPriceTitle.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
+        totalQuantityTitle.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
 
         clearCartButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h3");
         checkoutButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h3");
@@ -488,9 +486,9 @@ public class FormPosShop extends Form {
         JLabel priceHeader = new JLabel("Price");
         JLabel quantityHeader = new JLabel("Quantity");
 
-        nameHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
-        priceHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
-        quantityHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
+        nameHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+        priceHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
+        quantityHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
 
         headerPanel.add(nameHeader, "growx");
         headerPanel.add(priceHeader, "gapright 20");
@@ -710,15 +708,11 @@ public class FormPosShop extends Form {
             JLabel subtitle = new JLabel(HtmlUtils
                     .wrapInHtml(String.format("<p align='center'>This will add %s to the cart.", item.itemName())));
 
-            subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
-
             JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", item.quantity()));
             JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, item.quantity(), 1));
 
             JButton cancelButton = new JButton("Cancel");
             JButton confirmButton = new JButton("Confirm");
-
-            quantityLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
 
             cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
             confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
@@ -927,7 +921,6 @@ public class FormPosShop extends Form {
             JLabel text = new JLabel(HtmlUtils.wrapInHtml("Something went wrong! :("));
 
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
-            text.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
 
             add(text, BorderLayout.CENTER);
         }
@@ -981,8 +974,6 @@ public class FormPosShop extends Form {
 
             JLabel loading = new JLabel("Loading...");
 
-            loading.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
-
             add(loading, BorderLayout.CENTER);
         }
     }
@@ -995,8 +986,6 @@ public class FormPosShop extends Form {
 
             JLabel text = new JLabel("No items in cart yet :(");
 
-            text.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
-
             add(text, BorderLayout.NORTH);
         }
     }
@@ -1008,9 +997,6 @@ public class FormPosShop extends Form {
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
             JLabel noResults = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>No results were found :("));
-
-            noResults.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2");
-
             add(noResults, BorderLayout.NORTH);
         }
     }

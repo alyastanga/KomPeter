@@ -83,8 +83,8 @@ public class FormAuthLogin extends Form {
         JLabel title = new JLabel("Welcome back!");
         JLabel description = new JLabel("Please sign in to access your account.");
 
-        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1 primary");
-        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2 muted");
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2 primary");
+        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 muted");
 
         contentContainer.add(title);
         contentContainer.add(description);
