@@ -17,8 +17,9 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
         @Range(from = 0, to = Integer.MAX_VALUE) int _itemStockId, @NotNull Timestamp _createdAt,
         @NotNull String itemName, @NotNull String itemDescription, String displayImage,
         @Range(from = 0, to = Integer.MAX_VALUE) int minimumQuantity, @NotNull BigDecimal unitPricePhp,
-        @NotNull String[] categories, @NotNull String brand,
-        @NotNull ItemStockStorageLocationDto[] itemStockLocations) {
+        @NotNull String[] categories, @NotNull String brand, @NotNull ItemStockStorageLocationDto[] itemStockLocations,
+        @NotNull ItemStatus status) {
+
     public static final class InventoryMetadataDtoBuilder {
         private int _itemId;
         private int _itemStockId;
@@ -31,9 +32,15 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
         private String[] categories;
         private String brand;
         private ItemStockStorageLocationDto[] itemStockLocations;
+        private ItemStatus status;
 
         public InventoryMetadataDtoBuilder setItemId(int _itemId) {
             this._itemId = _itemId;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setStatus(ItemStatus status) {
+            this.status = status;
             return this;
         }
 
@@ -89,7 +96,7 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
 
         public InventoryMetadataDto build() {
             return new InventoryMetadataDto(_itemId, _itemStockId, _createdAt, itemName, itemDescription, displayImage,
-                    minimumQuantity, unitPricePhp, categories, brand, itemStockLocations);
+                    minimumQuantity, unitPricePhp, categories, brand, itemStockLocations, status);
         }
     }
 

@@ -41,6 +41,7 @@ AS
         item_brand.name AS brand,
         item_stock.unit_price_php,
         item_stock.minimum_quantity,
+        item_stock.status,
         json_group_array(
             json_object(
                 '_itemStockStorageLocationId', item_storage_location._item_stock_storage_location_id,

@@ -83,7 +83,6 @@ public class InventoryItem {
 
     // create a generic builder for builders that have subclass builders
     public abstract static class IBuilder<I extends InventoryItem, B extends IBuilder<I, B>> {
-        protected int _itemId;
         protected int _itemStockId;
         protected String brand; // here we pass the concrete subclass that will be constructed
         protected String[] categories = new String[0];
@@ -103,19 +102,13 @@ public class InventoryItem {
         }
 
         public B setCategories(String[] categories) {
-            this.categories = categories != null ? categories.clone() : new String[0];
+            this.categories = categories;
 
             return self();
         }
 
         public B setDisplayImage(String displayImage) {
             this.displayImage = displayImage;
-
-            return self();
-        }
-
-        public B setItemId(int _itemId) {
-            this._itemId = _itemId;
 
             return self();
         }

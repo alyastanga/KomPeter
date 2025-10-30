@@ -54,6 +54,7 @@ import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.inventory.items.InventoryItemWithTotalQuantity;
@@ -563,7 +564,7 @@ public class FormPosShop extends Form {
         try {
             String[] itemBrands = inventory.getAllItemBrands();
             String[] itemCategories = inventory.getAllItemCategories();
-            InventoryItemWithTotalQuantity[] items = inventory.getInventoryItemsWithTotalQuantities();
+            InventoryItemWithTotalQuantity[] items = inventory.getInventoryItemsWithTotalQuantities(ItemStatus.ACTIVE);
 
             this.items = new AtomicReferenceArray<>(items);
 

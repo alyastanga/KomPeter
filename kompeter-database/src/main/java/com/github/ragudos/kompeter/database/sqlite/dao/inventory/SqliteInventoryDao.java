@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 import com.github.ragudos.kompeter.utilities.StringUtils;
@@ -39,6 +40,7 @@ public class SqliteInventoryDao implements InventoryDao {
                         .readValue(rs.getString("item_storage_locations"), ItemStockStorageLocationDto[].class);
 
                 InventoryMetadataDto metadata = new InventoryMetadataDto.InventoryMetadataDtoBuilder()
+                        .setStatus(ItemStatus.fromString(rs.getString("status")))
                         .setItemStockId(rs.getInt("_item_stock_id")).setItemId(rs.getInt("_item_id"))
                         .setCreatedAt(rs.getTimestamp("_created_at")).setItemName(rs.getString("name"))
                         .setItemDescription(rs.getString("description")).setDisplayImage(rs.getString("display_image"))
