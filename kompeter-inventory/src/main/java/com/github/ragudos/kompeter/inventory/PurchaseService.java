@@ -33,14 +33,12 @@ public class PurchaseService implements Purchase {
     private final SqlitePurchaseDao sqlitePurchaseDao;
     private final SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao;
     private final SqlitePurchasePaymentDao sqlitePurchasePaymentDao;
-    private final SqliteSupplierDao sqliteSupplierDao;
 
     public PurchaseService(SqlitePurchaseDao sqlitePurchaseDao, SqlitePurchaseItemStockDao sqlitePurchaseItemStockDao,
             SqlitePurchasePaymentDao sqlitePurchasePaymentDao, SqliteSupplierDao sqliteSupplierDao) {
         this.sqlitePurchaseDao = sqlitePurchaseDao;
         this.sqlitePurchaseItemStockDao = sqlitePurchaseItemStockDao;
         this.sqlitePurchasePaymentDao = sqlitePurchasePaymentDao;
-        this.sqliteSupplierDao = sqliteSupplierDao;
     }
 
     @Override

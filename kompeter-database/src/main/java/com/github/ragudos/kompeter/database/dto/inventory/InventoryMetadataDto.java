@@ -7,23 +7,110 @@
 */
 package com.github.ragudos.kompeter.database.dto.inventory;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
-/**
- * @author Peter M. Dela Cruz
- */
 public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int _itemId,
-        @Range(from = 0, to = Integer.MAX_VALUE) int _itemStockId, // hide this shit na lang sa table, necessarry lang
-        // sya if i-edit yung
-        // price
-        @Range(from = 0, to = Integer.MAX_VALUE) int _stockLocationId, // hide this shit also, necessarry if i-edit lang
-        // ang yung location ng
-        // stock
-        @NotNull Timestamp _createdAt, @NotNull String categoryName, @NotNull String itemName,
-        @NotNull String itemDescription, @NotNull String brandName, @NotNull double itemPricePhp, @NotNull int quantity,
-        @NotNull String location, // do not show this in Jtable, show this in more(3 dots) pop up panel
-        String displayImage) {
+        @Range(from = 0, to = Integer.MAX_VALUE) int _itemStockId, @NotNull Timestamp _createdAt,
+        @NotNull String itemName, @NotNull String itemDescription, String displayImage,
+        @Range(from = 0, to = Integer.MAX_VALUE) int minimumQuantity, @NotNull BigDecimal unitPricePhp,
+        @NotNull String[] categories, @NotNull String brand,
+        @NotNull ItemStockStorageLocationDto[] itemStockLocations) {
+    public static final class InventoryMetadataDtoBuilder {
+        private int _itemId;
+        private int _itemStockId;
+        private Timestamp _createdAt;
+        private String itemName;
+        private String itemDescription;
+        private String displayImage;
+        private int minimumQuantity;
+        private BigDecimal unitPricePhp;
+        private String[] categories;
+        private String brand;
+        private ItemStockStorageLocationDto[] itemStockLocations;
+
+        public InventoryMetadataDtoBuilder setItemId(int _itemId) {
+            this._itemId = _itemId;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setItemStockId(int _itemStockId) {
+            this._itemStockId = _itemStockId;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setCreatedAt(Timestamp _createdAt) {
+            this._createdAt = _createdAt;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setItemName(String itemName) {
+            this.itemName = itemName;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setItemDescription(String itemDescription) {
+            this.itemDescription = itemDescription;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setDisplayImage(String displayImage) {
+            this.displayImage = displayImage;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setMinimumQuantity(int minimumQuantity) {
+            this.minimumQuantity = minimumQuantity;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setUnitPricePhp(BigDecimal unitPricePhp) {
+            this.unitPricePhp = unitPricePhp;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setCategories(String[] categories) {
+            this.categories = categories;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setBrand(String brand) {
+            this.brand = brand;
+            return this;
+        }
+
+        public InventoryMetadataDtoBuilder setItemStockLocations(ItemStockStorageLocationDto[] itemStockLocations) {
+            this.itemStockLocations = itemStockLocations;
+            return this;
+        }
+
+        public InventoryMetadataDto build() {
+            return new InventoryMetadataDto(_itemId, _itemStockId, _createdAt, itemName, itemDescription, displayImage,
+                    minimumQuantity, unitPricePhp, categories, brand, itemStockLocations);
+        }
+    }
+
+    public String stringifiedCategories() {
+        return String.join(",", categories);
+    }
+
+    public boolean isCategoryOf(String[] categories) {
+        for (String c : categories) {
+            for (String thisC : this.categories) {
+                if (c.toLowerCase().trim().equals(thisC.toLowerCase().trim())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isBrandOf(String[] brandFilters) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isBrandOf'");
+    }
 };

@@ -7,32 +7,30 @@
 */
 package com.github.ragudos.kompeter.pointofsale;
 
+import java.math.BigDecimal;
+
 public class CartItem implements Cloneable {
     private final int _itemStockId;
-    private final String brand;
-    private final String category;
-    private final double price;
-    private final String productName;
+    private final String name;
+    private final BigDecimal price;
     private int qty;
     private final int stockQty;
 
-    public CartItem(int _itemStockId, String productName, String category, String brand, int stockQty, int qty,
-            double price) throws InsufficientStockException, NegativeQuantityException {
+    public CartItem(int _itemStockId, String name, int stockQty, int qty, BigDecimal price)
+            throws InsufficientStockException, NegativeQuantityException {
         this._itemStockId = _itemStockId;
-        this.productName = productName;
-        this.category = category;
-        this.brand = brand;
+        this.name = name;
         this.qty = qty;
         this.stockQty = stockQty;
         this.price = price;
 
         if (this.qty < 0) {
-            throw new NegativeQuantityException(String.format("Quantity of %s cannot exceed below 0.", productName));
+            throw new NegativeQuantityException(String.format("Quantity of %s cannot exceed below 0.", name));
         }
 
         if (this.qty > stockQty) {
-            throw new InsufficientStockException(String
-                    .format("%s only has %s in stock, but %s was specified in the Cart.", productName, stockQty, qty));
+            throw new InsufficientStockException(
+                    String.format("%s only has %s in stock, but %s was specified in the Cart.", name, stockQty, qty));
         }
     }
 
@@ -40,18 +38,10 @@ public class CartItem implements Cloneable {
         return _itemStockId;
     }
 
-    public String brand() {
-        return brand;
-    }
-
-    public String category() {
-        return category;
-    }
-
     public void decreaseQty(int qty) throws NegativeQuantityException {
         if (this.qty == 0 || this.qty - qty < 0) {
-            throw new NegativeQuantityException(String.format(
-                    "Quantity of %s cannot exceed below 0, but %s was requested.", productName, this.qty - qty));
+            throw new NegativeQuantityException(
+                    String.format("Quantity of %s cannot exceed below 0, but %s was requested.", name, this.qty - qty));
         }
 
         this.qty -= qty;
@@ -60,14 +50,14 @@ public class CartItem implements Cloneable {
     public void decrement() throws NegativeQuantityException {
         if (qty == 0) {
             throw new NegativeQuantityException(
-                    String.format("Quantity of %s cannot exceed below 0, but %s was requested.", productName, qty - 1));
+                    String.format("Quantity of %s cannot exceed below 0, but %s was requested.", name, qty - 1));
         }
 
         qty--;
     }
 
-    public double getTotalPrice() {
-        return qty * price;
+    public BigDecimal getTotalPrice() {
+        return price.multiply(new BigDecimal(String.format("%s", qty)));
     }
 
     public void increaseQty(int qty) throws InsufficientStockException {
@@ -76,8 +66,8 @@ public class CartItem implements Cloneable {
         }
 
         if (this.qty == stockQty || this.qty + qty > stockQty) {
-            throw new InsufficientStockException(String.format("%s only has %s in stock, but %s was requested",
-                    productName, stockQty, this.qty + qty));
+            throw new InsufficientStockException(
+                    String.format("%s only has %s in stock, but %s was requested", name, stockQty, this.qty + qty));
         }
 
         this.qty += qty;
@@ -89,19 +79,19 @@ public class CartItem implements Cloneable {
         }
 
         if (this.qty == stockQty || this.qty + 1 > stockQty) {
-            throw new InsufficientStockException(String.format("%s only has %s in stock, but %s was requested",
-                    productName, stockQty, this.qty + 1));
+            throw new InsufficientStockException(
+                    String.format("%s only has %s in stock, but %s was requested", name, stockQty, this.qty + 1));
         }
 
         qty++;
     }
 
-    public double price() {
-        return price;
+    public String name() {
+        return name;
     }
 
-    public String productName() {
-        return productName;
+    public BigDecimal price() {
+        return price;
     }
 
     public int qty() {

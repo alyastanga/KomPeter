@@ -22,11 +22,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -47,8 +46,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.apache.commons.text.similarity.JaroWinklerSimilarity;
-
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
@@ -57,11 +54,9 @@ import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
-import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
+import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
-import com.github.ragudos.kompeter.inventory.ItemService;
+import com.github.ragudos.kompeter.inventory.items.InventoryItemWithTotalQuantity;
 import com.github.ragudos.kompeter.pointofsale.Cart;
 import com.github.ragudos.kompeter.pointofsale.Cart.CartEvent;
 import com.github.ragudos.kompeter.pointofsale.CartItem;
@@ -74,9 +69,8 @@ import com.github.ragudos.kompeter.utilities.StringUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
 public class FormPosShop extends Form {
-    private static final double SIMILARITY_SEARCH_THRESHOLD = 0.7;
     private ArrayList<JCheckBoxMenuItem> brandCheckBoxes;
     private AtomicReference<ArrayList<String>> brandFilters;
     private AtomicReference<Cart> cart;
@@ -97,9 +91,9 @@ public class FormPosShop extends Form {
     private Debouncer debouncer;
     private JButton filterButtonTrigger;
     private JPopupMenu filterPopupMenu;
-    private JaroWinklerSimilarity fuzzySimilarity;
+    private Inventory inventory;
     private AtomicBoolean isFetching;
-    private AtomicReference<ArrayList<InventoryMetadataDto>> items;
+    private AtomicReferenceArray<InventoryItemWithTotalQuantity> items;
     private JPanel leftPanel;
     private JPanel leftPanelContentContainer;
     private JPanel leftPanelHeader;
@@ -120,13 +114,13 @@ public class FormPosShop extends Form {
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION:
+            case JOptionPane.CANCEL_OPTION :
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION:
+            case JOptionPane.YES_OPTION :
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION:
+            case JOptionPane.NO_OPTION :
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -207,9 +201,9 @@ public class FormPosShop extends Form {
 
         ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
 
-        List<InventoryMetadataDto> items = filterItems();
+        int itemLen = items.length();
 
-        if (items.isEmpty()) {
+        if (itemLen == 0) {
             layout.setJustifyContent(JustifyContent.CENTER);
             leftPanelContentContainer.add(new NoResultsPanel());
 
@@ -221,7 +215,9 @@ public class FormPosShop extends Form {
 
         layout.setJustifyContent(JustifyContent.START);
 
-        for (InventoryMetadataDto item : items) {
+        for (int i = 0; i < itemLen; ++i) {
+            InventoryItemWithTotalQuantity item = items.getAcquire(i);
+
             JPanel itemPanel = new JPanel(new BorderLayout()) {
                 @Override
                 public void updateUI() {
@@ -239,7 +235,7 @@ public class FormPosShop extends Form {
             ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
             JLabel itemName = new JLabel(HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
             JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
-                    StringUtils.formatDouble(item.itemPricePhp())));
+                    StringUtils.formatBigDecimal(item.unitPricePhp())));
 
             itemName.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
 
@@ -284,7 +280,7 @@ public class FormPosShop extends Form {
 
     private void createContainers() {
         containerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        leftPanel = new JPanel(new MigLayout("insets 0 12 0 0, flowy, al center center", "[grow, fill, center]",
+        leftPanel = new JPanel(new MigLayout("insets 0 2 0 0, flowy, al center center", "[grow, fill, center]",
                 "[top]16px[top]4px[top]8px[grow,fill, center]"));
         JPanel rightPanelWrapper = new JPanel(
                 new MigLayout("insets 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
@@ -334,8 +330,8 @@ public class FormPosShop extends Form {
         cartItemPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
         cartItemPanel.setName(String.format("_itemStockId:%s", item._itemStockId()));
 
-        JLabel productName = new JLabel(item.productName());
-        JLabel productPrice = new JLabel(String.format("%s", StringUtils.formatDouble(item.price())));
+        JLabel productName = new JLabel(item.name());
+        JLabel productPrice = new JLabel(String.format("%s", StringUtils.formatBigDecimal(item.price())));
         JLabel productQty = new JLabel(String.format("x%s", item.qty()));
 
         String decIcon = item.qty() == 1 ? "trash.svg" : "minus.svg";
@@ -510,26 +506,6 @@ public class FormPosShop extends Form {
         rightPanel.revalidate();
     }
 
-    private List<InventoryMetadataDto> filterItems() {
-        String searchQuery = searchTextField.getText();
-        ArrayList<String> brandFilters = this.brandFilters.getAcquire();
-        ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
-
-        if (searchQuery.isEmpty() && brandFilters.isEmpty() && categoryFilters.isEmpty()) {
-            return items.getAcquire();
-        }
-
-        return items.getAcquire().stream().filter((item) -> {
-            double similarity = searchQuery.isEmpty()
-                    ? SIMILARITY_SEARCH_THRESHOLD
-                    : fuzzySimilarity.apply(item.itemName(), searchQuery);
-            boolean isInBrandScope = brandFilters.isEmpty() || brandFilters.contains(item.brandName());
-            boolean isInCategoryScope = categoryFilters.isEmpty() || categoryFilters.contains(item.categoryName());
-
-            return similarity >= SIMILARITY_SEARCH_THRESHOLD && isInBrandScope && isInCategoryScope;
-        }).collect(Collectors.toCollection(ArrayList::new));
-    }
-
     private Component getComponent(JComponent parent, String name) {
         if (parent == null) {
             return null;
@@ -553,14 +529,14 @@ public class FormPosShop extends Form {
     }
 
     private void init() {
+        inventory = new Inventory();
         isFetching = new AtomicBoolean(false);
         cart = new AtomicReference<>(new Cart());
         categoryFilters = new AtomicReference<>(new ArrayList<>());
         brandFilters = new AtomicReference<>(new ArrayList<>());
-        items = new AtomicReference<>(new ArrayList<>());
+        items = new AtomicReferenceArray<>(new InventoryItemWithTotalQuantity[0]);
         categoryCheckBoxes = new ArrayList<>();
         brandCheckBoxes = new ArrayList<>();
-        fuzzySimilarity = new JaroWinklerSimilarity();
         debouncer = new Debouncer(250);
         cart.getAcquire().subscribe(new CartConsumer());
 
@@ -584,14 +560,12 @@ public class FormPosShop extends Form {
             leftPanelContentContainer.revalidate();
         });
 
-        ItemService itemService = new ItemService();
-
         try {
-            List<ItemBrandDto> itemBrands = itemService.showAllBrands();
-            List<ItemCategoryDto> itemCategories = itemService.showAllCategories();
-            List<InventoryMetadataDto> items = itemService.getAllItems();
+            String[] itemBrands = inventory.getAllItemBrands();
+            String[] itemCategories = inventory.getAllItemCategories();
+            InventoryItemWithTotalQuantity[] items = inventory.getInventoryItemsWithTotalQuantities();
 
-            this.items.set((ArrayList<InventoryMetadataDto>) items);
+            this.items = new AtomicReferenceArray<>(items);
 
             SwingUtilities.invokeLater(() -> {
                 brandCheckBoxes.clear();
@@ -600,29 +574,27 @@ public class FormPosShop extends Form {
                 ArrayList<String> brandFilters = this.brandFilters.getAcquire();
                 ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
 
-                itemBrands.forEach((brand) -> {
-                    JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand.name());
+                for (String brand : itemBrands) {
+                    JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
 
-                    if (brandFilters.contains(brand.name())) {
+                    if (brandFilters.contains(brand)) {
                         c.setSelected(true);
                     }
 
                     c.setName("brand");
-
                     brandCheckBoxes.add(c);
-                });
+                }
 
-                itemCategories.forEach((category) -> {
-                    JCheckBoxMenuItem c = new JCheckBoxMenuItem(category.name());
+                for (String category : itemCategories) {
+                    JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
 
-                    if (categoryFilters.contains(category.name())) {
+                    if (categoryFilters.contains(category)) {
                         c.setSelected(true);
                     }
 
                     c.setName("category");
-
                     categoryCheckBoxes.add(c);
-                });
+                }
 
                 SwingUtilities.invokeLater(() -> {
                     buildFilterPopupMenu();
@@ -652,13 +624,13 @@ public class FormPosShop extends Form {
     private void removeActionListeners(JComponent component) {
         for (Component c : component.getComponents()) {
             switch (c) {
-                case JButton button:
+                case JButton button :
                     Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
                     break;
-                case JComponent co:
+                case JComponent co :
                     removeActionListeners(co);
                     break;
-                default:
+                default :
             }
         }
     }
@@ -694,12 +666,12 @@ public class FormPosShop extends Form {
     private void updateCartTotals() {
         Cart acquiredCart = cart.getAcquire();
 
-        cartTotalPriceLabel.setText(String.format("%s", StringUtils.formatDouble(acquiredCart.totalPrice())));
+        cartTotalPriceLabel.setText(String.format("%s", StringUtils.formatBigDecimal(acquiredCart.totalPrice())));
         cartTotalQuantityLabel.setText(String.format("%s", acquiredCart.totalQuantity()));
     }
 
     private class AddToCartDialog extends JDialog {
-        public AddToCartDialog(InventoryMetadataDto item, Window owner) {
+        public AddToCartDialog(InventoryItemWithTotalQuantity item, Window owner) {
             super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
 
             putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
@@ -708,8 +680,8 @@ public class FormPosShop extends Form {
             JLabel subtitle = new JLabel(HtmlUtils
                     .wrapInHtml(String.format("<p align='center'>This will add %s to the cart.", item.itemName())));
 
-            JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", item.quantity()));
-            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, item.quantity(), 1));
+            JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", item.totalQuantity()));
+            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, item.totalQuantity(), 1));
 
             JButton cancelButton = new JButton("Cancel");
             JButton confirmButton = new JButton("Confirm");
@@ -741,10 +713,10 @@ public class FormPosShop extends Form {
 
         private class ConfirmButtonActionListener implements ActionListener {
             private final JDialog addToCartDialog;
-            private final InventoryMetadataDto item;
+            private final InventoryItemWithTotalQuantity item;
             private final JSpinner numberSpinner;
 
-            public ConfirmButtonActionListener(JDialog addToCartDialog, InventoryMetadataDto item,
+            public ConfirmButtonActionListener(JDialog addToCartDialog, InventoryItemWithTotalQuantity item,
                     JSpinner numberSpinner) {
                 this.item = item;
                 this.numberSpinner = numberSpinner;
@@ -761,8 +733,8 @@ public class FormPosShop extends Form {
                     if (cartVal.exists(item._itemStockId())) {
                         cartVal.increaseItemQty(item._itemStockId(), val);
                     } else {
-                        cartVal.addItem(new CartItem(item._itemStockId(), item.itemName(), item.categoryName(),
-                                item.brandName(), item.quantity(), val, item.itemPricePhp()));
+                        cartVal.addItem(new CartItem(item._itemStockId(), item.itemName(), item.totalQuantity(), val,
+                                item.unitPricePhp()));
                     }
                 } catch (InsufficientStockException | NegativeQuantityException err) {
                     SwingUtilities.invokeLater(() -> {
@@ -787,10 +759,10 @@ public class FormPosShop extends Form {
 
             SwingUtilities.invokeLater(() -> {
                 switch (cartEvent.eventType()) {
-                    case INCREASE_ITEM_QTY:
-                    case INCREMENT_ITEM:
-                    case DECREASE_ITEM_QTY:
-                    case DECREMENT_ITEM: {
+                    case INCREASE_ITEM_QTY :
+                    case INCREMENT_ITEM :
+                    case DECREASE_ITEM_QTY :
+                    case DECREMENT_ITEM : {
                         JComponent parent = (JComponent) getComponent(cartPanel,
                                 String.format("_itemStockId:%s", cartItem._itemStockId()));
                         JButton decrementButton = (JButton) getComponent(parent, "decrement");
@@ -798,39 +770,39 @@ public class FormPosShop extends Form {
                         JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
 
                         switch (cartEvent.eventType()) {
-                            case INCREASE_ITEM_QTY:
-                            case INCREMENT_ITEM: {
+                            case INCREASE_ITEM_QTY :
+                            case INCREMENT_ITEM : {
                                 if (previousCartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("minus.svg", 0.5f, "foregorund.background"));
                                 }
 
                                 priceLabel.setText(
-                                        String.format("%s", StringUtils.formatDouble(cartItem.getTotalPrice())));
+                                        String.format("%s", StringUtils.formatBigDecimal(cartItem.getTotalPrice())));
                                 qtyLabel.setText(String.format("x%s", cartItem.qty()));
 
                                 updateCartTotals();
                             }
                                 break;
-                            case DECREASE_ITEM_QTY:
-                            case DECREMENT_ITEM: {
+                            case DECREASE_ITEM_QTY :
+                            case DECREMENT_ITEM : {
                                 if (cartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
                                 }
 
                                 priceLabel.setText(
-                                        String.format("%s", StringUtils.formatDouble(cartItem.getTotalPrice())));
+                                        String.format("%s", StringUtils.formatBigDecimal(cartItem.getTotalPrice())));
                                 qtyLabel.setText(String.format("x%s", cartItem.qty()));
 
                                 updateCartTotals();
                             }
                                 break;
-                            default:
+                            default :
                         }
                     }
                         break;
-                    case REMOVE_ITEM: {
+                    case REMOVE_ITEM : {
                         if (acquiredCart.isEmpty()) {
                             buildRightPanelContent();
                         } else {
@@ -843,11 +815,11 @@ public class FormPosShop extends Form {
                         }
                     }
                         break;
-                    case CLEAR: {
+                    case CLEAR : {
                         buildRightPanelContent();
                     }
                         break;
-                    case ADD_ITEM: {
+                    case ADD_ITEM : {
                         if (acquiredCart.getAllItems().size() == 1) {
                             buildRightPanelContent();
                         } else {
@@ -885,7 +857,7 @@ public class FormPosShop extends Form {
                     JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION:
+                case JOptionPane.YES_OPTION :
                     cart.getAcquire().clearCart();
                     break;
             }
@@ -954,9 +926,9 @@ public class FormPosShop extends Form {
     }
 
     private class ItemPanelMouseListener extends MouseAdapter {
-        private InventoryMetadataDto item;
+        private InventoryItemWithTotalQuantity item;
 
-        public ItemPanelMouseListener(InventoryMetadataDto item) {
+        public ItemPanelMouseListener(InventoryItemWithTotalQuantity item) {
             this.item = item;
         }
 
@@ -1009,14 +981,14 @@ public class FormPosShop extends Form {
             String name = item.getName();
 
             switch (e.getStateChange()) {
-                case ItemEvent.DESELECTED:
+                case ItemEvent.DESELECTED :
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().remove(text);
                     } else if (name.equals("category")) {
                         categoryFilters.getAcquire().remove(text);
                     }
                     break;
-                case ItemEvent.SELECTED:
+                case ItemEvent.SELECTED :
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().add(text);
                     } else if (name.equals("category")) {

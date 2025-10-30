@@ -1,1 +1,1 @@
-SELECT * FROM item_stock_storage_locations;
+SELECT * FROM item_stock_locations_view;

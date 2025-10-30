@@ -7,23 +7,26 @@
 */
 package com.github.ragudos.kompeter.auth;
 
-import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
+
 public class Session {
+    public static boolean isExpired(final @NotNull Timestamp ts) {
+        return ts.before(Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)));
+    }
+
+    private final @NotNull Timestamp expiresAt;
+    private final String ipAddress;
+    private final @NotNull String sessionToken;
 
     private @NotNull UserMetadataDto user;
-    private final @NotNull Timestamp expiresAt;
-    private final @NotNull String sessionToken;
-    private final String ipAddress;
 
-    public Session(
-            @NotNull UserMetadataDto user,
-            @NotNull String sessionToken,
-            @NotNull Timestamp expiresAt,
+    public Session(@NotNull UserMetadataDto user, @NotNull String sessionToken, @NotNull Timestamp expiresAt,
             String ipAddress) {
         this.user = user;
         this.sessionToken = sessionToken;
@@ -31,27 +34,23 @@ public class Session {
         this.ipAddress = ipAddress;
     }
 
-    public static boolean isExpired(final @NotNull Timestamp ts) {
-        return ts.before(Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)));
+    public @NotNull Timestamp expiresAt() {
+        return expiresAt;
+    }
+
+    public String ipAddress() {
+        return ipAddress;
     }
 
     public boolean isExpired() {
         return isExpired(expiresAt);
     }
 
-    public @NotNull UserMetadataDto user() {
-        return user;
-    }
-
-    public @NotNull Timestamp expiresAt() {
-        return expiresAt;
-    }
-
     public @NotNull String sessionToken() {
         return sessionToken;
     }
 
-    public String ipAddress() {
-        return ipAddress;
+    public @NotNull UserMetadataDto user() {
+        return user;
     }
 }

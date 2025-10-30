@@ -7,6 +7,7 @@
 */
 package com.github.ragudos.kompeter.pointofsale;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -116,8 +117,9 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
         subscribers.getAcquire().add(subscriber);
     }
 
-    public double totalPrice() {
-        return items.getAcquire().stream().mapToDouble((item) -> item.getTotalPrice()).sum();
+    public BigDecimal totalPrice() {
+        return items.getAcquire().stream().map((item) -> item.getTotalPrice()).filter(p -> p != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public int totalQuantity() {

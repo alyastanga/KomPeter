@@ -24,7 +24,6 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
  * @author Peter M. Dela Cruz
  */
 public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocationDao {
-
     @Override
     public int deleteIssl(int id) throws SQLException, IOException {
         var query = SqliteQueryLoader.getInstance().get("delete_item_stock_storage_loc", "items",
@@ -42,12 +41,13 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
         var query = SqliteQueryLoader.getInstance().get("select_all_issl", "items",
                 AbstractSqlQueryLoader.SqlQueryType.SELECT);
         try (var conn = SqliteFactoryDao.getInstance().getConnection(); var stmt = conn.prepareStatement(query)) {
-
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 ItemStockStorageLocationDto issl = new ItemStockStorageLocationDto(
                         rs.getInt("_item_stock_storage_location_id"), rs.getInt("_item_stock_id"),
-                        rs.getInt("_storage_location_id"), rs.getTimestamp("_created_at"), rs.getInt("quantity"));
+                        rs.getInt("_storage_location_id"), rs.getTimestamp("_created_at"), rs.getString("name"),
+                        rs.getString("description"), rs.getInt("quantity"));
+
                 listItemStockStorageLocation.add(issl);
             }
         }
