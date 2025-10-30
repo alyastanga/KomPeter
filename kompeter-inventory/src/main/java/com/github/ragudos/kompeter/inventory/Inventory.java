@@ -22,9 +22,6 @@ import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
-import com.github.ragudos.kompeter.inventory.items.InventoryItemWithStockLocations;
-import com.github.ragudos.kompeter.inventory.items.InventoryItemWithTotalQuantity;
-import com.github.ragudos.kompeter.inventory.items.InventoryStockLocation;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public final class Inventory {
@@ -62,22 +59,22 @@ public final class Inventory {
         }
     }
 
-    public InventoryItemWithTotalQuantity[] getInventoryItemsWithTotalQuantities() throws InventoryException {
+    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities() throws InventoryException {
         return getInventoryItemsWithTotalQuantities("", null, null, null);
     }
 
-    public InventoryItemWithTotalQuantity[] getInventoryItemsWithTotalQuantities(ItemStatus filterStatus)
+    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities(ItemStatus filterStatus)
             throws InventoryException {
         return getInventoryItemsWithTotalQuantities("", null, null, filterStatus);
     }
 
-    public InventoryItemWithTotalQuantity[] getInventoryItemsWithTotalQuantities(String nameFilter,
-            String[] categoryFilters, String[] brandFilters, ItemStatus filterStatus) throws InventoryException {
+    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities(String nameFilter, String[] categoryFilters,
+            String[] brandFilters, ItemStatus filterStatus) throws InventoryException {
         if (items == null) {
             refreshItems();
 
             if (items == null) {
-                return new InventoryItemWithTotalQuantity[]{};
+                return new InventoryMetadataDto[]{};
             }
         }
 
@@ -94,14 +91,7 @@ public final class Inventory {
             boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
 
             return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
-        }).map((item) -> {
-            return new InventoryItemWithTotalQuantity.InventoryItemWithTotalQuantityBuilder()
-                    .setTotalQuantity(Arrays.stream(item.itemStockLocations()).mapToInt((itemLocation) -> {
-                        return itemLocation.quantity();
-                    }).sum()).setUnitPricePhp(item.unitPricePhp()).setItemName(item.itemName())
-                    .setItemStockId(item._itemStockId()).setBrand(item.brand()).setCategories(item.categories())
-                    .setDisplayImage(item.displayImage()).setItemStockId(item._itemStockId()).build();
-        }).toArray(InventoryItemWithTotalQuantity[]::new);
+        }).toArray(InventoryMetadataDto[]::new);
     }
 
     public InventoryProductListData getProductList(int rowsPerPage, String nameFilter, String[] categoryFilters,
@@ -119,7 +109,7 @@ public final class Inventory {
             }
         }
 
-        InventoryItemWithStockLocations[] itemsWithStockLocations = Arrays.stream(items).filter((item) -> {
+        InventoryMetadataDto[] itemsWithStockLocations = Arrays.stream(items).filter((item) -> {
             double similarity = nameFilter.isEmpty()
                     ? SEARCH_SIMILARITY_THRESHOLD
                     : fuzzySimilarity.apply(item.itemName(), nameFilter);
@@ -132,16 +122,7 @@ public final class Inventory {
             boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
 
             return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
-        }).map((item) -> {
-            return new InventoryItemWithStockLocations.InventoryItemWithStockLocationsBuilder()
-                    .setLocations(Arrays.stream(item.itemStockLocations())
-                            .map((location) -> new InventoryStockLocation(location._storageLocationId(),
-                                    location.name(), location.quantity()))
-                            .toArray(InventoryStockLocation[]::new))
-                    .setStatus(item.status()).setUnitPricePhp(item.unitPricePhp()).setItemName(item.itemName())
-                    .setItemStockId(item._itemStockId()).setBrand(item.brand()).setCategories(item.categories())
-                    .setDisplayImage(item.displayImage()).setItemStockId(item._itemStockId()).build();
-        }).toArray(InventoryItemWithStockLocations[]::new);
+        }).toArray(InventoryMetadataDto[]::new);
 
         return new InventoryProductListData(rowsPerPage, itemsWithStockLocations);
     }
@@ -161,11 +142,11 @@ public final class Inventory {
 
     public class InventoryProductListData {
         private int currentPage;
-        private InventoryItemWithStockLocations[] flatItems; // keep a flat version for repagination
-        private InventoryItemWithStockLocations[][] items;
+        private InventoryMetadataDto[] flatItems; // keep a flat version for repagination
+        private InventoryMetadataDto[][] items;
         private int rowsPerPage;
 
-        public InventoryProductListData(int rowsPerPage, InventoryItemWithStockLocations[] allItems) {
+        public InventoryProductListData(int rowsPerPage, InventoryMetadataDto[] allItems) {
             if (rowsPerPage <= 0) {
                 throw new IllegalArgumentException("rowsPerPage must be > 0");
             }
@@ -185,7 +166,7 @@ public final class Inventory {
             return currentPage;
         }
 
-        public InventoryItemWithStockLocations[] getItemsAtCurrentPage() {
+        public InventoryMetadataDto[] getItemsAtCurrentPage() {
             return items[currentPage - 1];
         }
 
@@ -218,7 +199,7 @@ public final class Inventory {
 
         private void paginate() {
             int pageCount = (int) Math.ceil((double) flatItems.length / rowsPerPage);
-            items = new InventoryItemWithStockLocations[pageCount][];
+            items = new InventoryMetadataDto[pageCount][];
 
             for (int i = 0; i < pageCount; i++) {
                 int start = i * rowsPerPage;

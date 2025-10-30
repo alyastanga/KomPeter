@@ -9,6 +9,7 @@ package com.github.ragudos.kompeter.database.dto.inventory;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Arrays;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -116,8 +117,17 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
         return false;
     }
 
-    public boolean isBrandOf(String[] brandFilters) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'isBrandOf'");
+    public boolean isBrandOf(String[] brands) {
+        for (String thisB : brands) {
+            if (brand.toLowerCase().trim().equals(thisB.toLowerCase().trim())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public int totalQuantity() {
+        return Arrays.stream(this.itemStockLocations).mapToInt((loc) -> loc.quantity()).sum();
     }
 };

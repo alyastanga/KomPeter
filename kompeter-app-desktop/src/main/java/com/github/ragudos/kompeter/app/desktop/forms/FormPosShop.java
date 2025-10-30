@@ -54,10 +54,10 @@ import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
+import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
-import com.github.ragudos.kompeter.inventory.items.InventoryItemWithTotalQuantity;
 import com.github.ragudos.kompeter.pointofsale.Cart;
 import com.github.ragudos.kompeter.pointofsale.Cart.CartEvent;
 import com.github.ragudos.kompeter.pointofsale.CartItem;
@@ -94,7 +94,7 @@ public class FormPosShop extends Form {
     private JPopupMenu filterPopupMenu;
     private Inventory inventory;
     private AtomicBoolean isFetching;
-    private AtomicReferenceArray<InventoryItemWithTotalQuantity> items;
+    private AtomicReferenceArray<InventoryMetadataDto> items;
     private JPanel leftPanel;
     private JPanel leftPanelContentContainer;
     private JPanel leftPanelHeader;
@@ -217,7 +217,7 @@ public class FormPosShop extends Form {
         layout.setJustifyContent(JustifyContent.START);
 
         for (int i = 0; i < itemLen; ++i) {
-            InventoryItemWithTotalQuantity item = items.getAcquire(i);
+            InventoryMetadataDto item = items.getAcquire(i);
 
             JPanel itemPanel = new JPanel(new BorderLayout()) {
                 @Override
@@ -445,8 +445,8 @@ public class FormPosShop extends Form {
         totalPriceTitle.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
         totalQuantityTitle.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
 
-        clearCartButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h3");
-        checkoutButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h3");
+        clearCartButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+        checkoutButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
 
         cartTotalPriceContainer.add(totalPriceTitle, "pushx");
         cartTotalPriceContainer.add(cartTotalPriceLabel);
@@ -535,7 +535,7 @@ public class FormPosShop extends Form {
         cart = new AtomicReference<>(new Cart());
         categoryFilters = new AtomicReference<>(new ArrayList<>());
         brandFilters = new AtomicReference<>(new ArrayList<>());
-        items = new AtomicReferenceArray<>(new InventoryItemWithTotalQuantity[0]);
+        items = new AtomicReferenceArray<>(new InventoryMetadataDto[0]);
         categoryCheckBoxes = new ArrayList<>();
         brandCheckBoxes = new ArrayList<>();
         debouncer = new Debouncer(250);
@@ -564,7 +564,7 @@ public class FormPosShop extends Form {
         try {
             String[] itemBrands = inventory.getAllItemBrands();
             String[] itemCategories = inventory.getAllItemCategories();
-            InventoryItemWithTotalQuantity[] items = inventory.getInventoryItemsWithTotalQuantities(ItemStatus.ACTIVE);
+            InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(ItemStatus.ACTIVE);
 
             this.items = new AtomicReferenceArray<>(items);
 
@@ -648,6 +648,10 @@ public class FormPosShop extends Form {
 
     private void search() {
         debouncer.call(() -> {
+            if (isFetching.get()) {
+                return;
+            }
+
             SwingUtilities.invokeLater(() -> {
                 leftPanelContentContainer.removeAll();
 
@@ -657,9 +661,29 @@ public class FormPosShop extends Form {
                 leftPanelContentContainer.repaint();
                 leftPanelContentContainer.revalidate();
 
-                SwingUtilities.invokeLater(() -> {
-                    buildLeftPanelContent();
-                });
+                try {
+                    items = new AtomicReferenceArray<>(inventory.getInventoryItemsWithTotalQuantities(
+                            searchTextField.getText(), categoryFilters.getAcquire().toArray(String[]::new),
+                            brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
+
+                    SwingUtilities.invokeLater(() -> {
+                        buildLeftPanelContent();
+                    });
+                } catch (InventoryException err) {
+                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                            "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
+
+                    SwingUtilities.invokeLater(() -> {
+                        leftPanelContentContainer.removeAll();
+
+                        ((ResponsiveLayout) leftPanelContentContainer.getLayout())
+                                .setJustifyContent(JustifyContent.CENTER);
+
+                        leftPanelContentContainer.add(new ErrorPanel());
+                        leftPanelContentContainer.repaint();
+                        leftPanelContentContainer.revalidate();
+                    });
+                }
             });
         });
     }
@@ -672,7 +696,7 @@ public class FormPosShop extends Form {
     }
 
     private class AddToCartDialog extends JDialog {
-        public AddToCartDialog(InventoryItemWithTotalQuantity item, Window owner) {
+        public AddToCartDialog(InventoryMetadataDto item, Window owner) {
             super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
 
             putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
@@ -714,10 +738,10 @@ public class FormPosShop extends Form {
 
         private class ConfirmButtonActionListener implements ActionListener {
             private final JDialog addToCartDialog;
-            private final InventoryItemWithTotalQuantity item;
+            private final InventoryMetadataDto item;
             private final JSpinner numberSpinner;
 
-            public ConfirmButtonActionListener(JDialog addToCartDialog, InventoryItemWithTotalQuantity item,
+            public ConfirmButtonActionListener(JDialog addToCartDialog, InventoryMetadataDto item,
                     JSpinner numberSpinner) {
                 this.item = item;
                 this.numberSpinner = numberSpinner;
@@ -895,7 +919,7 @@ public class FormPosShop extends Form {
 
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
-            add(text, BorderLayout.CENTER);
+            add(text, BorderLayout.WEST);
         }
     }
 
@@ -927,9 +951,9 @@ public class FormPosShop extends Form {
     }
 
     private class ItemPanelMouseListener extends MouseAdapter {
-        private InventoryItemWithTotalQuantity item;
+        private InventoryMetadataDto item;
 
-        public ItemPanelMouseListener(InventoryItemWithTotalQuantity item) {
+        public ItemPanelMouseListener(InventoryMetadataDto item) {
             this.item = item;
         }
 
@@ -947,7 +971,7 @@ public class FormPosShop extends Form {
 
             JLabel loading = new JLabel("Loading...");
 
-            add(loading, BorderLayout.CENTER);
+            add(loading, BorderLayout.WEST);
         }
     }
 
