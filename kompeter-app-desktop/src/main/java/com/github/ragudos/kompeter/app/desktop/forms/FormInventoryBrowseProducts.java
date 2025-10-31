@@ -67,7 +67,7 @@ import com.github.ragudos.kompeter.utilities.HtmlUtils;
 
 import net.miginfocom.swing.MigLayout;
 
-@SystemForm(name = "Inventory Browse Products", description = "Shows all products", tags = {"inventory"})
+@SystemForm(name = "Inventory Browse Products", description = "Shows all products", tags = { "inventory" })
 public class FormInventoryBrowseProducts extends Form {
     private JPanel bodyPanel;
 
@@ -270,7 +270,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             final ProductsTableModel tableModel = new ProductsTableModel();
 
-            tableModel.setColumnIdentifiers(new String[]{"Name", "Price", "Current Stock", "Status"});
+            tableModel.setColumnIdentifiers(new String[] { "Name", "Price", "Current Stock", "Status" });
 
             setModel(tableModel);
 
@@ -308,16 +308,15 @@ public class FormInventoryBrowseProducts extends Form {
             model.setRowCount(0);
 
             for (final InventoryMetadataDto item : productListData.getItemsAtCurrentPage()) {
-                model.addRow(new Object[]{new LabelWithImage.LabelWithImageData(item.displayImage(), item.itemName()),
+                model.addRow(new Object[] { new LabelWithImage.LabelWithImageData(item.displayImage(), item.itemName()),
                         item.unitPricePhp(), new PercentageBar.PercentageBarData(item._itemStockId(),
                                 item.totalQuantity(), item.minimumQuantity(), "unit/s"),
-                        item.status(), ""});
+                        item.status(), "" });
             }
 
             productsTableControlFooter.rerender();
 
             bodyPanel.revalidate();
-            bodyPanel.repaint();
         }
 
         private class ProductsTableModel extends DefaultTableModel {
@@ -365,9 +364,9 @@ public class FormInventoryBrowseProducts extends Form {
         private final JButton filterButtonTrigger;
 
         public FilterPopupMenu() {
-            filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.background"));
+            filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.muted"));
 
-            filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
             filterButtonTrigger.addActionListener(this);
             filterButtonTrigger.setToolTipText("Filter Products");
         }
@@ -432,8 +431,8 @@ public class FormInventoryBrowseProducts extends Form {
         private final JButton manageStockTrigger;
 
         public ManageStockPopupMenu() {
-            chevronDown = new SVGIconUIColor("chevron-down.svg", 0.5f, "foreground.background");
-            chevronUp = new SVGIconUIColor("chevron-up.svg", 0.5f, "foreground.background");
+            chevronDown = new SVGIconUIColor("chevron-down.svg", 0.75f, "foreground.background");
+            chevronUp = new SVGIconUIColor("chevron-up.svg", 0.75f, "foreground.background");
             manageStockTrigger = new JButton("Manage Stock", chevronDown);
             deleteButton = new JButton("Delete", new SVGIconUIColor("trash.svg", 0.5f, "foreground.background"));
             addStockButton = new JButton("Add Stock",
@@ -515,7 +514,7 @@ public class FormInventoryBrowseProducts extends Form {
         private final JSpinner rowsPerPageSpinner;
 
         public ProductsTableFooter() {
-            setLayout(new MigLayout("insets 5 0 5 0, flowx, al center center", "[]push[center]push[][]"));
+            setLayout(new MigLayout("insets 0 5 0 5, flowx, al center center", "[]push[center]push[][]"));
 
             leftLabel = new JLabel();
             paginationContainer = new JPanel(new MigLayout("insets 0, flowx, gap 1px"));

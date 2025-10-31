@@ -71,7 +71,7 @@ import com.github.ragudos.kompeter.utilities.StringUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
 public class FormPosShop extends Form {
     private AtomicReference<ArrayList<String>> brandFilters;
     private AtomicReference<Cart> cart;
@@ -107,20 +107,20 @@ public class FormPosShop extends Form {
             return true;
         }
 
-        int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(this),
+        final int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(this),
                 "Cart is not empty. Would you like to save the current cart's state?", "Save or Remove",
                 JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION :
+            case JOptionPane.CANCEL_OPTION:
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION :
+            case JOptionPane.YES_OPTION:
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION :
+            case JOptionPane.NO_OPTION:
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -138,7 +138,7 @@ public class FormPosShop extends Form {
             return true;
         }
 
-        int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(this),
+        final int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(this),
                 "Cart is not empty. Would you like to continue logging out?", "Log out?", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
 
@@ -164,7 +164,7 @@ public class FormPosShop extends Form {
         new Thread(this::loadData, "Load Point of Sale Shop Data").start();
     }
 
-    private void applyShadowBorder(JPanel panel) {
+    private void applyShadowBorder(final JPanel panel) {
         if (panel != null) {
             panel.setBorder(new DropShadowBorder(new Insets(2, 4, 8, 4), 1, 16));
         }
@@ -173,9 +173,9 @@ public class FormPosShop extends Form {
     private void buildLeftPanelContent() {
         leftPanelContentContainer.removeAll();
 
-        ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
+        final ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
 
-        int itemLen = items.length();
+        final int itemLen = items.length();
 
         if (itemLen == 0) {
             layout.setJustifyContent(JustifyContent.CENTER);
@@ -190,9 +190,9 @@ public class FormPosShop extends Form {
         layout.setJustifyContent(JustifyContent.START);
 
         for (int i = 0; i < itemLen; ++i) {
-            InventoryMetadataDto item = items.getAcquire(i);
+            final InventoryMetadataDto item = items.getAcquire(i);
 
-            JPanel itemPanel = new JPanel(new BorderLayout()) {
+            final JPanel itemPanel = new JPanel(new BorderLayout()) {
                 @Override
                 public void updateUI() {
                     super.updateUI();
@@ -200,15 +200,17 @@ public class FormPosShop extends Form {
                 }
             };
 
-            JPanel itemContentContainer = new JPanel(new MigLayout("flowx, wrap, insets 0", "[grow, fill, center]"));
+            final JPanel itemContentContainer = new JPanel(
+                    new MigLayout("flowx, wrap, insets 0", "[grow, fill, center]"));
 
-            String imagePath = item.displayImage() == null || item.displayImage().isEmpty()
+            final String imagePath = item.displayImage() == null || item.displayImage().isEmpty()
                     ? "Acer Nitro 5 Laptop.png"
                     : item.displayImage();
 
-            ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
-            JLabel itemName = new JLabel(HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
-            JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
+            final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
+            final JLabel itemName = new JLabel(
+                    HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
+            final JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
                     StringUtils.formatBigDecimal(item.unitPricePhp())));
 
             itemName.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
@@ -233,7 +235,7 @@ public class FormPosShop extends Form {
     }
 
     private void buildRightPanelContent() {
-        Cart cart = this.cart.getAcquire();
+        final Cart cart = this.cart.getAcquire();
 
         removeActionListeners(cartPanel);
         cartPanel.removeAll();
@@ -257,19 +259,19 @@ public class FormPosShop extends Form {
         containerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         leftPanel = new JPanel(new MigLayout("insets 0 2 0 0, flowy, al center center", "[grow, fill, center]",
                 "[top]16px[top]4px[top]8px[grow,fill, center]"));
-        JPanel rightPanelWrapper = new JPanel(
+        final JPanel rightPanelWrapper = new JPanel(
                 new MigLayout("insets 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
         leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
                 new ResponsiveLayout(JustifyContent.CENTER, new Dimension(190, -1), 1, 1));
-        JLabel title = new JLabel("Products");
-        JLabel subtitle = new JLabel("Click a product card to add them to cart.");
+        final JLabel title = new JLabel("Products");
+        final JLabel subtitle = new JLabel("Click a product card to add them to cart.");
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
-        JScrollPane scroller = new JScrollPane(leftPanelContentContainer);
+        final JScrollPane scroller = new JScrollPane(leftPanelContentContainer);
 
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
 
@@ -300,20 +302,20 @@ public class FormPosShop extends Form {
         add(containerSplitPane);
     }
 
-    private Component createItemCard(CartItem item) {
-        JPanel cartItemPanel = new JPanel(new MigLayout("insets 5, fillx", "[grow][right]", "[]"));
+    private Component createItemCard(final CartItem item) {
+        final JPanel cartItemPanel = new JPanel(new MigLayout("insets 5, fillx", "[grow][right]", "[]"));
         cartItemPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
         cartItemPanel.setName(String.format("_itemStockId:%s", item._itemStockId()));
 
-        JLabel productName = new JLabel(item.name());
-        JLabel productPrice = new JLabel(String.format("%s", StringUtils.formatBigDecimal(item.price())));
-        JLabel productQty = new JLabel(String.format("x%s", item.qty()));
+        final JLabel productName = new JLabel(item.name());
+        final JLabel productPrice = new JLabel(String.format("%s", StringUtils.formatBigDecimal(item.price())));
+        final JLabel productQty = new JLabel(String.format("x%s", item.qty()));
 
-        String decIcon = item.qty() == 1 ? "trash.svg" : "minus.svg";
+        final String decIcon = item.qty() == 1 ? "trash.svg" : "minus.svg";
 
-        JPanel qtyPanel = new JPanel(new MigLayout("insets 0, wrap 3, al center center", "[]5[]5[]", "[]"));
-        JButton decBtn = new JButton(new SVGIconUIColor(decIcon, 0.5f, "foreground.background"));
-        JButton addBtn = new JButton(new SVGIconUIColor("plus.svg", 0.5f, "foreground.background"));
+        final JPanel qtyPanel = new JPanel(new MigLayout("insets 0, wrap 3, al center center", "[]5[]5[]", "[]"));
+        final JButton decBtn = new JButton(new SVGIconUIColor(decIcon, 0.5f, "foreground.background"));
+        final JButton addBtn = new JButton(new SVGIconUIColor("plus.svg", 0.5f, "foreground.background"));
 
         decBtn.setName("decrement");
         addBtn.setName("increment");
@@ -347,9 +349,9 @@ public class FormPosShop extends Form {
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
         searchTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search products...");
 
-        filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.background"));
+        filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.muted"));
 
-        filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+        filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
         filterPopupMenu = new JPopupMenu();
 
         filterButtonTrigger.addActionListener(new FilterButtonTriggerActionListener());
@@ -362,7 +364,7 @@ public class FormPosShop extends Form {
     }
 
     private void createRightPanel() {
-        JPanel container = new JPanel(new BorderLayout()) {
+        final JPanel container = new JPanel(new BorderLayout()) {
             @Override
             public void updateUI() {
                 super.updateUI();
@@ -371,10 +373,10 @@ public class FormPosShop extends Form {
         };
 
         cartContentContainer = new JPanel(new MigLayout("insets 0, flowx, wrap", "[grow, fill]"));
-        JLabel title = new JLabel("Cart", new SVGIconUIColor("shopping-cart.svg", 0.75f, "color.primary"),
+        final JLabel title = new JLabel("Cart", new SVGIconUIColor("shopping-cart.svg", 0.75f, "color.primary"),
                 JLabel.RIGHT);
         cartPanel = new JPanel(new MigLayout("insets 0, flowx, wrap, al center top", "[grow, fill, center]"));
-        JScrollPane scroller = new JScrollPane(cartPanel);
+        final JScrollPane scroller = new JScrollPane(cartPanel);
         checkoutButton = new JButton("Checkout");
         clearCartButton = new JButton("Clear Cart");
         cartMetadataContainer = new JPanel(
@@ -384,8 +386,8 @@ public class FormPosShop extends Form {
         cartTotalQuantityContainer = new JPanel(new MigLayout("insets 0, flowx"));
         cartTotalPriceLabel = new JLabel("0.00");
         cartTotalQuantityLabel = new JLabel("");
-        JLabel totalPriceTitle = new JLabel("Total: ");
-        JLabel totalQuantityTitle = new JLabel("Quantity: ");
+        final JLabel totalPriceTitle = new JLabel("Total: ");
+        final JLabel totalQuantityTitle = new JLabel("Quantity: ");
 
         title.setBorder(BorderFactory.createEmptyBorder(6, 6, 0, 6));
         title.setIconTextGap(16);
@@ -446,14 +448,14 @@ public class FormPosShop extends Form {
     }
 
     private void createRightPanelContents() {
-        Cart cart = this.cart.getAcquire();
+        final Cart cart = this.cart.getAcquire();
 
-        JPanel headerPanel = new JPanel(new MigLayout("insets 5, fillx", "[grow][right][center]", "[]"));
+        final JPanel headerPanel = new JPanel(new MigLayout("insets 5, fillx", "[grow][right][center]", "[]"));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
 
-        JLabel nameHeader = new JLabel("Product");
-        JLabel priceHeader = new JLabel("Price");
-        JLabel quantityHeader = new JLabel("Quantity");
+        final JLabel nameHeader = new JLabel("Product");
+        final JLabel priceHeader = new JLabel("Price");
+        final JLabel quantityHeader = new JLabel("Quantity");
 
         nameHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
         priceHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
@@ -465,7 +467,7 @@ public class FormPosShop extends Form {
 
         cartPanel.add(headerPanel, "growx");
 
-        for (CartItem item : cart.getAllItems()) {
+        for (final CartItem item : cart.getAllItems()) {
             cartPanel.add(createItemCard(item), "growx, wrap");
         }
 
@@ -479,18 +481,18 @@ public class FormPosShop extends Form {
         rightPanel.revalidate();
     }
 
-    private Component getComponent(JComponent parent, String name) {
+    private Component getComponent(final JComponent parent, final String name) {
         if (parent == null) {
             return null;
         }
 
-        for (Component c : parent.getComponents()) {
+        for (final Component c : parent.getComponents()) {
             if (c.getName() != null && c.getName().equals(name)) {
                 return c;
             }
 
-            if (c instanceof JComponent jc) {
-                Component val = getComponent(jc, name);
+            if (c instanceof final JComponent jc) {
+                final Component val = getComponent(jc, name);
 
                 if (val != null) {
                     return val;
@@ -532,29 +534,30 @@ public class FormPosShop extends Form {
         });
 
         try {
-            String[] itemBrands = inventory.getAllItemBrands();
-            String[] itemCategories = inventory.getAllItemCategories();
-            InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(searchTextField.getText(),
+            final String[] itemBrands = inventory.getAllItemBrands();
+            final String[] itemCategories = inventory.getAllItemCategories();
+            final InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(
+                    searchTextField.getText(),
                     categoryFilters.getAcquire().toArray(String[]::new),
                     brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE);
 
             this.items = new AtomicReferenceArray<>(items);
 
             SwingUtilities.invokeLater(() -> {
-                ArrayList<String> brandFilters = this.brandFilters.getAcquire();
-                ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
+                final ArrayList<String> brandFilters = this.brandFilters.getAcquire();
+                final ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
 
                 SwingUtilities.invokeLater(() -> {
                     removeAllItemListenersOfPopupMenu(filterPopupMenu);
                     filterPopupMenu.removeAll();
 
-                    JLabel categoryLabel = new JLabel("Category");
-                    JLabel brandLabel = new JLabel("Brand");
+                    final JLabel categoryLabel = new JLabel("Category");
+                    final JLabel brandLabel = new JLabel("Brand");
 
                     filterPopupMenu.add(categoryLabel);
 
-                    for (String category : itemCategories) {
-                        JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
+                    for (final String category : itemCategories) {
+                        final JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
 
                         if (categoryFilters.contains(category)) {
                             c.setSelected(true);
@@ -569,8 +572,8 @@ public class FormPosShop extends Form {
 
                     filterPopupMenu.add(brandLabel);
 
-                    for (String brand : itemBrands) {
-                        JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
+                    for (final String brand : itemBrands) {
+                        final JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
 
                         if (brandFilters.contains(brand)) {
                             c.setSelected(true);
@@ -586,7 +589,7 @@ public class FormPosShop extends Form {
 
                 isFetching.set(false);
             });
-        } catch (InventoryException err) {
+        } catch (final InventoryException err) {
             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                     "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
 
@@ -604,24 +607,24 @@ public class FormPosShop extends Form {
         }
     }
 
-    private void removeActionListeners(JComponent component) {
-        for (Component c : component.getComponents()) {
+    private void removeActionListeners(final JComponent component) {
+        for (final Component c : component.getComponents()) {
             switch (c) {
-                case JButton button :
+                case final JButton button:
                     Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
                     break;
-                case JComponent co :
+                case final JComponent co:
                     removeActionListeners(co);
                     break;
-                default :
+                default:
             }
         }
     }
 
-    private void removeAllItemListenersOfPopupMenu(JPopupMenu menu) {
-        for (Component component : menu.getComponents()) {
-            if (component instanceof JMenuItem item) {
-                for (ItemListener l : item.getItemListeners()) {
+    private void removeAllItemListenersOfPopupMenu(final JPopupMenu menu) {
+        for (final Component component : menu.getComponents()) {
+            if (component instanceof final JMenuItem item) {
+                for (final ItemListener l : item.getItemListeners()) {
                     item.removeItemListener(l);
                 }
             }
@@ -651,7 +654,7 @@ public class FormPosShop extends Form {
                     SwingUtilities.invokeLater(() -> {
                         buildLeftPanelContent();
                     });
-                } catch (InventoryException err) {
+                } catch (final InventoryException err) {
                     JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                             "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
 
@@ -671,27 +674,28 @@ public class FormPosShop extends Form {
     }
 
     private void updateCartTotals() {
-        Cart acquiredCart = cart.getAcquire();
+        final Cart acquiredCart = cart.getAcquire();
 
         cartTotalPriceLabel.setText(String.format("%s", StringUtils.formatBigDecimal(acquiredCart.totalPrice())));
         cartTotalQuantityLabel.setText(String.format("%s", acquiredCart.totalQuantity()));
     }
 
     private class AddToCartDialog extends JDialog {
-        public AddToCartDialog(int id, String itemName, int totalQuantity, BigDecimal unitPricePhp, Window owner) {
+        public AddToCartDialog(final int id, final String itemName, final int totalQuantity,
+                final BigDecimal unitPricePhp, final Window owner) {
             super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
 
             putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
             setLayout(new MigLayout("insets 9, flowx, wrap", "[grow, fill, center]"));
 
-            JLabel subtitle = new JLabel(
+            final JLabel subtitle = new JLabel(
                     HtmlUtils.wrapInHtml(String.format("<p align='center'>This will add %s to the cart.", itemName)));
 
-            JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", totalQuantity));
-            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, totalQuantity, 1));
+            final JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", totalQuantity));
+            final JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, totalQuantity, 1));
 
-            JButton cancelButton = new JButton("Cancel");
-            JButton confirmButton = new JButton("Confirm");
+            final JButton cancelButton = new JButton("Cancel");
+            final JButton confirmButton = new JButton("Confirm");
 
             cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
             confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
@@ -714,7 +718,7 @@ public class FormPosShop extends Form {
 
         private class CancelButtonActionListener implements ActionListener {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 dispose();
             }
         }
@@ -727,8 +731,9 @@ public class FormPosShop extends Form {
             private final int totalQuantity;
             private final BigDecimal unitPricePhp;
 
-            public ConfirmButtonActionListener(JDialog addToCartDialog, int id, String itemName, int totalQuantity,
-                    BigDecimal unitPricePhp, JSpinner numberSpinner) {
+            public ConfirmButtonActionListener(final JDialog addToCartDialog, final int id, final String itemName,
+                    final int totalQuantity,
+                    final BigDecimal unitPricePhp, final JSpinner numberSpinner) {
                 this.id = id;
                 this.itemName = itemName;
                 this.totalQuantity = totalQuantity;
@@ -738,10 +743,10 @@ public class FormPosShop extends Form {
             }
 
             @Override
-            public void actionPerformed(ActionEvent e) {
-                Integer val = (Integer) numberSpinner.getValue();
+            public void actionPerformed(final ActionEvent e) {
+                final Integer val = (Integer) numberSpinner.getValue();
 
-                Cart cartVal = cart.getAcquire();
+                final Cart cartVal = cart.getAcquire();
 
                 try {
                     if (cartVal.exists(id)) {
@@ -765,26 +770,26 @@ public class FormPosShop extends Form {
 
     private class CartConsumer implements Consumer<CartEvent> {
         @Override
-        public void accept(CartEvent cartEvent) {
-            Cart acquiredCart = cart.getAcquire();
-            CartItem cartItem = cartEvent.payload();
-            CartItem previousCartItem = cartEvent.previousPayload();
+        public void accept(final CartEvent cartEvent) {
+            final Cart acquiredCart = cart.getAcquire();
+            final CartItem cartItem = cartEvent.payload();
+            final CartItem previousCartItem = cartEvent.previousPayload();
 
             SwingUtilities.invokeLater(() -> {
                 switch (cartEvent.eventType()) {
-                    case INCREASE_ITEM_QTY :
-                    case INCREMENT_ITEM :
-                    case DECREASE_ITEM_QTY :
-                    case DECREMENT_ITEM : {
-                        JComponent parent = (JComponent) getComponent(cartPanel,
+                    case INCREASE_ITEM_QTY:
+                    case INCREMENT_ITEM:
+                    case DECREASE_ITEM_QTY:
+                    case DECREMENT_ITEM: {
+                        final JComponent parent = (JComponent) getComponent(cartPanel,
                                 String.format("_itemStockId:%s", cartItem._itemStockId()));
-                        JButton decrementButton = (JButton) getComponent(parent, "decrement");
-                        JLabel priceLabel = (JLabel) getComponent(parent, "price");
-                        JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
+                        final JButton decrementButton = (JButton) getComponent(parent, "decrement");
+                        final JLabel priceLabel = (JLabel) getComponent(parent, "price");
+                        final JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
 
                         switch (cartEvent.eventType()) {
-                            case INCREASE_ITEM_QTY :
-                            case INCREMENT_ITEM : {
+                            case INCREASE_ITEM_QTY:
+                            case INCREMENT_ITEM: {
                                 if (previousCartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("minus.svg", 0.5f, "foregorund.background"));
@@ -797,8 +802,8 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            case DECREASE_ITEM_QTY :
-                            case DECREMENT_ITEM : {
+                            case DECREASE_ITEM_QTY:
+                            case DECREMENT_ITEM: {
                                 if (cartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
@@ -811,11 +816,11 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            default :
+                            default:
                         }
                     }
                         break;
-                    case REMOVE_ITEM : {
+                    case REMOVE_ITEM: {
                         if (acquiredCart.isEmpty()) {
                             buildRightPanelContent();
                         } else {
@@ -828,11 +833,11 @@ public class FormPosShop extends Form {
                         }
                     }
                         break;
-                    case CLEAR : {
+                    case CLEAR: {
                         buildRightPanelContent();
                     }
                         break;
-                    case ADD_ITEM : {
+                    case ADD_ITEM: {
                         if (acquiredCart.getAllItems().size() == 1) {
                             buildRightPanelContent();
                         } else {
@@ -850,27 +855,28 @@ public class FormPosShop extends Form {
     }
 
     private class CheckoutButtonActionListener implements ActionListener {
-        private FormPosShop formPosShop;
+        private final FormPosShop formPosShop;
 
-        public CheckoutButtonActionListener(FormPosShop formPosShop) {
+        public CheckoutButtonActionListener(final FormPosShop formPosShop) {
             this.formPosShop = formPosShop;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
         }
     }
 
     private class ClearCartActionListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
 
-            int chosenOption = JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(cartButtonsContainer),
+            final int chosenOption = JOptionPane.showConfirmDialog(
+                    SwingUtilities.getWindowAncestor(cartButtonsContainer),
                     "Are you sure you want to clear your cart?", "Clear Cart", JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION :
+                case JOptionPane.YES_OPTION:
                     cart.getAcquire().clearCart();
                     break;
             }
@@ -881,21 +887,21 @@ public class FormPosShop extends Form {
         private final int id;
         private final int qty;
 
-        public DecrementItemQuantityCartActionListener(int id, int qty) {
+        public DecrementItemQuantityCartActionListener(final int id, final int qty) {
             this.id = id;
             this.qty = qty;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            Cart acquiredCart = cart.getAcquire();
+        public void actionPerformed(final ActionEvent e) {
+            final Cart acquiredCart = cart.getAcquire();
 
             if (qty == 1) {
                 acquiredCart.removeItem(id);
             } else {
                 try {
                     acquiredCart.decrementItem(id);
-                } catch (NegativeQuantityException err) {
+                } catch (final NegativeQuantityException err) {
                     JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(cartPanel), err.getMessage(),
                             err.getClass().getName(), JOptionPane.ERROR_MESSAGE);
                 }
@@ -905,7 +911,7 @@ public class FormPosShop extends Form {
 
     private class ErrorPanel extends JPanel {
         public ErrorPanel() {
-            JLabel text = new JLabel(HtmlUtils.wrapInHtml("Something went wrong! :("));
+            final JLabel text = new JLabel(HtmlUtils.wrapInHtml("Something went wrong! :("));
 
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
@@ -915,25 +921,25 @@ public class FormPosShop extends Form {
 
     private class FilterButtonTriggerActionListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             filterPopupMenu.show(filterButtonTrigger, 0, filterButtonTrigger.getHeight());
         }
     }
 
     private class IncrementItemQuantityCartActionListener implements ActionListener {
-        private int id;
+        private final int id;
 
-        public IncrementItemQuantityCartActionListener(int id) {
+        public IncrementItemQuantityCartActionListener(final int id) {
             this.id = id;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            Cart acquiredCart = cart.getAcquire();
+        public void actionPerformed(final ActionEvent e) {
+            final Cart acquiredCart = cart.getAcquire();
 
             try {
                 acquiredCart.incrementItem(id);
-            } catch (InsufficientStockException err) {
+            } catch (final InsufficientStockException err) {
                 JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(cartPanel), err.getMessage(),
                         err.getClass().getName(), JOptionPane.ERROR_MESSAGE);
             }
@@ -946,7 +952,8 @@ public class FormPosShop extends Form {
         private final int totalQuantity;
         private final BigDecimal unitPricePhp;
 
-        public ItemPanelMouseListener(int id, String itemName, int totalQuantity, BigDecimal unitPricePhp) {
+        public ItemPanelMouseListener(final int id, final String itemName, final int totalQuantity,
+                final BigDecimal unitPricePhp) {
             this.id = id;
             this.itemName = itemName;
             this.totalQuantity = totalQuantity;
@@ -954,7 +961,7 @@ public class FormPosShop extends Form {
         }
 
         @Override
-        public void mouseClicked(MouseEvent e) {
+        public void mouseClicked(final MouseEvent e) {
             new AddToCartDialog(id, itemName, totalQuantity, unitPricePhp,
                     SwingUtilities.getWindowAncestor(containerSplitPane)).setVisible(true);
         }
@@ -966,7 +973,7 @@ public class FormPosShop extends Form {
 
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
-            JLabel loading = new JLabel("Loading...");
+            final JLabel loading = new JLabel("Loading...");
 
             add(loading, BorderLayout.WEST);
         }
@@ -978,7 +985,7 @@ public class FormPosShop extends Form {
 
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
-            JLabel text = new JLabel("No items in cart yet :(");
+            final JLabel text = new JLabel("No items in cart yet :(");
 
             add(text, BorderLayout.NORTH);
         }
@@ -990,27 +997,27 @@ public class FormPosShop extends Form {
 
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
-            JLabel noResults = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>No results were found :("));
+            final JLabel noResults = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>No results were found :("));
             add(noResults, BorderLayout.NORTH);
         }
     }
 
     private class PopupMenuCheckboxItemListener implements ItemListener {
         @Override
-        public void itemStateChanged(ItemEvent e) {
-            JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getItemSelectable();
-            String text = item.getText();
-            String name = item.getName();
+        public void itemStateChanged(final ItemEvent e) {
+            final JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getItemSelectable();
+            final String text = item.getText();
+            final String name = item.getName();
 
             switch (e.getStateChange()) {
-                case ItemEvent.DESELECTED :
+                case ItemEvent.DESELECTED:
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().remove(text);
                     } else if (name.equals("category")) {
                         categoryFilters.getAcquire().remove(text);
                     }
                     break;
-                case ItemEvent.SELECTED :
+                case ItemEvent.SELECTED:
                     if (name.equals("brand")) {
                         brandFilters.getAcquire().add(text);
                     } else if (name.equals("category")) {
@@ -1025,16 +1032,16 @@ public class FormPosShop extends Form {
 
     private class SearchTextFieldDocumentListener implements DocumentListener {
         @Override
-        public void changedUpdate(DocumentEvent e) {
+        public void changedUpdate(final DocumentEvent e) {
         }
 
         @Override
-        public void insertUpdate(DocumentEvent e) {
+        public void insertUpdate(final DocumentEvent e) {
             search();
         }
 
         @Override
-        public void removeUpdate(DocumentEvent e) {
+        public void removeUpdate(final DocumentEvent e) {
             search();
         }
     }
