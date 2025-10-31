@@ -15,7 +15,7 @@ public enum ItemStatus {
     /** Not for sale */
     INACTIVE;
 
-    public static ItemStatus fromString(String s) {
+    public static ItemStatus fromString(final String s) {
         if (s.equals("archived")) {
             return ARCHIVED;
         } else if (s.equals("inactive")) {
@@ -25,5 +25,13 @@ public enum ItemStatus {
         }
 
         return null;
+    }
+
+    public int priority() {
+        return switch (this) {
+            case ACTIVE -> 3;
+            case INACTIVE -> 2;
+            case ARCHIVED -> 1;
+        };
     }
 }

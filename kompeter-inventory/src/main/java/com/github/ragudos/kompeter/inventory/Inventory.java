@@ -27,19 +27,29 @@ import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 public final class Inventory {
     private static final Logger LOGGER = KompeterLogger.getLogger(Inventory.class);
 
+    private static Inventory instance;
+
+    public static synchronized Inventory getInstance() {
+        if (instance == null) {
+            instance = new Inventory();
+        }
+
+        return instance;
+    }
+
     public final int DEFAULT_ROWS_PER_PAGE = 10;
+
     public final double SEARCH_SIMILARITY_THRESHOLD = 0.7;
 
-    private JaroWinklerSimilarity fuzzySimilarity;
-    private InventoryMetadataDto[] items;
+    private final JaroWinklerSimilarity fuzzySimilarity;
 
-    public Inventory() {
+    private Inventory() {
         fuzzySimilarity = new JaroWinklerSimilarity();
     }
 
     public String[] getAllItemBrands() throws InventoryException {
-        AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
-        ItemBrandDao brandDao = factoryDao.getItemBrandDao();
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemBrandDao brandDao = factoryDao.getItemBrandDao();
 
         try (Connection conn = factoryDao.getConnection()) {
             return brandDao.getAllBrands().stream().map((item) -> item.name()).toArray(String[]::new);
@@ -49,8 +59,8 @@ public final class Inventory {
     }
 
     public String[] getAllItemCategories() throws InventoryException {
-        AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
-        ItemCategoryDao categoryDao = factoryDao.getItemCategoryDao();
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemCategoryDao categoryDao = factoryDao.getItemCategoryDao();
 
         try (Connection conn = factoryDao.getConnection()) {
             return categoryDao.getAllCategories().stream().map((item) -> item.name()).toArray(String[]::new);
@@ -63,77 +73,70 @@ public final class Inventory {
         return getInventoryItemsWithTotalQuantities("", null, null, null);
     }
 
-    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities(ItemStatus filterStatus)
+    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities(final ItemStatus filterStatus)
             throws InventoryException {
         return getInventoryItemsWithTotalQuantities("", null, null, filterStatus);
     }
 
-    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities(String nameFilter, String[] categoryFilters,
-            String[] brandFilters, ItemStatus filterStatus) throws InventoryException {
-        if (items == null) {
-            refreshItems();
+    public InventoryMetadataDto[] getInventoryItemsWithTotalQuantities(final String nameFilter,
+            final String[] categoryFilters, final String[] brandFilters, final ItemStatus filterStatus)
+            throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final InventoryDao inventoryDao = factoryDao.getInventoryDao();
 
-            if (items == null) {
-                return new InventoryMetadataDto[]{};
-            }
+        try (Connection conn = factoryDao.getConnection()) {
+            final InventoryMetadataDto[] items = inventoryDao.getAllInventoryItems(conn);
+
+            return Arrays.stream(items).filter((item) -> {
+                final double similarity = nameFilter.isEmpty()
+                        ? SEARCH_SIMILARITY_THRESHOLD
+                        : fuzzySimilarity.apply(item.itemName(), nameFilter);
+                final boolean isInBrandScope = brandFilters != null
+                        ? (brandFilters.length == 0 || item.isBrandOf(brandFilters))
+                        : true;
+                final boolean isInCategoryScope = categoryFilters != null
+                        ? (categoryFilters.length == 0 || item.isCategoryOf(categoryFilters))
+                        : true;
+                final boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
+
+                return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
+            }).toArray(InventoryMetadataDto[]::new);
+        } catch (SQLException | IOException err) {
+            LOGGER.log(Level.SEVERE, "Failed to get items", err);
+            throw new InventoryException("Failed to get inventory items", err);
         }
-
-        return Arrays.stream(items).filter((item) -> {
-            double similarity = nameFilter.isEmpty()
-                    ? SEARCH_SIMILARITY_THRESHOLD
-                    : fuzzySimilarity.apply(item.itemName(), nameFilter);
-            boolean isInBrandScope = brandFilters != null
-                    ? (brandFilters.length == 0 || item.isBrandOf(brandFilters))
-                    : true;
-            boolean isInCategoryScope = categoryFilters != null
-                    ? (categoryFilters.length == 0 || item.isCategoryOf(categoryFilters))
-                    : true;
-            boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
-
-            return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
-        }).toArray(InventoryMetadataDto[]::new);
     }
 
-    public InventoryProductListData getProductList(int rowsPerPage, String nameFilter, String[] categoryFilters,
-            String[] brandFilters) throws InventoryException {
+    public InventoryProductListData getProductList(final int rowsPerPage, final String nameFilter,
+            final String[] categoryFilters, final String[] brandFilters) throws InventoryException {
         return getProductList(rowsPerPage, nameFilter, categoryFilters, brandFilters, null);
     }
 
-    public InventoryProductListData getProductList(int rowsPerPage, String nameFilter, String[] categoryFilters,
-            String[] brandFilters, ItemStatus filterStatus) throws InventoryException {
-        if (items == null) {
-            refreshItems();
-
-            if (items == null) {
-                return null;
-            }
-        }
-
-        InventoryMetadataDto[] itemsWithStockLocations = Arrays.stream(items).filter((item) -> {
-            double similarity = nameFilter.isEmpty()
-                    ? SEARCH_SIMILARITY_THRESHOLD
-                    : fuzzySimilarity.apply(item.itemName(), nameFilter);
-            boolean isInBrandScope = brandFilters != null
-                    ? (brandFilters.length == 0 || item.isBrandOf(brandFilters))
-                    : true;
-            boolean isInCategoryScope = categoryFilters != null
-                    ? (categoryFilters.length == 0 || item.isCategoryOf(categoryFilters))
-                    : true;
-            boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
-
-            return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
-        }).toArray(InventoryMetadataDto[]::new);
-
-        return new InventoryProductListData(rowsPerPage, itemsWithStockLocations);
-    }
-
-    public void refreshItems() throws InventoryException {
-        AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
-        InventoryDao inventoryDao = factoryDao.getInventoryDao();
+    public InventoryProductListData getProductList(final int rowsPerPage, final String nameFilter,
+            final String[] categoryFilters, final String[] brandFilters, final ItemStatus filterStatus)
+            throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final InventoryDao inventoryDao = factoryDao.getInventoryDao();
 
         try (Connection conn = factoryDao.getConnection()) {
-            items = inventoryDao.getAllInventoryItems(conn);
+            final InventoryMetadataDto[] items = inventoryDao.getAllInventoryItems(conn);
 
+            final InventoryMetadataDto[] itemsWithStockLocations = Arrays.stream(items).filter((item) -> {
+                final double similarity = nameFilter.isEmpty()
+                        ? SEARCH_SIMILARITY_THRESHOLD
+                        : fuzzySimilarity.apply(item.itemName(), nameFilter);
+                final boolean isInBrandScope = brandFilters != null
+                        ? (brandFilters.length == 0 || item.isBrandOf(brandFilters))
+                        : true;
+                final boolean isInCategoryScope = categoryFilters != null
+                        ? (categoryFilters.length == 0 || item.isCategoryOf(categoryFilters))
+                        : true;
+                final boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
+
+                return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
+            }).toArray(InventoryMetadataDto[]::new);
+
+            return new InventoryProductListData(rowsPerPage, itemsWithStockLocations);
         } catch (SQLException | IOException err) {
             LOGGER.log(Level.SEVERE, "Failed to get items", err);
             throw new InventoryException("Failed to get inventory items", err);
@@ -142,11 +145,11 @@ public final class Inventory {
 
     public class InventoryProductListData {
         private int currentPage;
-        private InventoryMetadataDto[] flatItems; // keep a flat version for repagination
+        private final InventoryMetadataDto[] flatItems; // keep a flat version for repagination
         private InventoryMetadataDto[][] items;
         private int rowsPerPage;
 
-        public InventoryProductListData(int rowsPerPage, InventoryMetadataDto[] allItems) {
+        public InventoryProductListData(final int rowsPerPage, final InventoryMetadataDto[] allItems) {
             if (rowsPerPage <= 0) {
                 throw new IllegalArgumentException("rowsPerPage must be > 0");
             }
@@ -155,8 +158,13 @@ public final class Inventory {
                 throw new IllegalArgumentException("allItems cannot be null");
             }
 
+            if (allItems.length < rowsPerPage) {
+                this.rowsPerPage = allItems.length;
+            } else {
+                this.rowsPerPage = rowsPerPage;
+            }
+
             this.flatItems = allItems;
-            this.rowsPerPage = rowsPerPage;
             this.currentPage = 1;
 
             paginate();
@@ -178,7 +186,7 @@ public final class Inventory {
             return items.length;
         }
 
-        public void setCurrentPage(int currentPage) {
+        public void setCurrentPage(final int currentPage) {
             if (currentPage <= 0 || currentPage > items.length) {
                 throw new IllegalArgumentException(
                         String.format("currentPage argument must be > %d and <= %d", 0, items.length));
@@ -187,7 +195,7 @@ public final class Inventory {
             this.currentPage = currentPage;
         }
 
-        public void setRowsPerPage(int rowsPerPage) {
+        public void setRowsPerPage(final int rowsPerPage) {
             if (rowsPerPage <= 0 || rowsPerPage > flatItems.length) {
                 throw new IllegalArgumentException("rowsPerPage must be > 0");
             }
@@ -198,12 +206,12 @@ public final class Inventory {
         }
 
         private void paginate() {
-            int pageCount = (int) Math.ceil((double) flatItems.length / rowsPerPage);
+            final int pageCount = (int) Math.ceil((double) flatItems.length / rowsPerPage);
             items = new InventoryMetadataDto[pageCount][];
 
             for (int i = 0; i < pageCount; i++) {
-                int start = i * rowsPerPage;
-                int end = Math.min(start + rowsPerPage, flatItems.length);
+                final int start = i * rowsPerPage;
+                final int end = Math.min(start + rowsPerPage, flatItems.length);
                 items[i] = Arrays.copyOfRange(flatItems, start, end);
             }
 

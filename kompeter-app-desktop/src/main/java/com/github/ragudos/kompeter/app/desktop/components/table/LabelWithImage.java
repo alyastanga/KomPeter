@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -32,7 +33,11 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
         this.imagePanel = new ImagePanel(null);
         this.label = new JLabel("");
 
+        putClientProperty(FlatClientProperties.STYLE, "background:null;");
+
         setLayout(new MigLayout("insets 2, flowx", "[center][grow, fill, left]"));
+
+        setOpaque(false);
 
         add(imagePanel);
         add(label, "growx");
@@ -41,10 +46,19 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-            int row, int column) {
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+            final boolean hasFocus, final int row, final int column) {
+        if (isSelected) {
+            setOpaque(true);
+            setBackground(table.getSelectionBackground());
+            label.setForeground(table.getSelectionForeground());
+        } else {
+            setOpaque(false);
+            setBackground(table.getBackground());
+            label.setForeground(table.getForeground());
+        }
 
-        if (value instanceof LabelWithImageData data) {
+        if (value instanceof final LabelWithImageData data) {
             imagePanel.setImage(AssetLoader.loadImage(data.imagePath, true));
             label.setText(data.label);
         } else {
@@ -54,13 +68,21 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
         return this;
     }
 
+    public String getText() {
+        return label.getText();
+    }
+
     public static class LabelWithImageData {
         String imagePath;
         String label;
 
-        public LabelWithImageData(String imagePath, String label) {
+        public LabelWithImageData(final String imagePath, final String label) {
             this.imagePath = imagePath;
             this.label = label;
+        }
+
+        public String label() {
+            return label;
         }
     }
 }

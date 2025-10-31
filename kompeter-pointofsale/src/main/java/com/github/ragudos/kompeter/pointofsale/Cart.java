@@ -9,6 +9,7 @@ package com.github.ragudos.kompeter.pointofsale;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -110,6 +111,18 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
         items.getAcquire().remove(item);
 
         notifySubscribers(new CartEvent(CartEventType.REMOVE_ITEM, item, null));
+    }
+
+    public void removeItem(int id) {
+        Optional<CartItem> item = items.getAcquire().stream().filter(i -> i._itemStockId() == id).findFirst();
+
+        if (item.isEmpty()) {
+            return;
+        }
+
+        items.getAcquire().remove(item.get());
+
+        notifySubscribers(new CartEvent(CartEventType.REMOVE_ITEM, item.get(), null));
     }
 
     @Override

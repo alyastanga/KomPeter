@@ -7,10 +7,9 @@
 */
 package com.github.ragudos.kompeter.app.desktop.components.table;
 
-import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -19,41 +18,55 @@ import javax.swing.table.TableCellRenderer;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 
+import net.miginfocom.swing.MigLayout;
+
 public class ItemStatusText extends JPanel implements TableCellRenderer {
-    private final JPanel container;
-    private final JLabel label;
+    JLabel label;
 
     public ItemStatusText() {
-        label = new JLabel("");
-        container = new JPanel(new BorderLayout());
+        label = new JLabel();
 
-        label.setAlignmentX(0.5f);
-        label.setAlignmentY(0.5f);
+        setAlignmentX(0.5f);
+        setAlignmentY(0.5f);
 
-        container.add(label, BorderLayout.CENTER);
+        setOpaque(false);
 
-        container.putClientProperty(FlatClientProperties.STYLE, "arc:999;margin:2,2,2,2;");
+        label.putClientProperty(FlatClientProperties.STYLE, "arc: 999;border: 6,12,6,12; font: 11 bold;");
 
-        add(container);
-        setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        setLayout(new MigLayout("insets 2, al center center"));
+
+        add(label, "");
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-            int row, int column) {
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+            final boolean hasFocus, final int row, final int column) {
+        final ItemStatus itemStatus = (ItemStatus) value;
 
-        ItemStatus itemStatus = ItemStatus.fromString((String) value);
+        label.setText(itemStatus.toString().toLowerCase());
 
-        switch (itemStatus) {
-            case ACTIVE:
-                container.putClientProperty(FlatClientProperties.STYLE, "background:$color.success;");
-                break;
-            case INACTIVE:
-                container.putClientProperty(FlatClientProperties.STYLE, "background:$color.gray;");
-                break;
-            case ARCHIVED:
-                container.putClientProperty(FlatClientProperties.STYLE, "background:$color.error;");
-                break;
+        if (isSelected) {
+            setOpaque(true);
+            setBackground(table.getSelectionBackground());
+            setForeground(table.getSelectionForeground());
+        } else {
+            setOpaque(false);
+
+            // for some reason putClientProperties doesnt work
+            switch (itemStatus) {
+                case ACTIVE :
+                    label.setBackground(Color.decode("#80EF80"));
+                    label.setForeground(Color.decode("#084108"));
+                    break;
+                case INACTIVE :
+                    label.setBackground(Color.decode("#c2bdb9"));
+                    label.setForeground(Color.decode("#282623"));
+                    break;
+                case ARCHIVED :
+                    label.setBackground(Color.decode("#B3EBF2"));
+                    label.setForeground(Color.decode("#0c4148"));
+                    break;
+            }
         }
 
         return this;

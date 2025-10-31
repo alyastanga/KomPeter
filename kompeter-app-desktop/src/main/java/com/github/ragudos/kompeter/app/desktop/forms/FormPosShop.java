@@ -20,6 +20,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -72,7 +73,6 @@ import raven.modal.component.DropShadowBorder;
 
 @SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
 public class FormPosShop extends Form {
-    private ArrayList<JCheckBoxMenuItem> brandCheckBoxes;
     private AtomicReference<ArrayList<String>> brandFilters;
     private AtomicReference<Cart> cart;
     private JPanel cartButtonsContainer;
@@ -84,7 +84,6 @@ public class FormPosShop extends Form {
     private JPanel cartTotalQuantityContainer;
     private JLabel cartTotalQuantityLabel;
     // No need atomic reference since we'll always access these in EDT
-    private ArrayList<JCheckBoxMenuItem> categoryCheckBoxes;
     private AtomicReference<ArrayList<String>> categoryFilters;
     private JButton checkoutButton;
     private JButton clearCartButton;
@@ -171,32 +170,6 @@ public class FormPosShop extends Form {
         }
     }
 
-    private void buildFilterPopupMenu() {
-        removeAllItemListenersOfPopupMenu(filterPopupMenu);
-        filterPopupMenu.removeAll();
-
-        JLabel categoryLabel = new JLabel("Category");
-        JLabel brandLabel = new JLabel("Brand");
-
-        filterPopupMenu.add(categoryLabel);
-
-        categoryCheckBoxes.forEach((c -> {
-            filterPopupMenu.add(c);
-
-            c.addItemListener(new PopupMenuCheckboxItemListener());
-        }));
-
-        filterPopupMenu.addSeparator();
-
-        filterPopupMenu.add(brandLabel);
-
-        brandCheckBoxes.forEach((c -> {
-            filterPopupMenu.add(c);
-
-            c.addItemListener(new PopupMenuCheckboxItemListener());
-        }));
-    }
-
     private void buildLeftPanelContent() {
         leftPanelContentContainer.removeAll();
 
@@ -251,7 +224,8 @@ public class FormPosShop extends Form {
 
             leftPanelContentContainer.add(itemPanel, BorderLayout.CENTER);
 
-            itemPanel.addMouseListener(new ItemPanelMouseListener(item));
+            itemPanel.addMouseListener(new ItemPanelMouseListener(item._itemStockId(), item.itemName(),
+                    item.totalQuantity(), item.unitPricePhp()));
         }
 
         leftPanelContentContainer.repaint();
@@ -292,8 +266,8 @@ public class FormPosShop extends Form {
         JLabel title = new JLabel("Products");
         JLabel subtitle = new JLabel("Click a product card to add them to cart.");
 
-        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h2");
-        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted h4");
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
+        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
         JScrollPane scroller = new JScrollPane(leftPanelContentContainer);
 
@@ -351,8 +325,8 @@ public class FormPosShop extends Form {
         decBtn.putClientProperty(FlatClientProperties.STYLE, "arc:999;");
         addBtn.putClientProperty(FlatClientProperties.STYLE, "arc:999;");
 
-        addBtn.addActionListener(new IncrementItemQuantityCartActionListener(item));
-        decBtn.addActionListener(new DecrementItemQuantityCartActionListener(item));
+        addBtn.addActionListener(new IncrementItemQuantityCartActionListener(item._itemStockId()));
+        decBtn.addActionListener(new DecrementItemQuantityCartActionListener(item._itemStockId(), item.qty()));
 
         qtyPanel.add(decBtn, "center");
         qtyPanel.add(productQty, "center");
@@ -373,12 +347,10 @@ public class FormPosShop extends Form {
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
         searchTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search products...");
 
-        filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.muted"));
+        filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.background"));
 
-        filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+        filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
         filterPopupMenu = new JPopupMenu();
-
-        buildFilterPopupMenu();
 
         filterButtonTrigger.addActionListener(new FilterButtonTriggerActionListener());
         searchTextField.getDocument().addDocumentListener(new SearchTextFieldDocumentListener());
@@ -530,14 +502,12 @@ public class FormPosShop extends Form {
     }
 
     private void init() {
-        inventory = new Inventory();
+        inventory = Inventory.getInstance();
         isFetching = new AtomicBoolean(false);
         cart = new AtomicReference<>(new Cart());
         categoryFilters = new AtomicReference<>(new ArrayList<>());
         brandFilters = new AtomicReference<>(new ArrayList<>());
         items = new AtomicReferenceArray<>(new InventoryMetadataDto[0]);
-        categoryCheckBoxes = new ArrayList<>();
-        brandCheckBoxes = new ArrayList<>();
         debouncer = new Debouncer(250);
         cart.getAcquire().subscribe(new CartConsumer());
 
@@ -564,41 +534,53 @@ public class FormPosShop extends Form {
         try {
             String[] itemBrands = inventory.getAllItemBrands();
             String[] itemCategories = inventory.getAllItemCategories();
-            InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(ItemStatus.ACTIVE);
+            InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(searchTextField.getText(),
+                    categoryFilters.getAcquire().toArray(String[]::new),
+                    brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE);
 
             this.items = new AtomicReferenceArray<>(items);
 
             SwingUtilities.invokeLater(() -> {
-                brandCheckBoxes.clear();
-                categoryCheckBoxes.clear();
-
                 ArrayList<String> brandFilters = this.brandFilters.getAcquire();
                 ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
 
-                for (String brand : itemBrands) {
-                    JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
-
-                    if (brandFilters.contains(brand)) {
-                        c.setSelected(true);
-                    }
-
-                    c.setName("brand");
-                    brandCheckBoxes.add(c);
-                }
-
-                for (String category : itemCategories) {
-                    JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
-
-                    if (categoryFilters.contains(category)) {
-                        c.setSelected(true);
-                    }
-
-                    c.setName("category");
-                    categoryCheckBoxes.add(c);
-                }
-
                 SwingUtilities.invokeLater(() -> {
-                    buildFilterPopupMenu();
+                    removeAllItemListenersOfPopupMenu(filterPopupMenu);
+                    filterPopupMenu.removeAll();
+
+                    JLabel categoryLabel = new JLabel("Category");
+                    JLabel brandLabel = new JLabel("Brand");
+
+                    filterPopupMenu.add(categoryLabel);
+
+                    for (String category : itemCategories) {
+                        JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
+
+                        if (categoryFilters.contains(category)) {
+                            c.setSelected(true);
+                        }
+
+                        c.setName("category");
+                        c.addItemListener(new PopupMenuCheckboxItemListener());
+                        filterPopupMenu.add(c);
+                    }
+
+                    filterPopupMenu.addSeparator();
+
+                    filterPopupMenu.add(brandLabel);
+
+                    for (String brand : itemBrands) {
+                        JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
+
+                        if (brandFilters.contains(brand)) {
+                            c.setSelected(true);
+                        }
+
+                        c.setName("brand");
+                        c.addItemListener(new PopupMenuCheckboxItemListener());
+                        filterPopupMenu.add(c);
+                    }
+
                     buildLeftPanelContent();
                 });
 
@@ -696,17 +678,17 @@ public class FormPosShop extends Form {
     }
 
     private class AddToCartDialog extends JDialog {
-        public AddToCartDialog(InventoryMetadataDto item, Window owner) {
+        public AddToCartDialog(int id, String itemName, int totalQuantity, BigDecimal unitPricePhp, Window owner) {
             super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
 
             putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
             setLayout(new MigLayout("insets 9, flowx, wrap", "[grow, fill, center]"));
 
-            JLabel subtitle = new JLabel(HtmlUtils
-                    .wrapInHtml(String.format("<p align='center'>This will add %s to the cart.", item.itemName())));
+            JLabel subtitle = new JLabel(
+                    HtmlUtils.wrapInHtml(String.format("<p align='center'>This will add %s to the cart.", itemName)));
 
-            JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", item.totalQuantity()));
-            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, item.totalQuantity(), 1));
+            JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", totalQuantity));
+            JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, totalQuantity, 1));
 
             JButton cancelButton = new JButton("Cancel");
             JButton confirmButton = new JButton("Confirm");
@@ -715,7 +697,8 @@ public class FormPosShop extends Form {
             confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
 
             cancelButton.addActionListener(new CancelButtonActionListener());
-            confirmButton.addActionListener(new ConfirmButtonActionListener(this, item, quantitySpinner));
+            confirmButton.addActionListener(
+                    new ConfirmButtonActionListener(this, id, itemName, totalQuantity, unitPricePhp, quantitySpinner));
 
             add(subtitle);
 
@@ -738,12 +721,18 @@ public class FormPosShop extends Form {
 
         private class ConfirmButtonActionListener implements ActionListener {
             private final JDialog addToCartDialog;
-            private final InventoryMetadataDto item;
+            private final int id;
+            private final String itemName;
             private final JSpinner numberSpinner;
+            private final int totalQuantity;
+            private final BigDecimal unitPricePhp;
 
-            public ConfirmButtonActionListener(JDialog addToCartDialog, InventoryMetadataDto item,
-                    JSpinner numberSpinner) {
-                this.item = item;
+            public ConfirmButtonActionListener(JDialog addToCartDialog, int id, String itemName, int totalQuantity,
+                    BigDecimal unitPricePhp, JSpinner numberSpinner) {
+                this.id = id;
+                this.itemName = itemName;
+                this.totalQuantity = totalQuantity;
+                this.unitPricePhp = unitPricePhp;
                 this.numberSpinner = numberSpinner;
                 this.addToCartDialog = addToCartDialog;
             }
@@ -755,11 +744,10 @@ public class FormPosShop extends Form {
                 Cart cartVal = cart.getAcquire();
 
                 try {
-                    if (cartVal.exists(item._itemStockId())) {
-                        cartVal.increaseItemQty(item._itemStockId(), val);
+                    if (cartVal.exists(id)) {
+                        cartVal.increaseItemQty(id, val);
                     } else {
-                        cartVal.addItem(new CartItem(item._itemStockId(), item.itemName(), item.totalQuantity(), val,
-                                item.unitPricePhp()));
+                        cartVal.addItem(new CartItem(id, itemName, totalQuantity, val, unitPricePhp));
                     }
                 } catch (InsufficientStockException | NegativeQuantityException err) {
                     SwingUtilities.invokeLater(() -> {
@@ -890,21 +878,23 @@ public class FormPosShop extends Form {
     }
 
     private class DecrementItemQuantityCartActionListener implements ActionListener {
-        private CartItem item;
+        private final int id;
+        private final int qty;
 
-        public DecrementItemQuantityCartActionListener(CartItem item) {
-            this.item = item;
+        public DecrementItemQuantityCartActionListener(int id, int qty) {
+            this.id = id;
+            this.qty = qty;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
             Cart acquiredCart = cart.getAcquire();
 
-            if (item.qty() == 1) {
-                acquiredCart.removeItem(item);
+            if (qty == 1) {
+                acquiredCart.removeItem(id);
             } else {
                 try {
-                    acquiredCart.decrementItem(item._itemStockId());
+                    acquiredCart.decrementItem(id);
                 } catch (NegativeQuantityException err) {
                     JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(cartPanel), err.getMessage(),
                             err.getClass().getName(), JOptionPane.ERROR_MESSAGE);
@@ -931,10 +921,10 @@ public class FormPosShop extends Form {
     }
 
     private class IncrementItemQuantityCartActionListener implements ActionListener {
-        private CartItem item;
+        private int id;
 
-        public IncrementItemQuantityCartActionListener(CartItem item) {
-            this.item = item;
+        public IncrementItemQuantityCartActionListener(int id) {
+            this.id = id;
         }
 
         @Override
@@ -942,7 +932,7 @@ public class FormPosShop extends Form {
             Cart acquiredCart = cart.getAcquire();
 
             try {
-                acquiredCart.incrementItem(item._itemStockId());
+                acquiredCart.incrementItem(id);
             } catch (InsufficientStockException err) {
                 JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(cartPanel), err.getMessage(),
                         err.getClass().getName(), JOptionPane.ERROR_MESSAGE);
@@ -951,15 +941,22 @@ public class FormPosShop extends Form {
     }
 
     private class ItemPanelMouseListener extends MouseAdapter {
-        private InventoryMetadataDto item;
+        private final int id;
+        private final String itemName;
+        private final int totalQuantity;
+        private final BigDecimal unitPricePhp;
 
-        public ItemPanelMouseListener(InventoryMetadataDto item) {
-            this.item = item;
+        public ItemPanelMouseListener(int id, String itemName, int totalQuantity, BigDecimal unitPricePhp) {
+            this.id = id;
+            this.itemName = itemName;
+            this.totalQuantity = totalQuantity;
+            this.unitPricePhp = unitPricePhp;
         }
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            new AddToCartDialog(item, SwingUtilities.getWindowAncestor(containerSplitPane)).setVisible(true);
+            new AddToCartDialog(id, itemName, totalQuantity, unitPricePhp,
+                    SwingUtilities.getWindowAncestor(containerSplitPane)).setVisible(true);
         }
     }
 
