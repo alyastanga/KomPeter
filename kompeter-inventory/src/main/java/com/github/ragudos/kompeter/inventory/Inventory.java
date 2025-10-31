@@ -20,6 +20,7 @@ import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -131,7 +132,9 @@ public final class Inventory {
                 final boolean isInCategoryScope = categoryFilters != null
                         ? (categoryFilters.length == 0 || item.isCategoryOf(categoryFilters))
                         : true;
-                final boolean statusFilter = filterStatus == null ? true : item.status() == filterStatus;
+                final boolean statusFilter = filterStatus == null
+                        ? item.status() != ItemStatus.ARCHIVED
+                        : item.status() == filterStatus;
 
                 return similarity >= SEARCH_SIMILARITY_THRESHOLD && isInBrandScope && isInCategoryScope && statusFilter;
             }).toArray(InventoryMetadataDto[]::new);
@@ -140,6 +143,44 @@ public final class Inventory {
         } catch (SQLException | IOException err) {
             LOGGER.log(Level.SEVERE, "Failed to get items", err);
             throw new InventoryException("Failed to get inventory items", err);
+        }
+    }
+
+    public void setStatusOfItemsByName(final String[] itemNames, final ItemStatus status) throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemStockDao itemStockDao = factoryDao.getItemStockDao();
+
+        try (Connection conn = factoryDao.getConnection()) {
+            conn.setAutoCommit(false);
+
+            for (final String name : itemNames) {
+                try {
+                    itemStockDao.setItemStocksStatusByName(conn, name, status);
+                } catch (SQLException | IOException err1) {
+                    try {
+                        conn.rollback();
+                    } catch (final SQLException err2) {
+                        err1.addSuppressed(err2);
+                    }
+
+                    throw err1;
+                }
+            }
+
+            try {
+                conn.commit();
+            } catch (final SQLException err1) {
+                try {
+                    conn.rollback();
+                } catch (final SQLException err2) {
+                    err1.addSuppressed(err2);
+                }
+
+                throw err1;
+            }
+        } catch (SQLException | IOException err) {
+            LOGGER.log(Level.SEVERE, "Failed to archive items", err);
+            throw new InventoryException("Failed archive inventory items", err);
         }
     }
 

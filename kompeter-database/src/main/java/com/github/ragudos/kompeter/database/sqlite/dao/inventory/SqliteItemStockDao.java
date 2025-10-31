@@ -9,15 +9,19 @@ package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
 import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockDto;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
@@ -25,26 +29,15 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 public final class SqliteItemStockDao implements ItemStockDao {
 
     @Override
-    public int deleteItemStockById(int id) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("delete_item_stock_by_id", "items",
-                AbstractSqlQueryLoader.SqlQueryType.DELETE);
-        try (var conn = SqliteFactoryDao.getInstance().getConnection(); var stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, id);
-            var rs = stmt.executeUpdate();
-            return rs;
-        }
-    }
-
-    @Override
     public List<ItemStockDto> getAllData() throws SQLException, IOException {
-        List<ItemStockDto> listItemStock = new ArrayList<>();
-        var query = SqliteQueryLoader.getInstance().get("select_all_item_stocks", "items",
+        final List<ItemStockDto> listItemStock = new ArrayList<>();
+        final var query = SqliteQueryLoader.getInstance().get("select_all_item_stocks", "items",
                 AbstractSqlQueryLoader.SqlQueryType.SELECT);
         try (var conn = SqliteFactoryDao.getInstance().getConnection(); var stmt = conn.prepareStatement(query)) {
 
-            var rs = stmt.executeQuery();
+            final var rs = stmt.executeQuery();
             while (rs.next()) {
-                ItemStockDto itemStock = new ItemStockDto(rs.getInt("_item_stock_id"), rs.getInt("_item_id"),
+                final ItemStockDto itemStock = new ItemStockDto(rs.getInt("_item_stock_id"), rs.getInt("_item_id"),
                         rs.getInt("_item_brand_id"), rs.getTimestamp("_created_at"), rs.getBigDecimal("unit_price_php"),
                         rs.getInt("quantity"), rs.getInt("minimum_quantity"));
                 listItemStock.add(itemStock);
@@ -54,16 +47,16 @@ public final class SqliteItemStockDao implements ItemStockDao {
     }
 
     @Override
-    public Optional<ItemStockDto> getItemStockById(int id) throws SQLException, IOException {
+    public Optional<ItemStockDto> getItemStockById(final int id) throws SQLException, IOException {
         Optional<ItemStockDto> optionalItemStock = Optional.empty();
-        var query = SqliteQueryLoader.getInstance().get("select_item_stock_by_id", "items",
+        final var query = SqliteQueryLoader.getInstance().get("select_item_stock_by_id", "items",
                 AbstractSqlQueryLoader.SqlQueryType.SELECT);
         try (var conn = SqliteFactoryDao.getInstance().getConnection(); var stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, id);
 
-            var rs = stmt.executeQuery();
+            final var rs = stmt.executeQuery();
             while (rs.next()) {
-                ItemStockDto itemStock = new ItemStockDto(rs.getInt("_item_stock_id"), rs.getInt("_item_id"),
+                final ItemStockDto itemStock = new ItemStockDto(rs.getInt("_item_stock_id"), rs.getInt("_item_id"),
                         rs.getInt("_item_brand_id"), rs.getTimestamp("_created_at"), rs.getBigDecimal("unit_price_php"),
                         rs.getInt("quantity"), rs.getInt("minimum_quantity"));
                 optionalItemStock = Optional.of(itemStock);
@@ -73,9 +66,9 @@ public final class SqliteItemStockDao implements ItemStockDao {
     }
 
     @Override
-    public int insertItemStock(int itemId, int itemBrandId, BigDecimal unit_price, int min_qty)
+    public int insertItemStock(final int itemId, final int itemBrandId, final BigDecimal unit_price, final int min_qty)
             throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("insert_item_stock", "items",
+        final var query = SqliteQueryLoader.getInstance().get("insert_item_stock", "items",
                 AbstractSqlQueryLoader.SqlQueryType.INSERT);
         try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query,
                 Statement.RETURN_GENERATED_KEYS);) {
@@ -85,14 +78,25 @@ public final class SqliteItemStockDao implements ItemStockDao {
             stmt.setInt("minimum_quantity", min_qty);
 
             stmt.executeUpdate();
-            var rs = stmt.getPreparedStatement().getGeneratedKeys();
+            final var rs = stmt.getPreparedStatement().getGeneratedKeys();
             return rs.next() ? rs.getInt(1) : -1;
         }
     }
 
     @Override
-    public int updateItemBrandById(int brandID, int id) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("update_item_brand_by_id", "items",
+    public void setItemStocksStatusByName(final Connection conn, final String name, final ItemStatus status)
+            throws SQLException, IOException {
+        try (var stmnt = new NamedPreparedStatement(conn, SqliteQueryLoader.getInstance()
+                .get("set_item_stock_status_by_name", "item_stocks", SqlQueryType.UPDATE));) {
+            stmnt.setString("name", name);
+            stmnt.setString("status", status == null ? null : status.toString().toLowerCase(Locale.ENGLISH));
+            stmnt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int updateItemBrandById(final int brandID, final int id) throws SQLException, IOException {
+        final var query = SqliteQueryLoader.getInstance().get("update_item_brand_by_id", "items",
                 AbstractSqlQueryLoader.SqlQueryType.UPDATE);
         try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
             stmt.setInt("_item_brand_id", brandID);
@@ -102,8 +106,8 @@ public final class SqliteItemStockDao implements ItemStockDao {
     }
 
     @Override
-    public int updateItemMinimumQtyById(int minimumQty, int id) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("update_item_stock_minQty", "items",
+    public int updateItemMinimumQtyById(final int minimumQty, final int id) throws SQLException, IOException {
+        final var query = SqliteQueryLoader.getInstance().get("update_item_stock_minQty", "items",
                 AbstractSqlQueryLoader.SqlQueryType.UPDATE);
         try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
             stmt.setInt("minimum_quantity", minimumQty);
@@ -113,8 +117,8 @@ public final class SqliteItemStockDao implements ItemStockDao {
     }
 
     @Override
-    public int updateItemUnitPriceById(BigDecimal unitPrice, int id) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("update_item_stock_price", "items",
+    public int updateItemUnitPriceById(final BigDecimal unitPrice, final int id) throws SQLException, IOException {
+        final var query = SqliteQueryLoader.getInstance().get("update_item_stock_price", "items",
                 AbstractSqlQueryLoader.SqlQueryType.UPDATE);
         try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
             stmt.setBigDecimal("unit_price_php", unitPrice);

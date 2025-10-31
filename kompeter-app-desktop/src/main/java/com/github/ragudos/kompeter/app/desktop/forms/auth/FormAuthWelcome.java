@@ -27,9 +27,9 @@ public class FormAuthWelcome extends Form {
     }
 
     private void createWelcome() {
-        JPanel titleContainer = new JPanel(new MigLayout("gapx 9px"));
-        JLabel title = new JLabel("KomPeter");
-        JLabel subtitle = new JLabel(HtmlUtils.wrapInHtml("Computer Parts<br>& Accessories"));
+        final JPanel titleContainer = new JPanel(new MigLayout("gapx 9px"));
+        final JLabel title = new JLabel("KomPeter");
+        final JLabel subtitle = new JLabel(HtmlUtils.wrapInHtml("Computer Parts<br>& Accessories"));
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h00 primary");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1 primary");
@@ -37,12 +37,14 @@ public class FormAuthWelcome extends Form {
         titleContainer.add(title);
         titleContainer.add(subtitle);
 
-        JPanel buttonContainer = new JPanel(new MigLayout("gapx 48px, al center center"));
-        JButton signInButton = new JButton("Sign in");
-        JButton signUpButton = new JButton("Sign up");
+        final JPanel buttonContainer = new JPanel(new MigLayout("gapx 48px, al center center"));
+        final JButton signInButton = new JButton("Sign in");
+        final JButton signUpButton = new JButton("Sign up");
 
         signInButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+        signInButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_ROUND_RECT, true);
         signUpButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+        signUpButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_ROUND_RECT, true);
 
         buttonContainer.add(signInButton);
         buttonContainer.add(signUpButton);
@@ -62,14 +64,14 @@ public class FormAuthWelcome extends Form {
 
     private class SignInButtonActionListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             FormManager.showAuthForm(new FormAuthLogin());
         }
     }
 
     private class SignUpButtonActionListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             FormManager.showAuthForm(new FormAuthRegister());
         }
     }

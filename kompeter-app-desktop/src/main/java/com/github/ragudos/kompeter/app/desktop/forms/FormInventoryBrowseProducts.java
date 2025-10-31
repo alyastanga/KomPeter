@@ -8,25 +8,27 @@
 package com.github.ragudos.kompeter.app.desktop.forms;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -34,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -50,6 +53,7 @@ import javax.swing.table.TableRowSorter;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
+import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
 import com.github.ragudos.kompeter.app.desktop.components.table.Currency;
 import com.github.ragudos.kompeter.app.desktop.components.table.ItemStatusText;
 import com.github.ragudos.kompeter.app.desktop.components.table.LabelWithImage;
@@ -71,10 +75,8 @@ import net.miginfocom.swing.MigLayout;
 public class FormInventoryBrowseProducts extends Form {
     private JPanel bodyPanel;
 
-    private AtomicReference<ArrayList<String>> brandFilters;
-    private AtomicReference<ArrayList<String>> categoryFilters;
     private Debouncer debouncer;
-    private FilterPopupMenu filterPopupMenu;
+    private CategoryBrandFilterPopupMenu filterPopupMenu;
     private JPanel headerPanel;
     private Inventory inventory;
     private AtomicBoolean isBusy;
@@ -84,6 +86,8 @@ public class FormInventoryBrowseProducts extends Form {
     private JScrollPane productsTableContainer;
     private ProductsTableFooter productsTableControlFooter;
     private JTextField searchTextField;
+    private ItemStatus itemStatusFilter;
+    private StatusFilterPopupMenu statusFilterPopupMenu;
 
     @Override
     public boolean formBeforeClose() {
@@ -134,7 +138,7 @@ public class FormInventoryBrowseProducts extends Form {
     private void createContainers() {
         setLayout(new MigLayout("insets 2, flowx, wrap", "[grow, fill, center]", "[]12px[grow, top, fill]"));
 
-        headerPanel = new JPanel(new MigLayout("insets 0, flowx", "[]8px[]push[]", "[]16[]4[]"));
+        headerPanel = new JPanel(new MigLayout("insets 0, flowx", "[grow 50]8px[]push[]", "[]16[]4[]"));
         bodyPanel = new JPanel(
                 new MigLayout("insets 0, flowx, wrap", "[grow, fill, center]", "[grow, fill, top]4px[]"));
 
@@ -144,10 +148,13 @@ public class FormInventoryBrowseProducts extends Form {
 
     private void createHeader() {
         final JLabel title = new JLabel("Browse Products");
-        final JLabel description = new JLabel("Browse all products");
+        final JLabel description = new JLabel(HtmlUtils
+                .escapeHtml(
+                        "Browse all products (Highlight/Right-click products to select them for editing and deletion.)"));
         searchTextField = new JTextField();
-        filterPopupMenu = new FilterPopupMenu();
+        filterPopupMenu = new CategoryBrandFilterPopupMenu(this::search);
         manageStockPopupMenu = new ManageStockPopupMenu();
+        statusFilterPopupMenu = new StatusFilterPopupMenu();
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
         description.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
@@ -159,9 +166,9 @@ public class FormInventoryBrowseProducts extends Form {
 
         searchTextField.getDocument().addDocumentListener(new SearchTextFieldDocumentListener());
 
-        headerPanel.add(searchTextField, "width 100px:800px:");
-        headerPanel.add(filterPopupMenu.filterButtonTrigger());
-        headerPanel.add(manageStockPopupMenu.manageStockTrigger(), "gapleft 12px,wrap");
+        headerPanel.add(searchTextField, "grow 50");
+        headerPanel.add(filterPopupMenu.trigger());
+        headerPanel.add(statusFilterPopupMenu.statusFilterTrigger(), "gapleft 32px, wrap");
         headerPanel.add(title, "wrap");
         headerPanel.add(description, "wrap");
     }
@@ -169,8 +176,6 @@ public class FormInventoryBrowseProducts extends Form {
     private void init() {
         isBusy = new AtomicBoolean(false);
         inventory = Inventory.getInstance();
-        categoryFilters = new AtomicReference<>(new ArrayList<>());
-        brandFilters = new AtomicReference<>(new ArrayList<>());
         debouncer = new Debouncer(250);
 
         createContainers();
@@ -182,15 +187,16 @@ public class FormInventoryBrowseProducts extends Form {
         isBusy.set(true);
 
         try {
-            final String[] itemBrands = inventory.getAllItemBrands();
-            final String[] itemCategories = inventory.getAllItemCategories();
-
-            productListData = inventory.getProductList(20, searchTextField.getText(),
-                    categoryFilters.getAcquire().toArray(String[]::new),
-                    brandFilters.getAcquire().toArray(String[]::new));
+            productListData = inventory.getProductList(
+                    (productListData != null && productListData.getRowsPerPage() != 0)
+                            ? productListData.getRowsPerPage()
+                            : 20,
+                    searchTextField.getText(),
+                    filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
+                    filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), itemStatusFilter);
 
             SwingUtilities.invokeLater(() -> {
-                filterPopupMenu.populate(itemCategories, itemBrands);
+                filterPopupMenu.populate();
 
                 if (productListData.getTotalPages() == 0) {
                     productsTableContainer.setViewportView(new NoResultsPanel());
@@ -217,26 +223,16 @@ public class FormInventoryBrowseProducts extends Form {
         }
     }
 
-    private void removeAllListenersOfPopupMenu(final JPopupMenu menu) {
-        for (final Component component : menu.getComponents()) {
-            if (component instanceof final JMenuItem item) {
-                for (final ItemListener l : item.getItemListeners()) {
-                    item.removeItemListener(l);
-                }
-
-                for (final ActionListener l : item.getActionListeners()) {
-                    item.removeActionListener(l);
-                }
-            }
-        }
-    }
-
     private void search() {
         debouncer.call(() -> {
             try {
-                productListData = inventory.getProductList(20, searchTextField.getText(),
-                        categoryFilters.getAcquire().toArray(String[]::new),
-                        brandFilters.getAcquire().toArray(String[]::new));
+                productListData = inventory.getProductList(
+                        ((productListData != null && productListData.getTotalPages() != 0)
+                                ? productListData.getRowsPerPage()
+                                : 20),
+                        searchTextField.getText(),
+                        filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
+                        filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), itemStatusFilter);
             } catch (final InventoryException e) {
                 e.printStackTrace();
             }
@@ -262,9 +258,47 @@ public class FormInventoryBrowseProducts extends Form {
         public static final int COL_STATUS = 3;
         public static final int COL_STOCK_QTY = 2;
 
+        private final ProductsTableMouseAdapter mouseListener;
+
+        public ItemStatus getSelectedRowItemStatus() {
+            final int row = convertRowIndexToModel(getSelectedRow());
+            final int col = convertColumnIndexToModel(COL_STATUS);
+
+            return (ItemStatus) getValueAt(row, col);
+        }
+
+        public boolean allSelectedRowsAreOfStatus(final ItemStatus status) {
+            final int[] selectedRows = getSelectedRows();
+            final int col = convertColumnIndexToModel(COL_STATUS);
+
+            if (selectedRows.length == 1) {
+                final int realRow = convertRowIndexToModel(selectedRows[0]);
+
+                return ((ItemStatus) getValueAt(realRow, col)) == status;
+            }
+
+            for (int i = 0; i < selectedRows.length; ++i) {
+                final int realRow = convertRowIndexToModel(selectedRows[i]);
+                final ItemStatus st = (ItemStatus) getValueAt(realRow, col);
+
+                if (st != status) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public ProductsTable self() {
+            return this;
+        }
+
         public ProductsTable() {
-            getTableHeader().setBackground(Color.decode("#c2bdb9"));
-            getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:14;");
+            mouseListener = new ProductsTableMouseAdapter();
+
+            addMouseListener(mouseListener);
+
+            getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:14 semibold;");
             ((DefaultTableCellRenderer) getTableHeader().getDefaultRenderer())
                     .setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -281,25 +315,191 @@ public class FormInventoryBrowseProducts extends Form {
             columnModel.getColumn(COL_STOCK_QTY).setCellRenderer(new PercentageBar());
             columnModel.getColumn(COL_STATUS).setCellRenderer(new ItemStatusText());
 
-            columnModel.getColumn(COL_NAME).setPreferredWidth(250);
-            columnModel.getColumn(COL_PRICE).setMaxWidth(150);
-            columnModel.getColumn(COL_PRICE).setMinWidth(100);
-            columnModel.getColumn(COL_STOCK_QTY).setMaxWidth(200);
-            columnModel.getColumn(COL_STOCK_QTY).setMinWidth(150);
-            columnModel.getColumn(COL_STATUS).setMinWidth(112);
-            columnModel.getColumn(COL_STATUS).setMaxWidth(96);
+            columnModel.getColumn(COL_NAME).setPreferredWidth(800);
+            columnModel.getColumn(COL_PRICE).setPreferredWidth(96);
+            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(142);
+            columnModel.getColumn(COL_STATUS).setPreferredWidth(82);
 
             setRowSorter(new ProductsTableRowSorter(tableModel));
 
             setShowGrid(true);
-            setRowHeight(32);
+            setRowHeight(38);
             putClientProperty(FlatClientProperties.STYLE, "font:12;");
         }
 
+        public int[] getModelSelectedRows() {
+            final int[] selectedRows = getSelectedRows();
+            final int[] modelSelectedRows = new int[selectedRows.length];
+
+            for (int i = 0; i < selectedRows.length; ++i) {
+                modelSelectedRows[i] = convertRowIndexToModel(selectedRows[i]);
+            }
+
+            return modelSelectedRows;
+        }
+
+        public String[] getNamesOfSelectedItems() {
+            final int[] selectedRows = getModelSelectedRows();
+            final int col = convertColumnIndexToModel(COL_NAME);
+            final String[] names = new String[selectedRows.length];
+
+            for (int i = 0; i < selectedRows.length; ++i) {
+                final LabelWithImageData data = (LabelWithImageData) getModel().getValueAt(selectedRows[i], col);
+
+                names[i] = data.label();
+            }
+
+            return names;
+        }
+
         public void addStockToSelectedItem() {
+            new AddStockDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
         }
 
         public void deleteSelectedItems() {
+            new DeleteSelectedItemsDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
+        }
+
+        public void changeStatusOfSelectedItems(final ItemStatus status) {
+            try {
+                inventory.setStatusOfItemsByName(getNamesOfSelectedItems(), status);
+
+                productListData = inventory.getProductList(
+                        (productListData != null && productListData.getRowsPerPage() != 0)
+                                ? productListData.getRowsPerPage()
+                                : 20,
+                        searchTextField.getText(),
+                        filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
+                        filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), itemStatusFilter);
+
+                if (productListData.getTotalPages() == 0) {
+                    productsTableContainer.setViewportView(new NoResultsPanel());
+                    productsTableContainer.repaint();
+                    productsTableContainer.revalidate();
+
+                    productsTableControlFooter.setVisible(false);
+
+                    return;
+                }
+
+                SwingUtilities.invokeLater(() -> {
+                    self().populate();
+                });
+            } catch (final InventoryException err) {
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                            "Failed to change item/s status to: " + status.toString(),
+                            JOptionPane.ERROR_MESSAGE);
+                });
+            }
+        }
+
+        private class AddStockDialog extends JDialog implements ActionListener {
+            public AddStockDialog(final Window owner) {
+                super(owner, "Add stock", Dialog.ModalityType.APPLICATION_MODAL);
+
+            }
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+
+            }
+        }
+
+        private class DeleteSelectedItemsDialog extends JDialog implements ActionListener {
+            private final Window owner;
+
+            public DeleteSelectedItemsDialog(final Window owner) {
+                super(owner, "Delete selected item/s",
+                        Dialog.ModalityType.APPLICATION_MODAL);
+
+                this.owner = owner;
+
+                setLayout(new MigLayout("insets 16, flowx", "[grow, center, fill]"));
+
+                final String[] namesToBeDeleted = getNamesOfSelectedItems();
+                final JLabel title = new JLabel(String.format("Deleting %s items", namesToBeDeleted.length));
+                final JLabel subtitle = new JLabel(HtmlUtils.wrapInHtml(
+                        String.format("This will archive %s items. Are you sure?", namesToBeDeleted.length)));
+                final String html = String.format("""
+                        <html>
+                        <head>
+                        <style>
+                        ul {
+                            margin-left: 8px;
+                            list-style-position: inside;
+                        }
+                        </style>
+                        </head>
+                        <body>
+                            <ul>%s</ul>
+                        </body>
+                        </html>
+                        """, Arrays.stream(namesToBeDeleted).map((n) -> String.format("<li>%s</li>", n))
+                        .collect(Collectors.joining("\n")));
+                final JTextPane textPane = new JTextPane();
+                textPane.setContentType("text/html");
+                textPane.setText(html);
+                textPane.setEditable(false);
+                textPane.setOpaque(false);
+
+                final JButton confirmButton = new JButton("Yes, I'm sure",
+                        new SVGIconUIColor("trash.svg", 0.75f, "foreground.error"));
+                final JButton cancelButton = new JButton("No, Cancel",
+                        new SVGIconUIColor("x.svg", 0.75f, "foreground.muted"));
+
+                confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+                cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+
+                confirmButton.setActionCommand("confirm");
+                cancelButton.setActionCommand("cancel");
+
+                confirmButton.setToolTipText("Delete selected items");
+                cancelButton.setToolTipText("Cancel deletion");
+
+                final JScrollPane scroller = new JScrollPane(textPane);
+
+                scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                        "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+                scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                        "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+                scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+                scroller.getVerticalScrollBar().setUnitIncrement(16);
+                scroller.getHorizontalScrollBar().setUnitIncrement(16);
+                scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+                title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3 primary");
+                subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+                subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+
+                add(title, "growx, wrap");
+                add(subtitle, "growx, wrap");
+                add(scroller, "growx, gapy 8px, wrap");
+                add(cancelButton, "gapy 20px, split 2");
+                add(confirmButton, "gapx 4px");
+
+                pack();
+                setLocationRelativeTo(owner);
+
+                confirmButton.addActionListener(this);
+                cancelButton.addActionListener(this);
+            }
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                final JButton button = (JButton) e.getSource();
+
+                if (button.getActionCommand().equals("confirm")) {
+                    confirmDelete();
+                } else if (button.getActionCommand().equals("cancel")) {
+                    dispose();
+                }
+            }
+
+            private void confirmDelete() {
+                productsTable.changeStatusOfSelectedItems(ItemStatus.ARCHIVED);
+            }
         }
 
         public void populate() {
@@ -358,140 +558,309 @@ public class FormInventoryBrowseProducts extends Form {
                 };
             }
         }
+
+        private class ProductsTableMouseAdapter extends MouseAdapter {
+            @Override
+            public void mouseReleased(final MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            @Override
+            public void mousePressed(final MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            private void maybeShowPopup(final MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    final int row = rowAtPoint(e.getPoint());
+                    if (row >= 0 && !isRowSelected(row)) {
+                        getSelectionModel().setSelectionInterval(row, row);
+                    }
+
+                    manageStockPopupMenu.rebuildMenu();
+                    manageStockPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        }
     }
 
-    private class FilterPopupMenu extends JPopupMenu implements ItemListener, ActionListener {
-        private final JButton filterButtonTrigger;
+    private class StatusFilterPopupMenu extends JPopupMenu implements ItemListener, ActionListener, PopupMenuListener {
+        private final SVGIconUIColor chevronDown;
+        private final SVGIconUIColor chevronUp;
+        private final JButton statusFilterTrigger;
+        private final ButtonGroup buttonGroup;
 
-        public FilterPopupMenu() {
-            filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.muted"));
+        public StatusFilterPopupMenu() {
+            setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, center, fill]"));
 
-            filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-            filterButtonTrigger.addActionListener(this);
-            filterButtonTrigger.setToolTipText("Filter Products");
-        }
+            chevronDown = new SVGIconUIColor("chevron-down.svg", 0.75f, "foreground.background");
+            chevronUp = new SVGIconUIColor("chevron-up.svg", 0.75f, "foreground.background");
+            buttonGroup = new ButtonGroup();
 
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            show(filterButtonTrigger, 0, filterButtonTrigger.getHeight());
-        }
+            statusFilterTrigger = new JButton(chevronDown);
 
-        public JButton filterButtonTrigger() {
-            return filterButtonTrigger;
+            statusFilterTrigger.setText("Showing: all");
+            statusFilterTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            statusFilterTrigger.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+
+            final JCheckBoxMenuItem allButton = new JCheckBoxMenuItem("ALL");
+
+            allButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            allButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            allButton.setToolTipText("Filter table to show items: ALL");
+            allButton.setActionCommand("all");
+            allButton.setSelected(true);
+            allButton.addItemListener(this);
+
+            buttonGroup.add(allButton);
+
+            add(allButton, "growx");
+
+            for (final ItemStatus status : ItemStatus.values()) {
+                final JCheckBoxMenuItem statusButton = new JCheckBoxMenuItem(status.toString());
+
+                statusButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+                statusButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+                statusButton.setToolTipText(String.format("Filter table to show all: %s", status));
+                statusButton.setActionCommand(status.toString());
+                statusButton.addItemListener(this);
+
+                buttonGroup.add(statusButton);
+
+                add(statusButton, "growx");
+            }
+
+            statusFilterTrigger.addActionListener(this);
         }
 
         @Override
         public void itemStateChanged(final ItemEvent e) {
-        }
+            final JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) e.getItemSelectable();
 
-        public void populate(final String[] itemCategories, final String[] itemBrands) {
-            removeAllListenersOfPopupMenu(this);
-            filterPopupMenu.removeAll();
-
-            final JLabel categoryLabel = new JLabel("Category");
-            final JLabel brandLabel = new JLabel("Brand");
-
-            filterPopupMenu.add(categoryLabel);
-
-            for (final String category : itemCategories) {
-                final JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
-
-                if (categoryFilters.getAcquire().contains(category)) {
-                    c.setSelected(true);
-                }
-
-                c.setName("category");
-                c.addItemListener(filterPopupMenu);
-                filterPopupMenu.add(c);
+            if (menuItem.getActionCommand().equals("all")) {
+                itemStatusFilter = null;
+            } else if (menuItem.getActionCommand().equals(ItemStatus.ARCHIVED.toString())) {
+                itemStatusFilter = ItemStatus.ARCHIVED;
+            } else if (menuItem.getActionCommand().equals(ItemStatus.ACTIVE.toString())) {
+                itemStatusFilter = ItemStatus.ACTIVE;
+            } else if (menuItem.getActionCommand().equals(ItemStatus.INACTIVE.toString())) {
+                itemStatusFilter = ItemStatus.INACTIVE;
             }
 
-            filterPopupMenu.addSeparator();
+            search();
 
-            filterPopupMenu.add(brandLabel);
+            SwingUtilities.invokeLater(() -> {
+                statusFilterTrigger
+                        .setText(String.format("Showing: %s", buttonGroup.getSelection().getActionCommand()));
+            });
 
-            for (final String brand : itemBrands) {
-                final JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
-
-                if (brandFilters.getAcquire().contains(brand)) {
-                    c.setSelected(true);
-                }
-
-                c.setName("brand");
-                c.addItemListener(filterPopupMenu);
-                filterPopupMenu.add(c);
-            }
-        }
-    }
-
-    private class ManageStockPopupMenu extends JPopupMenu implements ActionListener, PopupMenuListener {
-        private final JButton addStockButton;
-        private final SVGIconUIColor chevronDown;
-        private final SVGIconUIColor chevronUp;
-        private final JButton deleteButton;
-        private final JButton manageStockTrigger;
-
-        public ManageStockPopupMenu() {
-            chevronDown = new SVGIconUIColor("chevron-down.svg", 0.75f, "foreground.background");
-            chevronUp = new SVGIconUIColor("chevron-up.svg", 0.75f, "foreground.background");
-            manageStockTrigger = new JButton("Manage Stock", chevronDown);
-            deleteButton = new JButton("Delete", new SVGIconUIColor("trash.svg", 0.5f, "foreground.background"));
-            addStockButton = new JButton("Add Stock",
-                    new SVGIconUIColor("add-stock.svg", 0.5f, "foreground.background"));
-
-            setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, center, fill]"));
-
-            manageStockTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            deleteButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            addStockButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            manageStockTrigger.putClientProperty(FlatClientProperties.STYLE, "font:11;");
-            deleteButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
-            addStockButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
-
-            manageStockTrigger.setToolTipText("Manage Stock");
-            deleteButton.setToolTipText("Delete selected item/s");
-            addStockButton.setToolTipText("Add stock to selected item");
-
-            manageStockTrigger.setActionCommand("trigger");
-            deleteButton.setActionCommand("delete");
-            addStockButton.setActionCommand("add_stock");
-
-            manageStockTrigger.addActionListener(this);
-            deleteButton.addActionListener(this);
-            addStockButton.addActionListener(this);
-
-            add(deleteButton, "growx");
-            add(addStockButton, "growx");
-            addPopupMenuListener(this);
         }
 
         @Override
         public void actionPerformed(final ActionEvent e) {
-            if (e.getActionCommand().equals("trigger")) {
-                show(manageStockTrigger, 0, manageStockTrigger.getHeight());
-            } else if (e.getActionCommand().equals("delete")) {
-                productsTable.deleteSelectedItems();
-            } else if (e.getActionCommand().equals("add_stock")) {
-                productsTable.addStockToSelectedItem();
-            }
+            show(statusFilterTrigger, 0, statusFilterTrigger.getHeight());
         }
 
-        public JButton manageStockTrigger() {
-            return manageStockTrigger;
+        public JButton statusFilterTrigger() {
+            return statusFilterTrigger;
         }
 
         @Override
         public void popupMenuCanceled(final PopupMenuEvent e) {
-            manageStockTrigger.setIcon(chevronDown);
+            statusFilterTrigger.setIcon(chevronDown);
         }
 
         @Override
         public void popupMenuWillBecomeInvisible(final PopupMenuEvent e) {
-            manageStockTrigger.setIcon(chevronDown);
+            statusFilterTrigger.setIcon(chevronDown);
         }
 
         @Override
         public void popupMenuWillBecomeVisible(final PopupMenuEvent e) {
-            manageStockTrigger.setIcon(chevronUp);
+            statusFilterTrigger.setIcon(chevronUp);
+        }
+    }
+
+    private class ManageStockPopupMenu extends JPopupMenu implements ActionListener {
+        private JButton addStockButton;
+        private JButton deleteButton;
+        private JButton markActiveButton;
+        private JButton markInactiveButton;
+        private JButton unDeleteButton;
+
+        public ManageStockPopupMenu() {
+            setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, center, fill]"));
+            rebuildMenu();
+        }
+
+        private void createAddStockButton() {
+            addStockButton = new JButton("Add Stocks",
+                    new SVGIconUIColor("add-stock.svg", 0.5f, "foreground.background"));
+
+            addStockButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            addStockButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            addStockButton.setToolTipText("Add stock to selected item");
+            addStockButton.setActionCommand("add_stock");
+            addStockButton.addActionListener(this);
+        }
+
+        private void createUnDeleteButton() {
+            unDeleteButton = new JButton("Restore",
+                    new SVGIconUIColor("archive-restore.svg", 0.5f, "foreground.background"));
+
+            unDeleteButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            unDeleteButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            unDeleteButton.setToolTipText("Restore selected item/s");
+            unDeleteButton.setActionCommand("undelete");
+            unDeleteButton.addActionListener(this);
+        }
+
+        private void createDeleteButton() {
+            deleteButton = new JButton("Delete Items",
+                    new SVGIconUIColor("archive.svg", 0.5f, "foreground.background"));
+
+            deleteButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            deleteButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            deleteButton.setToolTipText("Delete selected item/s");
+            deleteButton.setActionCommand("delete");
+            deleteButton.addActionListener(this);
+        }
+
+        private void createMarkActiveButton() {
+            markActiveButton = new JButton("Mark as Active",
+                    new SVGIconUIColor("circle-check.svg", 0.5f, "foreground.background"));
+
+            markActiveButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            markActiveButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            markActiveButton.setToolTipText("Mark selected item/s as active");
+            markActiveButton.setActionCommand("mark_active");
+            markActiveButton.addActionListener(this);
+        }
+
+        private void createMarkInactiveButton() {
+            markInactiveButton = new JButton("Mark as Inactive",
+                    new SVGIconUIColor("circle-x.svg", 0.5f, "foreground.background"));
+
+            markInactiveButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            markInactiveButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            markInactiveButton.setToolTipText("Mark selected item/s as inactive");
+            markInactiveButton.setActionCommand("mark_inactive");
+            markInactiveButton.addActionListener(this);
+        }
+
+        private void toggleMenuForAllUnArchived() {
+            removeAll();
+
+            if (deleteButton == null) {
+                createDeleteButton();
+            }
+
+            add(deleteButton, "growx", 0);
+
+            if (productsTable.getSelectedRowCount() == 1) {
+                if (productsTable.getSelectedRowItemStatus() != ItemStatus.INACTIVE) {
+                    if (addStockButton == null) {
+                        createAddStockButton();
+                    }
+
+                    add(addStockButton, "growx", 1);
+                }
+            }
+
+            if (productsTable.allSelectedRowsAreOfStatus(ItemStatus.ACTIVE)) {
+                if (markInactiveButton == null) {
+                    createMarkInactiveButton();
+                }
+
+                add(markInactiveButton, "growx");
+            } else if (productsTable.allSelectedRowsAreOfStatus(ItemStatus.INACTIVE)) {
+                if (markActiveButton == null) {
+                    createMarkActiveButton();
+                }
+
+                add(markActiveButton, "growx");
+            }
+        }
+
+        private void toggleMenuForAllActive() {
+            if (deleteButton == null) {
+                createDeleteButton();
+            }
+
+            add(deleteButton, "growx", 0);
+
+            if (productsTable.getSelectedRowCount() == 1) {
+                if (productsTable.getSelectedRowItemStatus() == ItemStatus.INACTIVE) {
+                    return;
+                }
+
+                if (addStockButton == null) {
+                    createAddStockButton();
+                }
+
+                add(addStockButton, "growx", 1);
+            }
+
+            if (markInactiveButton == null) {
+                createMarkInactiveButton();
+            }
+
+            add(markInactiveButton, "growx");
+        }
+
+        private void toggleMenuForAllInactive() {
+            if (deleteButton == null) {
+                createDeleteButton();
+            }
+
+            add(deleteButton, "growx", 0);
+
+            if (markActiveButton == null) {
+                createMarkActiveButton();
+            }
+
+            add(markActiveButton, "growx");
+        }
+
+        public void toggleArchiveMenu() {
+            removeAll();
+
+            if (unDeleteButton == null) {
+                createUnDeleteButton();
+            }
+
+            add(unDeleteButton, "growx", 0);
+        }
+
+        public void rebuildMenu() {
+            if (itemStatusFilter == null) {
+                toggleMenuForAllUnArchived();
+            } else if (itemStatusFilter == ItemStatus.ARCHIVED) {
+                toggleArchiveMenu();
+            } else if (itemStatusFilter == ItemStatus.ACTIVE) {
+                toggleMenuForAllActive();
+            } else if (itemStatusFilter == ItemStatus.INACTIVE) {
+                toggleMenuForAllInactive();
+            }
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            SwingUtilities.invokeLater(() -> {
+                setVisible(false);
+            });
+
+            if (e.getActionCommand().equals("delete")) {
+                productsTable.deleteSelectedItems();
+            } else if (e.getActionCommand().equals("add_stock")) {
+                productsTable.addStockToSelectedItem();
+            } else if (e.getActionCommand().equals("mark_inactive")) {
+                productsTable.changeStatusOfSelectedItems(ItemStatus.INACTIVE);
+            } else if (e.getActionCommand().equals("mark_active")) {
+                productsTable.changeStatusOfSelectedItems(ItemStatus.ACTIVE);
+            } else if (e.getActionCommand().equals("undelete")) {
+                productsTable.changeStatusOfSelectedItems(ItemStatus.INACTIVE);
+            }
         }
     }
 
@@ -524,9 +893,9 @@ public class FormInventoryBrowseProducts extends Form {
             paginationContainer.putClientProperty(FlatClientProperties.STYLE, "background:null;");
 
             leftLabel.putClientProperty(FlatClientProperties.STYLE,
-                    "foreground:fade($TextField.placeholderForeground, 87%);font:10;");
+                    "foreground:$TextField.placeholderForeground;font:10;");
             rowsLabel.putClientProperty(FlatClientProperties.STYLE,
-                    "foreground:fade($TextField.placeholderForeground, 87%);font:10;");
+                    "foreground:$TextField.placeholderForeground;font:10;");
             rowsPerPageSpinner.putClientProperty(FlatClientProperties.STYLE, "arc:0;");
 
             rowsPerPageSpinner.addChangeListener(this);
@@ -579,8 +948,9 @@ public class FormInventoryBrowseProducts extends Form {
             paginationContainer.removeAll();
             if (paginationButtons != null) {
                 for (final JButton b : paginationButtons) {
-                    if (b != null)
+                    if (b != null) {
                         b.removeActionListener(this);
+                    }
                 }
             }
 
@@ -589,19 +959,23 @@ public class FormInventoryBrowseProducts extends Form {
             // Calculate pages to display
             final int totalPages = productListData.getTotalPages();
             int[] pages;
+            final int MAX_PAGINATION_BUTTONS = 5;
 
-            if (totalPages <= 5) {
+            if (totalPages <= MAX_PAGINATION_BUTTONS) {
                 pages = new int[totalPages];
-                for (int i = 0; i < totalPages; i++)
+
+                for (int i = 0; i < totalPages; i++) {
                     pages[i] = i + 1;
+                }
             } else {
-                pages = new int[5];
+                pages = new int[MAX_PAGINATION_BUTTONS];
                 int start = Math.max(1, currentPage - 2);
                 final int end = Math.min(totalPages, start + 4);
                 start = Math.max(1, end - 4);
 
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < MAX_PAGINATION_BUTTONS; i++) {
                     pages[i] = start + i;
+                }
             }
 
             paginationButtons = new JButton[pages.length];
@@ -611,8 +985,8 @@ public class FormInventoryBrowseProducts extends Form {
                 final JButton b = new JButton(String.valueOf(page));
                 b.addActionListener(this);
                 b.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-                b.putClientProperty(FlatClientProperties.STYLE, "arc:0;");
-                b.setMaximumSize(new Dimension(42, 42));
+                b.putClientProperty(FlatClientProperties.STYLE, "arc:0;font:12;");
+                b.setMaximumSize(new Dimension(36, 36));
 
                 if (page == currentPage) {
                     b.setSelected(true);
@@ -624,7 +998,6 @@ public class FormInventoryBrowseProducts extends Form {
             }
 
             paginationContainer.revalidate();
-            paginationContainer.repaint();
         }
 
         @Override

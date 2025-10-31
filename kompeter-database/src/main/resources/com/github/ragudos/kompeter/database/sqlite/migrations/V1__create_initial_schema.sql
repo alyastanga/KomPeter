@@ -78,7 +78,7 @@ CREATE TABLE
   items (
     _item_id INTEGER PRIMARY KEY AUTOINCREMENT,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     description TEXT,
     display_image TEXT
   );
@@ -99,7 +99,7 @@ CREATE TABLE
     _item_id INTEGER NOT NULL,
     _item_brand_id INTEGER,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status TEXT NOT NULL CHECK(status IN ('active', 'inactive', 'archived')) DEFAULT 'active',
+    status TEXT CHECK(status IN ('active', 'inactive', 'archived')) DEFAULT 'active',
     unit_price_php REAL NOT NULL,
     minimum_quantity INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,

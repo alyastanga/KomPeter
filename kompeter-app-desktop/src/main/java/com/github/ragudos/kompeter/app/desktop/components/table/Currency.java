@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.app.desktop.components.table;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.math.BigDecimal;
 
 import javax.swing.JTable;
@@ -20,6 +21,8 @@ public class Currency extends DefaultTableCellRenderer {
 
     public Currency() {
         setHorizontalAlignment(CENTER);
+
+        setPreferredSize(new Dimension(100, -1));
     }
 
     @Override

@@ -9,6 +9,7 @@ package com.github.ragudos.kompeter.app.desktop.components.table;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -34,6 +35,7 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
 
         setLayout(new OverlayLayout(this));
         setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        setMinimumSize(new Dimension(100, getMinimumSize().height));
 
         putClientProperty(FlatClientProperties.STYLE, "background: null;");
 

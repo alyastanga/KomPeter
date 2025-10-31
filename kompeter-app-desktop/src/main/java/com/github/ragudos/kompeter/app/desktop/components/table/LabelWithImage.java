@@ -19,6 +19,7 @@ import javax.swing.table.TableCellRenderer;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
+import com.github.ragudos.kompeter.app.desktop.components.ImagePanel.ScaleMode;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 import net.miginfocom.swing.MigLayout;
@@ -33,16 +34,20 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
         this.imagePanel = new ImagePanel(null);
         this.label = new JLabel("");
 
+        imagePanel.setScaleMode(ScaleMode.CONTAIN);
+
         putClientProperty(FlatClientProperties.STYLE, "background:null;");
 
-        setLayout(new MigLayout("insets 2, flowx", "[center][grow, fill, left]"));
+        setLayout(new MigLayout("insets 2, flowx", "[center][grow, fill, left]", "[center]"));
+
+        label.setAlignmentY(0.5f);
 
         setOpaque(false);
 
+        imagePanel.setMinimumSize(new Dimension(36, 36));
+
         add(imagePanel);
         add(label, "growx");
-
-        imagePanel.setPreferredSize(new Dimension(28, 28));
     }
 
     @Override

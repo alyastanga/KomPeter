@@ -9,16 +9,15 @@ package com.github.ragudos.kompeter.database.dao.inventory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockDto;
 
 public interface ItemStockDao {
-    // DELETE
-    int deleteItemStockById(int id) throws SQLException, IOException;
-
     // READ
     List<ItemStockDto> getAllData() throws SQLException, IOException;
 
@@ -27,6 +26,8 @@ public interface ItemStockDao {
     // CREATE
     int insertItemStock(int itemId, int itemBrandId, BigDecimal unit_price, int min_qty)
             throws SQLException, IOException;
+
+    void setItemStocksStatusByName(Connection conn, String name, ItemStatus status) throws SQLException, IOException;
 
     // UPDATE
     int updateItemBrandById(int brandID, int id) throws SQLException, IOException;

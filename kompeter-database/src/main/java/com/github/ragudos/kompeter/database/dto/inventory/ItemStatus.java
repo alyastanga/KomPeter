@@ -7,6 +7,8 @@
 */
 package com.github.ragudos.kompeter.database.dto.inventory;
 
+import java.util.Locale;
+
 public enum ItemStatus {
     /** For sale */
     ACTIVE,
@@ -15,7 +17,13 @@ public enum ItemStatus {
     /** Not for sale */
     INACTIVE;
 
-    public static ItemStatus fromString(final String s) {
+    public static ItemStatus fromString(String s) {
+        if (s == null) {
+            return null;
+        }
+
+        s = s.toLowerCase(Locale.of("en"));
+
         if (s.equals("archived")) {
             return ARCHIVED;
         } else if (s.equals("inactive")) {

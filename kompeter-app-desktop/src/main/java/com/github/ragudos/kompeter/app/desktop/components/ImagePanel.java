@@ -19,7 +19,21 @@ import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 
 public class ImagePanel extends JPanel {
+    public enum ScaleMode {
+        /** Fit entirely inside the panel, maintaining aspect ratio (no cropping). */
+        CONTAIN,
+        /** Fill the entire panel, maintaining aspect ratio (cropping if needed). */
+        COVER,
+        /** Keep the image at its original size, centered. */
+        FIXED
+    }
+
     private Image image;
+    private ScaleMode mode = ScaleMode.COVER;
+
+    public Image img() {
+        return image;
+    }
 
     public ImagePanel(final Image image) {
         setOpaque(false);
@@ -30,6 +44,13 @@ public class ImagePanel extends JPanel {
 
         this.image = makeTransparent(image);
         updatePreferredSize();
+    }
+
+    public void setScaleMode(final ScaleMode mode) {
+        this.mode = mode != null ? mode : ScaleMode.COVER;
+
+        updatePreferredSize();
+        repaint();
     }
 
     public void setImage(final Image image) {
@@ -46,9 +67,8 @@ public class ImagePanel extends JPanel {
 
         final Graphics2D g2 = (Graphics2D) g.create();
 
-        // 🪄 Smooth rendering
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         final int panelW = getWidth();
@@ -71,27 +91,43 @@ public class ImagePanel extends JPanel {
 
         final double displayW = panelW * scaleX;
         final double displayH = panelH * scaleY;
-
         final double imgRatio = (double) imgW / imgH;
         final double panelRatio = displayW / displayH;
 
-        double scale;
-        int drawW, drawH;
-        int drawX, drawY;
+        double drawW = 0, drawH = 0;
+        double drawX = 0, drawY = 0;
 
-        // 🎯 COVER behavior: fill entire panel, maintain aspect ratio
-        if (imgRatio > panelRatio) {
-            scale = displayH / imgH;
-        } else {
-            scale = displayW / imgW;
+        switch (mode) {
+            case COVER -> {
+                final double scale = (imgRatio > panelRatio)
+                        ? ((double) panelH * scaleY / imgH)
+                        : ((double) panelW * scaleX / imgW);
+
+                drawW = imgW * scale / scaleX;
+                drawH = imgH * scale / scaleY;
+                drawX = (panelW - drawW) / 2.0;
+                drawY = (panelH - drawH) / 2.0;
+            }
+            case CONTAIN -> {
+                final double scale = (imgRatio > panelRatio)
+                        ? ((double) panelW * scaleX / imgW)
+                        : ((double) panelH * scaleY / imgH);
+
+                drawW = imgW * scale / scaleX;
+                drawH = imgH * scale / scaleY;
+                drawX = (panelW - drawW) / 2.0;
+                drawY = (panelH - drawH) / 2.0;
+            }
+            case FIXED -> {
+                // keep original image size centered
+                drawW = imgW / scaleX;
+                drawH = imgH / scaleY;
+                drawX = (panelW - drawW) / 2.0;
+                drawY = (panelH - drawH) / 2.0;
+            }
         }
 
-        drawW = (int) (imgW * scale / scaleX);
-        drawH = (int) (imgH * scale / scaleY);
-        drawX = (panelW - drawW) / 2;
-        drawY = (panelH - drawH) / 2;
-
-        g2.drawImage(image, drawX, drawY, drawW, drawH, this);
+        g2.drawImage(image, (int) drawX, (int) drawY, (int) drawW, (int) drawH, this);
         g2.dispose();
     }
 
@@ -137,7 +173,6 @@ public class ImagePanel extends JPanel {
         if (imgW <= 0 || imgH <= 0)
             return;
 
-        // 🔍 Get the UI scale (DPI scaling)
         final GraphicsConfiguration gc = getGraphicsConfiguration();
         double scaleX = 1.0, scaleY = 1.0;
         if (gc != null) {
@@ -145,11 +180,36 @@ public class ImagePanel extends JPanel {
             scaleY = gc.getDefaultTransform().getScaleY();
         }
 
-        // 🔧 Adjust preferred size based on scale
-        final int displayW = (int) Math.round(imgW / scaleX);
-        final int displayH = (int) Math.round(imgH / scaleY);
+        // 🧩 Adjust based on mode
+        int displayW, displayH;
+        switch (mode) {
+            case FIXED -> {
+                // Keep the image’s real pixel size (DPI adjusted)
+                displayW = (int) Math.round(imgW / scaleX);
+                displayH = (int) Math.round(imgH / scaleY);
+            }
+            case CONTAIN -> {
+                // Let layout managers stretch/shrink the panel freely
+                // (the panel adapts to parent, not the image)
+                displayW = displayH = 0;
+            }
+            case COVER -> {
+                displayW = (int) Math.round(imgW / scaleX);
+                displayH = (int) Math.round(imgH / scaleY);
+            }
+            default -> {
+                displayW = (int) Math.round(imgW / scaleX);
+                displayH = (int) Math.round(imgH / scaleY);
+            }
+        }
 
-        setPreferredSize(new Dimension(displayW, displayH));
+        if (displayW > 0 && displayH > 0) {
+            setPreferredSize(new Dimension(displayW, displayH));
+        } else {
+            // Reset preferred size to allow flexible resizing
+            setPreferredSize(null);
+        }
+
         revalidate();
     }
 }

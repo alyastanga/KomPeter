@@ -16,12 +16,9 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,14 +27,11 @@ import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
@@ -51,6 +45,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
+import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
@@ -71,9 +66,8 @@ import com.github.ragudos.kompeter.utilities.StringUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
 public class FormPosShop extends Form {
-    private AtomicReference<ArrayList<String>> brandFilters;
     private AtomicReference<Cart> cart;
     private JPanel cartButtonsContainer;
     private JPanel cartContentContainer;
@@ -84,13 +78,11 @@ public class FormPosShop extends Form {
     private JPanel cartTotalQuantityContainer;
     private JLabel cartTotalQuantityLabel;
     // No need atomic reference since we'll always access these in EDT
-    private AtomicReference<ArrayList<String>> categoryFilters;
     private JButton checkoutButton;
     private JButton clearCartButton;
     private JSplitPane containerSplitPane;
     private Debouncer debouncer;
-    private JButton filterButtonTrigger;
-    private JPopupMenu filterPopupMenu;
+    private CategoryBrandFilterPopupMenu filterPopupMenu;
     private Inventory inventory;
     private AtomicBoolean isFetching;
     private AtomicReferenceArray<InventoryMetadataDto> items;
@@ -114,13 +106,13 @@ public class FormPosShop extends Form {
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION:
+            case JOptionPane.CANCEL_OPTION :
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION:
+            case JOptionPane.YES_OPTION :
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION:
+            case JOptionPane.NO_OPTION :
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -349,18 +341,12 @@ public class FormPosShop extends Form {
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
         searchTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search products...");
 
-        filterButtonTrigger = new JButton(new SVGIconUIColor("filter.svg", 0.5f, "foreground.muted"));
-
-        filterButtonTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-        filterPopupMenu = new JPopupMenu();
-
-        filterButtonTrigger.addActionListener(new FilterButtonTriggerActionListener());
         searchTextField.getDocument().addDocumentListener(new SearchTextFieldDocumentListener());
 
         buildLeftPanelContent();
 
         leftPanelHeader.add(searchTextField);
-        leftPanelHeader.add(filterButtonTrigger);
+        leftPanelHeader.add(filterPopupMenu.trigger());
     }
 
     private void createRightPanel() {
@@ -504,11 +490,10 @@ public class FormPosShop extends Form {
     }
 
     private void init() {
+        filterPopupMenu = new CategoryBrandFilterPopupMenu(this::search);
         inventory = Inventory.getInstance();
         isFetching = new AtomicBoolean(false);
         cart = new AtomicReference<>(new Cart());
-        categoryFilters = new AtomicReference<>(new ArrayList<>());
-        brandFilters = new AtomicReference<>(new ArrayList<>());
         items = new AtomicReferenceArray<>(new InventoryMetadataDto[0]);
         debouncer = new Debouncer(250);
         cart.getAcquire().subscribe(new CartConsumer());
@@ -534,58 +519,16 @@ public class FormPosShop extends Form {
         });
 
         try {
-            final String[] itemBrands = inventory.getAllItemBrands();
-            final String[] itemCategories = inventory.getAllItemCategories();
             final InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(
-                    searchTextField.getText(),
-                    categoryFilters.getAcquire().toArray(String[]::new),
-                    brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE);
+                    searchTextField.getText(), filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
+                    filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE);
 
             this.items = new AtomicReferenceArray<>(items);
 
+            filterPopupMenu.populate();
+
             SwingUtilities.invokeLater(() -> {
-                final ArrayList<String> brandFilters = this.brandFilters.getAcquire();
-                final ArrayList<String> categoryFilters = this.categoryFilters.getAcquire();
-
-                SwingUtilities.invokeLater(() -> {
-                    removeAllItemListenersOfPopupMenu(filterPopupMenu);
-                    filterPopupMenu.removeAll();
-
-                    final JLabel categoryLabel = new JLabel("Category");
-                    final JLabel brandLabel = new JLabel("Brand");
-
-                    filterPopupMenu.add(categoryLabel);
-
-                    for (final String category : itemCategories) {
-                        final JCheckBoxMenuItem c = new JCheckBoxMenuItem(category);
-
-                        if (categoryFilters.contains(category)) {
-                            c.setSelected(true);
-                        }
-
-                        c.setName("category");
-                        c.addItemListener(new PopupMenuCheckboxItemListener());
-                        filterPopupMenu.add(c);
-                    }
-
-                    filterPopupMenu.addSeparator();
-
-                    filterPopupMenu.add(brandLabel);
-
-                    for (final String brand : itemBrands) {
-                        final JCheckBoxMenuItem c = new JCheckBoxMenuItem(brand);
-
-                        if (brandFilters.contains(brand)) {
-                            c.setSelected(true);
-                        }
-
-                        c.setName("brand");
-                        c.addItemListener(new PopupMenuCheckboxItemListener());
-                        filterPopupMenu.add(c);
-                    }
-
-                    buildLeftPanelContent();
-                });
+                buildLeftPanelContent();
 
                 isFetching.set(false);
             });
@@ -610,23 +553,13 @@ public class FormPosShop extends Form {
     private void removeActionListeners(final JComponent component) {
         for (final Component c : component.getComponents()) {
             switch (c) {
-                case final JButton button:
+                case final JButton button :
                     Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
                     break;
-                case final JComponent co:
+                case final JComponent co :
                     removeActionListeners(co);
                     break;
-                default:
-            }
-        }
-    }
-
-    private void removeAllItemListenersOfPopupMenu(final JPopupMenu menu) {
-        for (final Component component : menu.getComponents()) {
-            if (component instanceof final JMenuItem item) {
-                for (final ItemListener l : item.getItemListeners()) {
-                    item.removeItemListener(l);
-                }
+                default :
             }
         }
     }
@@ -648,8 +581,9 @@ public class FormPosShop extends Form {
 
                 try {
                     items = new AtomicReferenceArray<>(inventory.getInventoryItemsWithTotalQuantities(
-                            searchTextField.getText(), categoryFilters.getAcquire().toArray(String[]::new),
-                            brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
+                            searchTextField.getText(),
+                            filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
+                            filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
 
                     SwingUtilities.invokeLater(() -> {
                         buildLeftPanelContent();
@@ -732,8 +666,7 @@ public class FormPosShop extends Form {
             private final BigDecimal unitPricePhp;
 
             public ConfirmButtonActionListener(final JDialog addToCartDialog, final int id, final String itemName,
-                    final int totalQuantity,
-                    final BigDecimal unitPricePhp, final JSpinner numberSpinner) {
+                    final int totalQuantity, final BigDecimal unitPricePhp, final JSpinner numberSpinner) {
                 this.id = id;
                 this.itemName = itemName;
                 this.totalQuantity = totalQuantity;
@@ -777,10 +710,10 @@ public class FormPosShop extends Form {
 
             SwingUtilities.invokeLater(() -> {
                 switch (cartEvent.eventType()) {
-                    case INCREASE_ITEM_QTY:
-                    case INCREMENT_ITEM:
-                    case DECREASE_ITEM_QTY:
-                    case DECREMENT_ITEM: {
+                    case INCREASE_ITEM_QTY :
+                    case INCREMENT_ITEM :
+                    case DECREASE_ITEM_QTY :
+                    case DECREMENT_ITEM : {
                         final JComponent parent = (JComponent) getComponent(cartPanel,
                                 String.format("_itemStockId:%s", cartItem._itemStockId()));
                         final JButton decrementButton = (JButton) getComponent(parent, "decrement");
@@ -788,8 +721,8 @@ public class FormPosShop extends Form {
                         final JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
 
                         switch (cartEvent.eventType()) {
-                            case INCREASE_ITEM_QTY:
-                            case INCREMENT_ITEM: {
+                            case INCREASE_ITEM_QTY :
+                            case INCREMENT_ITEM : {
                                 if (previousCartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("minus.svg", 0.5f, "foregorund.background"));
@@ -802,8 +735,8 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            case DECREASE_ITEM_QTY:
-                            case DECREMENT_ITEM: {
+                            case DECREASE_ITEM_QTY :
+                            case DECREMENT_ITEM : {
                                 if (cartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
@@ -816,11 +749,11 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            default:
+                            default :
                         }
                     }
                         break;
-                    case REMOVE_ITEM: {
+                    case REMOVE_ITEM : {
                         if (acquiredCart.isEmpty()) {
                             buildRightPanelContent();
                         } else {
@@ -833,11 +766,11 @@ public class FormPosShop extends Form {
                         }
                     }
                         break;
-                    case CLEAR: {
+                    case CLEAR : {
                         buildRightPanelContent();
                     }
                         break;
-                    case ADD_ITEM: {
+                    case ADD_ITEM : {
                         if (acquiredCart.getAllItems().size() == 1) {
                             buildRightPanelContent();
                         } else {
@@ -871,12 +804,11 @@ public class FormPosShop extends Form {
         public void actionPerformed(final ActionEvent e) {
 
             final int chosenOption = JOptionPane.showConfirmDialog(
-                    SwingUtilities.getWindowAncestor(cartButtonsContainer),
-                    "Are you sure you want to clear your cart?", "Clear Cart", JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
+                    SwingUtilities.getWindowAncestor(cartButtonsContainer), "Are you sure you want to clear your cart?",
+                    "Clear Cart", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION:
+                case JOptionPane.YES_OPTION :
                     cart.getAcquire().clearCart();
                     break;
             }
@@ -916,13 +848,6 @@ public class FormPosShop extends Form {
             putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
             add(text, BorderLayout.WEST);
-        }
-    }
-
-    private class FilterButtonTriggerActionListener implements ActionListener {
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            filterPopupMenu.show(filterButtonTrigger, 0, filterButtonTrigger.getHeight());
         }
     }
 
@@ -999,34 +924,6 @@ public class FormPosShop extends Form {
 
             final JLabel noResults = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>No results were found :("));
             add(noResults, BorderLayout.NORTH);
-        }
-    }
-
-    private class PopupMenuCheckboxItemListener implements ItemListener {
-        @Override
-        public void itemStateChanged(final ItemEvent e) {
-            final JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getItemSelectable();
-            final String text = item.getText();
-            final String name = item.getName();
-
-            switch (e.getStateChange()) {
-                case ItemEvent.DESELECTED:
-                    if (name.equals("brand")) {
-                        brandFilters.getAcquire().remove(text);
-                    } else if (name.equals("category")) {
-                        categoryFilters.getAcquire().remove(text);
-                    }
-                    break;
-                case ItemEvent.SELECTED:
-                    if (name.equals("brand")) {
-                        brandFilters.getAcquire().add(text);
-                    } else if (name.equals("category")) {
-                        categoryFilters.getAcquire().add(text);
-                    }
-                    break;
-            }
-
-            search();
         }
     }
 
