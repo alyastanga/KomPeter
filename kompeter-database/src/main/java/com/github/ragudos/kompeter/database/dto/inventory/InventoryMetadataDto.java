@@ -35,62 +35,63 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
         private ItemStockStorageLocationDto[] itemStockLocations;
         private ItemStatus status;
 
-        public InventoryMetadataDtoBuilder setItemId(int _itemId) {
+        public InventoryMetadataDtoBuilder setItemId(final int _itemId) {
             this._itemId = _itemId;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setStatus(ItemStatus status) {
+        public InventoryMetadataDtoBuilder setStatus(final ItemStatus status) {
             this.status = status;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setItemStockId(int _itemStockId) {
+        public InventoryMetadataDtoBuilder setItemStockId(final int _itemStockId) {
             this._itemStockId = _itemStockId;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setCreatedAt(Timestamp _createdAt) {
+        public InventoryMetadataDtoBuilder setCreatedAt(final Timestamp _createdAt) {
             this._createdAt = _createdAt;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setItemName(String itemName) {
+        public InventoryMetadataDtoBuilder setItemName(final String itemName) {
             this.itemName = itemName;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setItemDescription(String itemDescription) {
+        public InventoryMetadataDtoBuilder setItemDescription(final String itemDescription) {
             this.itemDescription = itemDescription;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setDisplayImage(String displayImage) {
+        public InventoryMetadataDtoBuilder setDisplayImage(final String displayImage) {
             this.displayImage = displayImage;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setMinimumQuantity(int minimumQuantity) {
+        public InventoryMetadataDtoBuilder setMinimumQuantity(final int minimumQuantity) {
             this.minimumQuantity = minimumQuantity;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setUnitPricePhp(BigDecimal unitPricePhp) {
+        public InventoryMetadataDtoBuilder setUnitPricePhp(final BigDecimal unitPricePhp) {
             this.unitPricePhp = unitPricePhp;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setCategories(String[] categories) {
+        public InventoryMetadataDtoBuilder setCategories(final String[] categories) {
             this.categories = categories;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setBrand(String brand) {
+        public InventoryMetadataDtoBuilder setBrand(final String brand) {
             this.brand = brand;
             return this;
         }
 
-        public InventoryMetadataDtoBuilder setItemStockLocations(ItemStockStorageLocationDto[] itemStockLocations) {
+        public InventoryMetadataDtoBuilder setItemStockLocations(
+                final ItemStockStorageLocationDto[] itemStockLocations) {
             this.itemStockLocations = itemStockLocations;
             return this;
         }
@@ -105,9 +106,13 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
         return String.join(",", categories);
     }
 
-    public boolean isCategoryOf(String[] categories) {
-        for (String c : categories) {
-            for (String thisC : this.categories) {
+    public boolean isCategoryOf(final String[] categories) {
+        for (final String c : categories) {
+            if (c == null) {
+                continue;
+            }
+
+            for (final String thisC : this.categories) {
                 if (c.toLowerCase().trim().equals(thisC.toLowerCase().trim())) {
                     return true;
                 }
@@ -117,8 +122,12 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
         return false;
     }
 
-    public boolean isBrandOf(String[] brands) {
-        for (String thisB : brands) {
+    public boolean isBrandOf(final String[] brands) {
+        for (final String thisB : brands) {
+            if (thisB == null) {
+                continue;
+            }
+
             if (brand.toLowerCase().trim().equals(thisB.toLowerCase().trim())) {
                 return true;
             }
@@ -128,6 +137,7 @@ public record InventoryMetadataDto(@Range(from = 0, to = Integer.MAX_VALUE) int 
     }
 
     public int totalQuantity() {
-        return Arrays.stream(this.itemStockLocations).mapToInt((loc) -> loc.quantity()).sum();
+        return this.itemStockLocations == null ? 0
+                : Arrays.stream(this.itemStockLocations).mapToInt((loc) -> loc.quantity()).sum();
     }
 };

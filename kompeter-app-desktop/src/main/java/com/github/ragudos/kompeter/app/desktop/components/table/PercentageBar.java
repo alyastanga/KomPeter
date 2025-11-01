@@ -113,9 +113,10 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
 
     public static class ItemStockQtyPercentageBar extends PercentageBar {
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-                int row, int column) {
-            Component res = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+                final boolean hasFocus,
+                final int row, final int column) {
+            final Component res = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             return res;
         }
     }
@@ -124,12 +125,12 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         ItemStockStorageLocationDto[] locations;
 
         public ItemStockQtyPercentageBarData(final int id, final int currentValue, final int minimumThreshold,
-                final String measure, ItemStockStorageLocationDto[] locations) {
+                final String measure, final ItemStockStorageLocationDto[] locations) {
             this(id, currentValue, minimumThreshold, 100, measure, locations);
         }
 
         public ItemStockQtyPercentageBarData(final int id, final int currentValue, final int minimumThreshold,
-                final int maxThreshold, final String measure, ItemStockStorageLocationDto[] locations) {
+                final int maxThreshold, final String measure, final ItemStockStorageLocationDto[] locations) {
             super(id, currentValue, minimumThreshold, maxThreshold, measure);
 
             this.locations = locations;
@@ -139,8 +140,11 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
          * @return array of string like <location name> - <quantity>
          */
         public String[] getLocationQtyData() {
-            return Arrays.stream(locations).map((loc) -> String.join(" - ", loc.name(), loc.quantity() + " item/s"))
-                    .toArray(String[]::new);
+            return Arrays.stream(locations).map((loc) -> {
+                final String end = loc.isInitialized() ? "" : " (to-be-created)";
+
+                return String.join(" - ", loc.name(), loc.quantity() + " item/s" + end);
+            }).toArray(String[]::new);
         }
 
         public ItemStockStorageLocationDto[] locations() {

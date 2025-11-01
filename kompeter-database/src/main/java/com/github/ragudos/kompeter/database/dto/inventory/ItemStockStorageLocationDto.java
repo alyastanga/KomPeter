@@ -26,13 +26,15 @@ public class ItemStockStorageLocationDto {
     String description;
     String name;
     int quantity;
+    boolean isInitialized;
 
     @JsonCreator
-    public ItemStockStorageLocationDto(@JsonProperty("_itemStockStorageLocationId") int _itemStockStorageLocationId,
-            @JsonProperty("_itemStockId") int _itemStockId, @JsonProperty("_storageLocationId") int _storageLocationId,
-            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss") @JsonProperty("_createdAt") @NotNull Timestamp _createdAt,
-            @JsonProperty("name") @NotNull String name, @JsonProperty("description") @NotNull String description,
-            @JsonProperty("quantity") int quantity) {
+    public ItemStockStorageLocationDto(@JsonProperty("_itemStockStorageLocationId") final int _itemStockStorageLocationId,
+            @JsonProperty("_itemStockId") final int _itemStockId, @JsonProperty("_storageLocationId") final int _storageLocationId,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss") @JsonProperty("_createdAt") @NotNull final Timestamp _createdAt,
+            @JsonProperty("name") @NotNull final String name, @JsonProperty("description") @NotNull final String description,
+            @JsonProperty("quantity") final int quantity,
+            @JsonProperty("isInitialized") final boolean isInitialized) {
         this._createdAt = _createdAt;
         this._itemStockId = _itemStockId;
         this._itemStockStorageLocationId = _itemStockStorageLocationId;
@@ -40,6 +42,17 @@ public class ItemStockStorageLocationDto {
         this.name = name;
         this.description = description;
         this.quantity = quantity;
+        this.isInitialized = isInitialized;
+    }
+
+    /**
+     * 
+     * @return whether the item with _itemStockId already has this specific location
+     *         since we just get all storage locations and default to 0 if it's
+     *         non-existent yet.
+     */
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     public Timestamp _createdAt() {
@@ -70,7 +83,7 @@ public class ItemStockStorageLocationDto {
         return quantity;
     }
 
-    public void updateQuantiy(int newQty) {
+    public void updateQuantiy(final int newQty) {
         if (newQty < 0) {
             throw new IllegalArgumentException(
                     String.format("Quantity cannot be < %s for item stock storage location %s", 0, name));

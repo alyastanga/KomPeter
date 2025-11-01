@@ -8,7 +8,6 @@
 package com.github.ragudos.kompeter.app.desktop.forms;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -30,13 +29,11 @@ import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -44,7 +41,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -68,18 +64,16 @@ import com.github.ragudos.kompeter.app.desktop.components.table.ItemStatusText;
 import com.github.ragudos.kompeter.app.desktop.components.table.LabelWithImage;
 import com.github.ragudos.kompeter.app.desktop.components.table.LabelWithImage.LabelWithImageData;
 import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar;
-import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar.ItemStockQtyPercentageBar;
 import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar.ItemStockQtyPercentageBarData;
 import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar.PercentageBarData;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
-import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 import com.github.ragudos.kompeter.inventory.Inventory;
-import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.inventory.Inventory.InventoryProductListData;
+import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.utilities.Debouncer;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 
@@ -207,15 +201,15 @@ public class FormInventoryBrowseProducts extends Form {
 
         isBusy.set(true);
 
-        ArrayList<String> brandFilters = filterPopupMenu.brandFilters.getAcquire();
-        ArrayList<String> categoryFilters = filterPopupMenu.categoryFilters.getAcquire();
+        final ArrayList<String> brandFilters = filterPopupMenu.brandFilters.getAcquire();
+        final ArrayList<String> categoryFilters = filterPopupMenu.categoryFilters.getAcquire();
 
         try {
             productListData.setRelease(inventory.getProductList(
                     InventoryProductListData.getNormalizedRowsPerPage(productListData.getAcquire()),
                     searchTextField.getText(),
-                    categoryFilters.toArray(new String[brandFilters.size()]),
-                    brandFilters.toArray(new String[categoryFilters.size()]), itemStatusFilter));
+                    categoryFilters.toArray(String[]::new),
+                    brandFilters.toArray(String[]::new), itemStatusFilter));
 
             SwingUtilities.invokeLater(() -> {
                 if (productListData.getAcquire().getTotalPages() == 0) {
@@ -331,18 +325,18 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         @Override
-        public String getToolTipText(MouseEvent e) {
-            Point p = e.getPoint();
+        public String getToolTipText(final MouseEvent e) {
+            final Point p = e.getPoint();
             int rowIndex = rowAtPoint(p);
             int colIndex = columnAtPoint(p);
             rowIndex = convertRowIndexToModel(rowIndex);
             colIndex = convertColumnIndexToModel(colIndex);
-            Object value = getModel().getValueAt(rowIndex, colIndex);
+            final Object value = getModel().getValueAt(rowIndex, colIndex);
 
-            if (colIndex == COL_STOCK_QTY && value instanceof ItemStockQtyPercentageBarData data) {
-                String htmlList = Arrays.stream(data.getLocationQtyData())
+            if (colIndex == COL_STOCK_QTY && value instanceof final ItemStockQtyPercentageBarData data) {
+                final String htmlList = Arrays.stream(data.getLocationQtyData())
                         .map((d) -> String.format("<li>%s</li>", d)).collect(Collectors.joining(""));
-                String name = ((LabelWithImageData) getModel().getValueAt(rowIndex,
+                final String name = ((LabelWithImageData) getModel().getValueAt(rowIndex,
                         convertColumnIndexToModel(COL_NAME)))
                         .label();
 
@@ -463,7 +457,7 @@ public class FormInventoryBrowseProducts extends Form {
                 final JButton cancelButton = new JButton("Cancel",
                         new SVGIconUIColor("x.svg", 0.75f, "foreground.muted"));
 
-                ItemStockQtyPercentageBarData data = getQuantityOfSelectedItem();
+                final ItemStockQtyPercentageBarData data = getQuantityOfSelectedItem();
 
                 final JLabel locationLabel = new JLabel("Storage location");
                 comboBox = new JComboBox<>(data.locations());
@@ -501,19 +495,19 @@ public class FormInventoryBrowseProducts extends Form {
             public void actionPerformed(final ActionEvent e) {
                 if (e.getActionCommand().equals("confirm")) {
                     try {
-                        int id = getIdOfSelectedItem();
-                        ItemStockQtyPercentageBarData qty = getQuantityOfSelectedItem();
-                        int selectedRow = convertRowIndexToModel(getSelectedRow());
-                        ItemStockStorageLocationDto selectedLocation = (ItemStockStorageLocationDto) comboBox
+                        final int id = getIdOfSelectedItem();
+                        final ItemStockQtyPercentageBarData qty = getQuantityOfSelectedItem();
+                        final int selectedRow = convertRowIndexToModel(getSelectedRow());
+                        final ItemStockStorageLocationDto selectedLocation = (ItemStockStorageLocationDto) comboBox
                                 .getSelectedItem();
-                        int newVal = selectedLocation.quantity() + (Integer) qtySpinner.getValue();
+                        final int newVal = selectedLocation.quantity() + (Integer) qtySpinner.getValue();
 
                         inventory.updateStockQtyOfItemIn(id, selectedLocation._storageLocationId(), newVal);
 
                         SwingUtilities.invokeLater(() -> {
                             int total = 0;
 
-                            for (ItemStockStorageLocationDto loc : qty.locations()) {
+                            for (final ItemStockStorageLocationDto loc : qty.locations()) {
                                 if (loc._itemStockStorageLocationId() == selectedLocation
                                         ._itemStockStorageLocationId()) {
                                     loc.updateQuantiy(newVal);
@@ -529,7 +523,7 @@ public class FormInventoryBrowseProducts extends Form {
                                     selectedRow,
                                     convertColumnIndexToModel(COL_STOCK_QTY));
                         });
-                    } catch (InventoryException err) {
+                    } catch (final InventoryException err) {
                         JOptionPane.showMessageDialog(this, err.getMessage(),
                                 "Failed to add stock :(", JOptionPane.ERROR_MESSAGE);
                     }
@@ -601,13 +595,14 @@ public class FormInventoryBrowseProducts extends Form {
                 subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
 
                 add(title, "growx, wrap");
-                add(subtitle, "growx, gapy 2px wrap");
+                add(subtitle, "growx, gapy 2px, wrap");
                 add(scroller, "growx, gapy 4px, wrap");
                 add(cancelButton, "gapy 16px, split 2");
                 add(confirmButton, "gapx 4px");
 
                 pack();
                 setLocationRelativeTo(owner);
+                setMaximumSize(new Dimension(getMaximumSize().width, 350));
 
                 confirmButton.addActionListener(this);
                 cancelButton.addActionListener(this);
@@ -1055,7 +1050,7 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         public void rerender() {
-            InventoryProductListData pld = productListData.getAcquire();
+            final InventoryProductListData pld = productListData.getAcquire();
 
             final int currentPage = pld.getCurrentPage();
             final int rowsPerPage = pld.getRowsPerPage();

@@ -18,15 +18,14 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.forms.FormDashboard;
+import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryAddProduct;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryBrowseProducts;
-import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryTransactions;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringInventory;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSales;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSummary;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosShop;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosTransactions;
 import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
-import com.github.ragudos.kompeter.app.desktop.forms.FormSettings;
 import com.github.ragudos.kompeter.app.desktop.forms.FormUsers;
 import com.github.ragudos.kompeter.app.desktop.system.AllForms;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
@@ -64,20 +63,19 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     private static MenuOption createSimpleMenuOption() {
         MenuOption menuOption = new MenuOption();
 
-        MenuItem[] items = new MenuItem[]{new Item("Profile", "user.svg", FormProfile.class),
+        MenuItem[] items = new MenuItem[] { new Item("Profile", "user.svg", FormProfile.class),
                 new Item("Dashboard", "circle-gauge.svg", FormDashboard.class),
                 new Item("Point of Sale", "store.svg").subMenu(new Item("Shop", "shopping-cart.svg", FormPosShop.class))
                         .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormPosTransactions.class)),
                 new Item("Inventory", "boxes.svg")
                         .subMenu(new Item("Browse Products", "package.svg", FormInventoryBrowseProducts.class))
-                        .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormInventoryTransactions.class)),
+                        .subMenu(new Item("Add Product", "plus.svg", FormInventoryAddProduct.class)),
                 new Item("Monitoring", "chart-no-axes-combined.svg")
                         .subMenu(new Item("Summary", "notepad-text.svg", FormMonitoringSummary.class))
                         .subMenu(new Item("Sales", "badge-dollar-sign.svg", FormMonitoringSales.class))
                         .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
                         .subMenu(new Item("Audits", "notepad-text.svg")),
-                new Item("Users", "users.svg", FormUsers.class),
-                new Item("Settings", "settings.svg", FormSettings.class), new Item("Logout", "logout.svg")};
+                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg") };
 
         menuOption.setMenuStyle(new MenuStyle() {
             @Override

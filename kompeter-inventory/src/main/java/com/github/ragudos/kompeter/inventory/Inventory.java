@@ -23,6 +23,7 @@ import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
@@ -47,6 +48,18 @@ public final class Inventory {
 
     private Inventory() {
         fuzzySimilarity = new JaroWinklerSimilarity();
+    }
+
+    public ItemBrandDto[] getAllItemBrandDtos() throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemBrandDao brandDao = factoryDao.getItemBrandDao();
+
+        try (Connection conn = factoryDao.getConnection()) {
+            return brandDao.getAllBrands().toArray(ItemBrandDto[]::new);
+        } catch (SQLException | IOException err) {
+            throw new InventoryException("Failed to get brands", err);
+        }
+
     }
 
     public String[] getAllItemBrands() throws InventoryException {

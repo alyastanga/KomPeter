@@ -40,7 +40,8 @@ CREATE TABLE
     _user_id INTEGER,
     _role_id INTEGER,
     FOREIGN KEY (_user_id) REFERENCES users (_user_id) ON DELETE CASCADE,
-    FOREIGN KEY (_role_id) REFERENCES roles (_role_id) ON DELETE CASCADE
+    FOREIGN KEY (_role_id) REFERENCES roles (_role_id) ON DELETE CASCADE,
+    UNIQUE(_user_id, _role_id)
   );
 
 CREATE TABLE
@@ -94,7 +95,8 @@ CREATE TABLE
     _item_category_id INTEGER,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,
-    FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id) ON DELETE CASCADE
+    FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id) ON DELETE CASCADE,
+    UNIQUE(_item_id, _item_category_id)
   );
 
 CREATE TABLE
@@ -107,7 +109,8 @@ CREATE TABLE
     unit_price_php REAL NOT NULL,
     minimum_quantity INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,
-    FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id) ON DELETE CASCADE
+    FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id) ON DELETE CASCADE,
+    UNIQUE(_item_id, _item_brand_id)
   );
 
 CREATE TABLE
@@ -118,7 +121,8 @@ CREATE TABLE
         _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         quantity INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE,
-    	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id) ON DELETE CASCADE
+    	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id) ON DELETE CASCADE,
+        UNIQUE(_item_stock_id, _storage_location_id)
 	);
     
 CREATE TABLE
@@ -130,60 +134,6 @@ CREATE TABLE
     quantity_after INTEGER NOT NULL,
     quantity_added INTEGER NOT NULL,
     FOREIGN KEY (_item_stock_storage_location_id) REFERENCES item_stock_storage_locations (_item_stock_storage_location_id) ON DELETE CASCADE
-  );
-
-CREATE TABLE
-  suppliers (
-    _supplier_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    name TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
-    street TEXT,
-    city TEXT,
-    state TEXT,
-    postal_code TEXT,
-    country TEXT
-  );
-
-CREATE TABLE
-  purchases (
-    _purchase_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _supplier_id INTEGER NOT NULL,
-    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    purchase_date TIMESTAMP NOT NULL,
-    purchase_code TEXT NOT NULL UNIQUE,
-    delivery_date TIMESTAMP,
-    vat_percent REAL NOT NULL,
-    discount_value REAL,
-    discount_type TEXT CHECK (discount_type IN ('percentage', 'fixed')),
-    FOREIGN KEY (_supplier_id) REFERENCES suppliers (_supplier_id) ON DELETE CASCADE
-  );
-
-CREATE TABLE
-  purchase_payments (
-    _purchase_payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _purchase_id INTEGER NOT NULL,
-    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    payment_date TIMESTAMP NOT NULL,
-    reference_number TEXT,
-    payment_method TEXT NOT NULL CHECK (
-      payment_method IN ('cash', 'gcash', 'bank_transfer')
-    ),
-    amount_php REAL NOT NULL,
-    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id) ON DELETE CASCADE
-  );
-
-CREATE TABLE
-  purchase_item_stocks (
-    _purchase_item_stock_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _purchase_id INTEGER NOT NULL,
-    _item_stock_id INTEGER NOT NULL,
-    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    quantity_ordered INTEGER NOT NULL,
-    quantity_received INTEGER NOT NULL,
-    unit_cost_php REAL NOT NULL,
-    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id) ON DELETE CASCADE,
-    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE
   );
 
 CREATE TABLE
@@ -285,7 +235,8 @@ AS
                 '_createdAt', item_storage_location._created_at, 
                 'name', storage_location.name,
                 'description', storage_location.description,
-                'quantity', item_storage_location.quantity
+                'quantity', COALESCE(item_storage_location.quantity, 0),
+                'isInitialized', CASE WHEN item_storage_location._item_stock_storage_location_id IS NULL THEN 0 ELSE 1 END
             )
         ) AS item_storage_locations
     FROM
@@ -306,21 +257,24 @@ AS
         item_brands AS item_brand
         ON
             item_stock._item_brand_id = item_brand._item_brand_id
-    INNER JOIN
-        item_stock_storage_locations AS item_storage_location
-        ON
-            item_stock._item_stock_id = item_storage_location._item_stock_id
-    INNER JOIN
+    LEFT JOIN
         storage_locations AS storage_location
-        ON
-            item_storage_location._storage_location_id = storage_location._storage_location_id
+        ON 1 = 1  -- join all storage locations for each item_stock
+    LEFT JOIN
+        item_stock_storage_locations AS item_storage_location
+        ON item_storage_location._item_stock_id = item_stock._item_stock_id
+        AND item_storage_location._storage_location_id = storage_location._storage_location_id
     GROUP BY
         item._item_id,
         item_stock._item_stock_id,
-        item._created_at,
+        item_stock._created_at,
         item.name,
-        item_category.name,
-        item_brand.name
+        item.description,
+        item.display_image,
+        item_brand.name,
+        item_stock.unit_price_php,
+        item_stock.minimum_quantity,
+        item_stock.status
     ORDER BY
         item._item_id;
 
@@ -350,6 +304,25 @@ AS
 -- ========================================================= --
 
 DELIMITER $$
+
+CREATE TRIGGER trg_item_stock_storage_location_restock
+AFTER UPDATE OF quantity ON item_stock_storage_locations
+FOR EACH ROW
+WHEN NEW.quantity > OLD.quantity
+BEGIN
+    INSERT INTO item_restocks (
+        _item_stock_storage_location_id,
+        quantity_before,
+        quantity_after,
+        quantity_added
+    )
+    VALUES (
+        NEW._item_stock_storage_location_id,
+        OLD.quantity,
+        NEW.quantity,
+        NEW.quantity - OLD.quantity
+    );
+END;
 
 CREATE TRIGGER IF NOT EXISTS roles_audit_insert
 AFTER INSERT ON roles

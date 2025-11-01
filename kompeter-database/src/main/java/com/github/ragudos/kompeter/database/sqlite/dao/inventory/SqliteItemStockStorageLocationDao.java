@@ -48,7 +48,7 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
                 ItemStockStorageLocationDto issl = new ItemStockStorageLocationDto(
                         rs.getInt("_item_stock_storage_location_id"), rs.getInt("_item_stock_id"),
                         rs.getInt("_storage_location_id"), rs.getTimestamp("_created_at"), rs.getString("name"),
-                        rs.getString("description"), rs.getInt("quantity"));
+                        rs.getString("description"), rs.getInt("quantity"), true);
 
                 listItemStockStorageLocation.add(issl);
             }
