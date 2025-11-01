@@ -10,6 +10,7 @@ package com.github.ragudos.kompeter.app.desktop.components.table;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -21,14 +22,15 @@ import javax.swing.OverlayLayout;
 import javax.swing.table.TableCellRenderer;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public class PercentageBar extends JPanel implements TableCellRenderer {
     private static final Logger LOGGER = KompeterLogger.getLogger(PercentageBar.class);
 
-    private final JProgressBar bar;
-    private int currentValue;
-    private final JLabel label;
+    final JProgressBar bar;
+    int currentValue;
+    final JLabel label;
 
     public PercentageBar() {
         setOpaque(false);
@@ -82,7 +84,6 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         final PercentageBarData percentageBarData = (PercentageBarData) value;
 
         currentValue = percentageBarData.currentValue;
-        bar.setToolTipText(String.format("Minimum: %s", percentageBarData.minimumThreshold));
         bar.setMaximum(percentageBarData.maxThreshold);
 
         final float percentage = ((float) percentageBarData.currentValue - (float) percentageBarData.minimumThreshold)
@@ -108,6 +109,43 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         bar.setValue(Math.round(percentage * 100f));
 
         return this;
+    }
+
+    public static class ItemStockQtyPercentageBar extends PercentageBar {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            Component res = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            return res;
+        }
+    }
+
+    public static class ItemStockQtyPercentageBarData extends PercentageBarData {
+        ItemStockStorageLocationDto[] locations;
+
+        public ItemStockQtyPercentageBarData(final int id, final int currentValue, final int minimumThreshold,
+                final String measure, ItemStockStorageLocationDto[] locations) {
+            this(id, currentValue, minimumThreshold, 100, measure, locations);
+        }
+
+        public ItemStockQtyPercentageBarData(final int id, final int currentValue, final int minimumThreshold,
+                final int maxThreshold, final String measure, ItemStockStorageLocationDto[] locations) {
+            super(id, currentValue, minimumThreshold, maxThreshold, measure);
+
+            this.locations = locations;
+        }
+
+        /**
+         * @return array of string like <location name> - <quantity>
+         */
+        public String[] getLocationQtyData() {
+            return Arrays.stream(locations).map((loc) -> String.join(" - ", loc.name(), loc.quantity() + " item/s"))
+                    .toArray(String[]::new);
+        }
+
+        public ItemStockStorageLocationDto[] locations() {
+            return locations;
+        }
     }
 
     public static class PercentageBarData {
@@ -139,6 +177,14 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
 
         public int currentValue() {
             return currentValue;
+        }
+
+        public String measure() {
+            return measure;
+        }
+
+        public int minimumThreshold() {
+            return minimumThreshold;
         }
     }
 }

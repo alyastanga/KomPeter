@@ -8,12 +8,14 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
+import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
 import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
@@ -55,11 +57,10 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
     }
 
     @Override
-    public int setItemStockStorageLocation(int itemStockId, int storageLocId, int qty)
+    public int setItemStockStorageLocation(Connection conn, int itemStockId, int storageLocId, int qty)
             throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("insert_item_stock_storage_loc", "items",
-                AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query,
+        try (var stmt = new NamedPreparedStatement(conn, SqliteQueryLoader.getInstance()
+                .get("insert_item_stock_storage_loc", "items", AbstractSqlQueryLoader.SqlQueryType.INSERT),
                 Statement.RETURN_GENERATED_KEYS);) {
             stmt.setInt("_item_stock_id", itemStockId);
             stmt.setInt("_storage_location_id", storageLocId);
@@ -72,11 +73,10 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
     }
 
     @Override
-    public int updateItemStockQuantity(int qtyAfter, int itemStockId, int storageLocationId)
+    public int updateItemStockQuantity(Connection conn, int qtyAfter, int itemStockId, int storageLocationId)
             throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("update_item_stock_quantity", "items",
-                AbstractSqlQueryLoader.SqlQueryType.UPDATE);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
+        try (var stmt = new NamedPreparedStatement(conn,
+                SqliteQueryLoader.getInstance().get("update_item_stock_quantity", "items", SqlQueryType.UPDATE))) {
             stmt.setInt("quantity", qtyAfter);
             stmt.setInt("_item_stock_id", itemStockId);
             stmt.setInt("_storage_location_id", storageLocationId);

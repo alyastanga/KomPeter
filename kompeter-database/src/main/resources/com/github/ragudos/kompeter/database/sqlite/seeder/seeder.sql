@@ -7,12 +7,12 @@ INSERT INTO roles (role_name, description) VALUES
 ('auditor', 'Performs financial and stock audits.'),
 ('supplier', 'External role for supplier data, not a direct system user.');
 
-INSERT INTO users (display_name, first_name, last_name) VALUES
-('Peter', 'Peter', 'Parker'),
-('Hanz', 'Hanz', 'Zimmer'),
-('Jerick', 'Jerick', 'Serrano'),
-('Aaron', 'Aaron', 'Cruz'),
-('Kurt', 'Kurt', 'Cobain');
+INSERT INTO users (display_name, first_name, last_name, display_image) VALUES
+('Peter', 'Peter', 'Parker', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Hanz', 'Hanz', 'Zimmer', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Jerick', 'Jerick', 'Serrano', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Aaron', 'Aaron', 'Cruz', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Kurt', 'Kurt', 'Cobain', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png');
 
 INSERT INTO accounts (_user_id, password_hash, password_salt, email) VALUES
 (1, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'peter.admin@example.com'),
@@ -144,107 +144,6 @@ INSERT INTO item_stock_storage_locations (_item_stock_id, _storage_location_id, 
 (64, 1, 75), (64, 2, 25), (65, 1, 20), (65, 2, 30), (66, 1, 15), (66, 2, 25), (67, 1, 40), (67, 2, 20), 
 (68, 1, 50), (68, 2, 20), (69, 1, 60), (69, 2, 30), (70, 1, 25), (70, 3, 25);
 
-
-INSERT INTO item_restocks (_item_stock_id, quantity_before, quantity_after, quantity_added) VALUES
-(5, 0, 100, 100), 
-(2, 0, 50, 50),   
-(21, 0, 75, 75),  
-(37, 0, 20, 20);  
-
--- PURCHASES and SUPPLIERS
-INSERT INTO suppliers (name, email, street, city, state, postal_code, country) VALUES
-('Component Distributors Inc.', 'contact@compdist.com', '123 Tech St', 'Makati', 'Metro Manila', '1209', 'Philippines'),
-('Peripheral World', 'sales@periworld.net', '456 Gadget Ave', 'Quezon City', 'Metro Manila', '1103', 'Philippines'),
-('ASUS PH Partner', 'orders@asusph.com', '789 Laptop Blvd', 'Manila', 'Metro Manila', '1008', 'Philippines'),
-('Storage Solutions', 'support@storage.com', '101 Drive Rd', 'Cebu City', 'Cebu', '6000', 'Philippines');
-
-INSERT INTO purchases (_supplier_id, purchase_date, purchase_code, delivery_date, vat_percent, discount_value, discount_type) VALUES
-(1, DATETIME('now', '-30 days'), 'PO-CDI-2025-001', DATETIME('now', '-29 days'), 0.12, 500.00, 'fixed'),
-(2, DATETIME('now', '-28 days'), 'PO-PW-2025-002', DATETIME('now', '-27 days'), 0.12, 0.05, 'percentage'),
-(3, DATETIME('now', '-27 days'), 'PO-APP-2025-003', DATETIME('now', '-26 days'), 0.12, NULL, NULL),
-(4, DATETIME('now', '-25 days'), 'PO-SS-2025-004', DATETIME('now', '-24 days'), 0.12, 0, 'fixed'),
-(1, DATETIME('now', '-23 days'), 'PO-CDI-2025-005', DATETIME('now', '-22 days'), 0.12, 0.10, 'percentage'),
-(2, DATETIME('now', '-22 days'), 'PO-PW-2025-006', DATETIME('now', '-21 days'), 0.12, 300.00, 'fixed'),
-(3, DATETIME('now', '-20 days'), 'PO-APP-2025-007', DATETIME('now', '-19 days'), 0.12, 0.07, 'percentage'),
-(4, DATETIME('now', '-19 days'), 'PO-SS-2025-008', DATETIME('now', '-18 days'), 0.12, 0, 'fixed'),
-(1, DATETIME('now', '-17 days'), 'PO-CDI-2025-009', DATETIME('now', '-16 days'), 0.12, 0.05, 'percentage'),
-(2, DATETIME('now', '-16 days'), 'PO-PW-2025-010', DATETIME('now', '-15 days'), 0.12, 1000.00, 'fixed'),
-(3, DATETIME('now', '-15 days'), 'PO-APP-2025-011', DATETIME('now', '-14 days'), 0.12, NULL, NULL),
-(4, DATETIME('now', '-14 days'), 'PO-SS-2025-012', DATETIME('now', '-13 days'), 0.12, 0, 'fixed'),
-(1, DATETIME('now', '-12 days'), 'PO-CDI-2025-013', DATETIME('now', '-11 days'), 0.12, 0.05, 'percentage'),
-(2, DATETIME('now', '-11 days'), 'PO-PW-2025-014', DATETIME('now', '-10 days'), 0.12, 250.00, 'fixed'),
-(3, DATETIME('now', '-10 days'), 'PO-APP-2025-015', DATETIME('now', '-9 days'), 0.12, 0.10, 'percentage'),
-(4, DATETIME('now', '-9 days'), 'PO-SS-2025-016', DATETIME('now', '-8 days'), 0.12, 0, 'fixed'),
-(1, DATETIME('now', '-8 days'), 'PO-CDI-2025-017', DATETIME('now', '-7 days'), 0.12, 600.00, 'fixed'),
-(2, DATETIME('now', '-7 days'), 'PO-PW-2025-018', DATETIME('now', '-6 days'), 0.12, 0.05, 'percentage'),
-(3, DATETIME('now', '-6 days'), 'PO-APP-2025-019', DATETIME('now', '-5 days'), 0.12, 0, 'fixed'),
-(4, DATETIME('now', '-5 days'), 'PO-SS-2025-020', DATETIME('now', '-4 days'), 0.12, 0.10, 'percentage'),
-(1, DATETIME('now', '-4 days'), 'PO-CDI-2025-021', DATETIME('now', '-3 days'), 0.12, 0, 'fixed'),
-(2, DATETIME('now', '-3 days'), 'PO-PW-2025-022', DATETIME('now', '-2 days'), 0.12, 1200.00, 'fixed');
-
-
-INSERT INTO purchase_payments (_purchase_id, payment_date, reference_number, payment_method, amount_php) VALUES
-(1, DATETIME('now', '-29 days', '+2 hours'), 'REF-PP-98765', 'bank_transfer', 77840.00),
-(2, DATETIME('now', '-27 days', '+3 hours'), 'REF-PP-65432', 'cash', 106400.00),
-(3, DATETIME('now', '-26 days', '+2 hours'), 'REF-PP-32109', 'gcash', 44800.00),
-(4, DATETIME('now', '-24 days', '+4 hours'), 'REF-PP-09876', 'bank_transfer', 140000.00),
-(5, DATETIME('now', '-22 days', '+2 hours'), 'REF-PP-55667', 'cash', 98000.00),
-(6, DATETIME('now', '-21 days', '+3 hours'), 'REF-PP-77889', 'gcash', 45600.00),
-(7, DATETIME('now', '-19 days', '+3 hours'), 'REF-PP-88990', 'bank_transfer', 132000.00),
-(8, DATETIME('now', '-18 days', '+2 hours'), 'REF-PP-99101', 'cash', 75500.00),
-(9, DATETIME('now', '-16 days', '+1 hour'), 'REF-PP-44112', 'gcash', 82000.00),
-(10, DATETIME('now', '-15 days', '+2 hours'), 'REF-PP-11223', 'cash', 91000.00),
-(11, DATETIME('now', '-14 days', '+1 hour'), 'REF-PP-66789', 'bank_transfer', 102000.00),
-(12, DATETIME('now', '-13 days', '+2 hours'), 'REF-PP-99012', 'gcash', 86500.00),
-(13, DATETIME('now', '-11 days', '+2 hours'), 'REF-PP-10113', 'bank_transfer', 85600.00),
-(14, DATETIME('now', '-10 days', '+1 hour'), 'REF-PP-10114', 'cash', 94000.00),
-(15, DATETIME('now', '-9 days', '+2 hours'), 'REF-PP-10115', 'gcash', 68500.00),
-(16, DATETIME('now', '-8 days', '+3 hours'), 'REF-PP-10116', 'bank_transfer', 123000.00),
-(17, DATETIME('now', '-7 days', '+2 hours'), 'REF-PP-10117', 'cash', 75000.00),
-(18, DATETIME('now', '-6 days', '+1 hour'), 'REF-PP-10118', 'gcash', 88900.00),
-(19, DATETIME('now', '-5 days', '+2 hours'), 'REF-PP-10119', 'bank_transfer', 97000.00),
-(20, DATETIME('now', '-4 days', '+3 hours'), 'REF-PP-10120', 'cash', 65500.00),
-(21, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-10121', 'bank_transfer', 112000.00),
-(22, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-10122', 'gcash', 125400.00);
-
-
-INSERT INTO purchase_item_stocks (_purchase_id, _item_stock_id, quantity_ordered, quantity_received, unit_cost_php) VALUES
-(1, 2, 5, 5, 10000.00), 
-(1, 5, 20, 20, 1000.00), 
-(2, 21, 10, 10, 8000.00), 
-(2, 23, 10, 10, 2000.00),
-(3, 37, 1, 1, 40000.00), 
-(4, 7, 10, 10, 12500.00),
-(5, 1, 3, 3, 21000.00),
-(5, 11, 5, 5, 9500.00),
-(6, 21, 8, 8, 8300.00),
-(6, 23, 12, 12, 2400.00),
-(7, 38, 2, 2, 83000.00),
-(7, 42, 3, 3, 34000.00),
-(8, 7, 5, 5, 12000.00),
-(8, 56, 25, 25, 480.00),
-(8, 60, 15, 15, 950.00),
-(9, 13, 8, 8, 5000.00),
-(10, 29, 6, 6, 4500.00),
-(11, 33, 4, 4, 7000.00),
-(12, 45, 2, 2, 85000.00),
-(13, 5, 10, 10, 1200.00),
-(13, 18, 4, 4, 21000.00),
-(14, 21, 6, 6, 9000.00),
-(14, 24, 10, 10, 2300.00),
-(15, 37, 1, 1, 42000.00),
-(16, 7, 8, 8, 12500.00),
-(16, 48, 10, 10, 800.00),
-(17, 1, 3, 3, 22000.00),
-(18, 23, 5, 5, 2500.00),
-(19, 45, 2, 2, 83000.00),
-(19, 56, 10, 10, 500.00),
-(20, 60, 4, 4, 1000.00),
-(21, 29, 8, 8, 5000.00),
-(21, 33, 6, 6, 7200.00),
-(22, 38, 1, 1, 85000.00),
-(22, 42, 3, 3, 35000.00);
-
 -- SALES and TRANSACTIONS
 INSERT INTO sales (sale_date, sale_code, customer_name, vat_percent, discount_value, discount_type) VALUES
 (DATETIME('now', '-14 days', '10:00:00'), 'SALE-2025-0001', 'Client A', 0.12, 0, 'fixed'),
@@ -267,7 +166,6 @@ INSERT INTO sales (sale_date, sale_code, customer_name, vat_percent, discount_va
 (DATETIME('now', '02:30:00'), 'SALE-2025-0018', 'Tech Solutions Inc.', 0.12, 1500.00, 'fixed'),
 (DATETIME('now', '03:45:00'), 'SALE-2025-0019', 'Client Y', 0.12, 0.10, 'percentage'),
 (DATETIME('now', '07:20:00'), 'SALE-2025-0020', 'Walk-in', 0.12, NULL, NULL);
-
 
 INSERT INTO sale_item_stocks (_sale_id, _item_stock_id, quantity, unit_price_php) VALUES
 (1, 5, 2, 3500.00), (1, 21, 1, 8500.00),
@@ -313,7 +211,6 @@ INSERT INTO sale_payments (_sale_id, payment_date, reference_number, payment_met
 (18, DATETIME('now', '02:35:00'), 'BTRANS-0901', 'bank_transfer', 14240.00),
 (19, DATETIME('now', '03:50:00'), 'GCASH-0901', 'gcash', 25136.00),
 (20, DATETIME('now', '07:25:00'), NULL, 'cash', 11360.00);
-
 
 UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Ryzen 9 7950X3D CPU.png' WHERE name = 'Ryzen 9 7950X3D CPU';
 UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Ryzen 5 7600X CPU.png' WHERE name = 'Ryzen 5 7600X CPU';

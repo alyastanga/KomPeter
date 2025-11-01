@@ -8,8 +8,10 @@
 package com.github.ragudos.kompeter.app.desktop.forms;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,17 +20,23 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -52,6 +60,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.components.combobox.ItemStockStorageLocationRenderer;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
 import com.github.ragudos.kompeter.app.desktop.components.table.Currency;
@@ -59,13 +68,18 @@ import com.github.ragudos.kompeter.app.desktop.components.table.ItemStatusText;
 import com.github.ragudos.kompeter.app.desktop.components.table.LabelWithImage;
 import com.github.ragudos.kompeter.app.desktop.components.table.LabelWithImage.LabelWithImageData;
 import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar;
+import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar.ItemStockQtyPercentageBar;
+import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar.ItemStockQtyPercentageBarData;
 import com.github.ragudos.kompeter.app.desktop.components.table.PercentageBar.PercentageBarData;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
+import com.github.ragudos.kompeter.inventory.Inventory.InventoryProductListData;
 import com.github.ragudos.kompeter.utilities.Debouncer;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 
@@ -81,13 +95,14 @@ public class FormInventoryBrowseProducts extends Form {
     private Inventory inventory;
     private AtomicBoolean isBusy;
     private ManageStockPopupMenu manageStockPopupMenu;
-    private Inventory.InventoryProductListData productListData;
+    private AtomicReference<Inventory.InventoryProductListData> productListData;
     private ProductsTable productsTable;
     private JScrollPane productsTableContainer;
     private ProductsTableFooter productsTableControlFooter;
     private JTextField searchTextField;
     private ItemStatus itemStatusFilter;
     private StatusFilterPopupMenu statusFilterPopupMenu;
+    private AtomicInteger prevProductTableRowsPerPage;
 
     @Override
     public boolean formBeforeClose() {
@@ -174,6 +189,8 @@ public class FormInventoryBrowseProducts extends Form {
     }
 
     private void init() {
+        productListData = new AtomicReference<>();
+        prevProductTableRowsPerPage = new AtomicInteger(0);
         isBusy = new AtomicBoolean(false);
         inventory = Inventory.getInstance();
         debouncer = new Debouncer(250);
@@ -183,26 +200,27 @@ public class FormInventoryBrowseProducts extends Form {
         createHeader();
     }
 
-    private void loadData() {
+    private void recreateProductListData() {
+        if (isBusy.get()) {
+            return;
+        }
+
         isBusy.set(true);
 
+        ArrayList<String> brandFilters = filterPopupMenu.brandFilters.getAcquire();
+        ArrayList<String> categoryFilters = filterPopupMenu.categoryFilters.getAcquire();
+
         try {
-            productListData = inventory.getProductList(
-                    (productListData != null && productListData.getRowsPerPage() != 0)
-                            ? productListData.getRowsPerPage()
-                            : 20,
+            productListData.setRelease(inventory.getProductList(
+                    InventoryProductListData.getNormalizedRowsPerPage(productListData.getAcquire()),
                     searchTextField.getText(),
-                    filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
-                    filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), itemStatusFilter);
+                    categoryFilters.toArray(new String[brandFilters.size()]),
+                    brandFilters.toArray(new String[categoryFilters.size()]), itemStatusFilter));
 
             SwingUtilities.invokeLater(() -> {
-                filterPopupMenu.populate();
-
-                if (productListData.getTotalPages() == 0) {
+                if (productListData.getAcquire().getTotalPages() == 0) {
                     productsTableContainer.setViewportView(new NoResultsPanel());
-                    productsTableContainer.repaint();
                     productsTableContainer.revalidate();
-
                     productsTableControlFooter.setVisible(false);
 
                     return;
@@ -211,45 +229,25 @@ public class FormInventoryBrowseProducts extends Form {
                 productsTableContainer.setViewportView(productsTable);
                 productsTableControlFooter.setVisible(true);
                 productsTable.populate();
-
-                isBusy.set(false);
             });
-
         } catch (final InventoryException err) {
             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                     "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
-
+        } finally {
             isBusy.set(false);
         }
     }
 
-    private void search() {
-        debouncer.call(() -> {
-            try {
-                productListData = inventory.getProductList(
-                        ((productListData != null && productListData.getTotalPages() != 0)
-                                ? productListData.getRowsPerPage()
-                                : 20),
-                        searchTextField.getText(),
-                        filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
-                        filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), itemStatusFilter);
-            } catch (final InventoryException e) {
-                e.printStackTrace();
-            }
+    private void loadData() {
+        recreateProductListData();
 
-            if (productListData.getTotalPages() == 0) {
-                productsTableContainer.setViewportView(new NoResultsPanel());
-                productsTableContainer.repaint();
-                productsTableContainer.revalidate();
-                productsTableControlFooter.setVisible(false);
-
-                return;
-            }
-
-            productsTableContainer.setViewportView(productsTable);
-            productsTableControlFooter.setVisible(true);
-            productsTable.populate();
+        SwingUtilities.invokeLater(() -> {
+            filterPopupMenu.populate();
         });
+    }
+
+    private void search() {
+        debouncer.call(this::recreateProductListData);
     }
 
     public class ProductsTable extends JTable {
@@ -257,6 +255,8 @@ public class FormInventoryBrowseProducts extends Form {
         public static final int COL_PRICE = 1;
         public static final int COL_STATUS = 3;
         public static final int COL_STOCK_QTY = 2;
+        public static final int COL_ID = 4;
+        public static final int COL_BRAND = 5;
 
         private final ProductsTableMouseAdapter mouseListener;
 
@@ -304,7 +304,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             final ProductsTableModel tableModel = new ProductsTableModel();
 
-            tableModel.setColumnIdentifiers(new String[] { "Name", "Price", "Current Stock", "Status" });
+            tableModel.setColumnIdentifiers(new String[] { "Name", "Price", "Current Stock", "Status", "Id", "Brand" });
 
             setModel(tableModel);
 
@@ -320,11 +320,60 @@ public class FormInventoryBrowseProducts extends Form {
             columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(142);
             columnModel.getColumn(COL_STATUS).setPreferredWidth(82);
 
+            columnModel.removeColumn(columnModel.getColumn(COL_ID));
+            columnModel.removeColumn(columnModel.getColumn(COL_BRAND - 1));
+
             setRowSorter(new ProductsTableRowSorter(tableModel));
 
             setShowGrid(true);
             setRowHeight(38);
             putClientProperty(FlatClientProperties.STYLE, "font:12;");
+        }
+
+        @Override
+        public String getToolTipText(MouseEvent e) {
+            Point p = e.getPoint();
+            int rowIndex = rowAtPoint(p);
+            int colIndex = columnAtPoint(p);
+            rowIndex = convertRowIndexToModel(rowIndex);
+            colIndex = convertColumnIndexToModel(colIndex);
+            Object value = getModel().getValueAt(rowIndex, colIndex);
+
+            if (colIndex == COL_STOCK_QTY && value instanceof ItemStockQtyPercentageBarData data) {
+                String htmlList = Arrays.stream(data.getLocationQtyData())
+                        .map((d) -> String.format("<li>%s</li>", d)).collect(Collectors.joining(""));
+                String name = ((LabelWithImageData) getModel().getValueAt(rowIndex,
+                        convertColumnIndexToModel(COL_NAME)))
+                        .label();
+
+                return String.format(
+                        """
+                                <html>
+                                <head>
+                                    <style>
+                                        body {
+                                            line-height: 1.2;
+                                        }
+                                        ul {
+                                            margin-left: 12px;
+                                            padding: 0;
+                                        }
+                                        h3 {
+                                            margin: 4px;
+                                            padding: 0;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <h3>Quantity breakdown for %s</h3>
+                                    <ul>%s</ul>
+                                </body>
+                                </html>
+                                """,
+                        name, htmlList);
+            }
+
+            return super.getToolTipText(e);
         }
 
         public int[] getModelSelectedRows() {
@@ -352,6 +401,23 @@ public class FormInventoryBrowseProducts extends Form {
             return names;
         }
 
+        public int getIdOfSelectedItem() {
+            // no need conversion since id is not in view
+            return (Integer) getModel().getValueAt(convertRowIndexToModel(getSelectedRow()),
+                    COL_ID);
+        }
+
+        public String getBrandOfSelectedItem() {
+            // no need conversion since brand is not in view
+            return (String) getModel().getValueAt(convertRowIndexToModel(getSelectedRow()),
+                    COL_BRAND);
+        }
+
+        public ItemStockQtyPercentageBarData getQuantityOfSelectedItem() {
+            return ((ItemStockQtyPercentageBarData) getModel().getValueAt(convertRowIndexToModel(getSelectedRow()),
+                    convertColumnIndexToModel(COL_STOCK_QTY)));
+        }
+
         public void addStockToSelectedItem() {
             new AddStockDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
         }
@@ -361,59 +427,124 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         public void changeStatusOfSelectedItems(final ItemStatus status) {
-            try {
-                inventory.setStatusOfItemsByName(getNamesOfSelectedItems(), status);
-
-                productListData = inventory.getProductList(
-                        (productListData != null && productListData.getRowsPerPage() != 0)
-                                ? productListData.getRowsPerPage()
-                                : 20,
-                        searchTextField.getText(),
-                        filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
-                        filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), itemStatusFilter);
-
-                if (productListData.getTotalPages() == 0) {
-                    productsTableContainer.setViewportView(new NoResultsPanel());
-                    productsTableContainer.repaint();
-                    productsTableContainer.revalidate();
-
-                    productsTableControlFooter.setVisible(false);
-
-                    return;
+            new Thread(() -> {
+                try {
+                    inventory.setStatusOfItemsByName(getNamesOfSelectedItems(), status);
+                    recreateProductListData();
+                } catch (final InventoryException err) {
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                                "Failed to change item/s status to: " + status.toString(),
+                                JOptionPane.ERROR_MESSAGE);
+                    });
                 }
-
-                SwingUtilities.invokeLater(() -> {
-                    self().populate();
-                });
-            } catch (final InventoryException err) {
-                SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
-                            "Failed to change item/s status to: " + status.toString(),
-                            JOptionPane.ERROR_MESSAGE);
-                });
-            }
+            }, "Change status of selected items").start();
         }
 
         private class AddStockDialog extends JDialog implements ActionListener {
+            private final JSpinner qtySpinner;
+            private final JComboBox<ItemStockStorageLocationDto> comboBox;
+
             public AddStockDialog(final Window owner) {
                 super(owner, "Add stock", Dialog.ModalityType.APPLICATION_MODAL);
 
+                setLayout(new MigLayout("insets 16, flowx", "[grow, center, fill]"));
+
+                final String nameToAddStockTo = getNamesOfSelectedItems()[0];
+                final JLabel title = new JLabel(String.format("Adding stock to %s", nameToAddStockTo));
+                final JLabel subtitle = new JLabel(
+                        HtmlUtils
+                                .wrapInHtml(String.format("You're adding new stocks to %s of brand %s",
+                                        nameToAddStockTo, getBrandOfSelectedItem())));
+                final JLabel qtyLabel = new JLabel("Quantity to add");
+                qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+                final JButton confirmButton = new JButton("Add stock",
+                        new SVGIconUIColor("trash.svg", 0.75f, "foreground.error"));
+                final JButton cancelButton = new JButton("Cancel",
+                        new SVGIconUIColor("x.svg", 0.75f, "foreground.muted"));
+
+                ItemStockQtyPercentageBarData data = getQuantityOfSelectedItem();
+
+                final JLabel locationLabel = new JLabel("Storage location");
+                comboBox = new JComboBox<>(data.locations());
+
+                comboBox.setRenderer(new ItemStockStorageLocationRenderer());
+
+                confirmButton.setToolTipText("Add the specified amount of quantity to stock");
+                cancelButton.setToolTipText("Cancel adding stock");
+                confirmButton.setActionCommand("confirm");
+                cancelButton.setActionCommand("cancel");
+                confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+                cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+
+                title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3 primary");
+                subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+                subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+
+                add(title, "growx, wrap");
+                add(subtitle, "growx, wrap, gapy 2px");
+                add(locationLabel, "growx, wrap, gapy 8px");
+                add(comboBox, "growx, wrap, gapy 2px");
+                add(qtyLabel, "growx, wrap, gapy 4px");
+                add(qtySpinner, "growx, wrap, gapy 2px");
+                add(cancelButton, "split 2, gapy 16px");
+                add(confirmButton, "gapx 4px");
+
+                pack();
+                setLocationRelativeTo(owner);
+
+                confirmButton.addActionListener(this);
+                cancelButton.addActionListener(this);
             }
 
             @Override
             public void actionPerformed(final ActionEvent e) {
+                if (e.getActionCommand().equals("confirm")) {
+                    try {
+                        int id = getIdOfSelectedItem();
+                        ItemStockQtyPercentageBarData qty = getQuantityOfSelectedItem();
+                        int selectedRow = convertRowIndexToModel(getSelectedRow());
+                        ItemStockStorageLocationDto selectedLocation = (ItemStockStorageLocationDto) comboBox
+                                .getSelectedItem();
+                        int newVal = selectedLocation.quantity() + (Integer) qtySpinner.getValue();
 
+                        inventory.updateStockQtyOfItemIn(id, selectedLocation._storageLocationId(), newVal);
+
+                        SwingUtilities.invokeLater(() -> {
+                            int total = 0;
+
+                            for (ItemStockStorageLocationDto loc : qty.locations()) {
+                                if (loc._itemStockStorageLocationId() == selectedLocation
+                                        ._itemStockStorageLocationId()) {
+                                    loc.updateQuantiy(newVal);
+                                }
+
+                                total += loc.quantity();
+                            }
+
+                            setValueAt(
+                                    new ItemStockQtyPercentageBarData(id,
+                                            total,
+                                            qty.minimumThreshold(), qty.measure(), qty.locations()),
+                                    selectedRow,
+                                    convertColumnIndexToModel(COL_STOCK_QTY));
+                        });
+                    } catch (InventoryException err) {
+                        JOptionPane.showMessageDialog(this, err.getMessage(),
+                                "Failed to add stock :(", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                    dispose();
+                } else if (e.getActionCommand().equals("cancel")) {
+                    dispose();
+                }
             }
         }
 
         private class DeleteSelectedItemsDialog extends JDialog implements ActionListener {
-            private final Window owner;
-
             public DeleteSelectedItemsDialog(final Window owner) {
                 super(owner, "Delete selected item/s",
                         Dialog.ModalityType.APPLICATION_MODAL);
-
-                this.owner = owner;
 
                 setLayout(new MigLayout("insets 16, flowx", "[grow, center, fill]"));
 
@@ -437,11 +568,7 @@ public class FormInventoryBrowseProducts extends Form {
                         </html>
                         """, Arrays.stream(namesToBeDeleted).map((n) -> String.format("<li>%s</li>", n))
                         .collect(Collectors.joining("\n")));
-                final JTextPane textPane = new JTextPane();
-                textPane.setContentType("text/html");
-                textPane.setText(html);
-                textPane.setEditable(false);
-                textPane.setOpaque(false);
+                final JLabel textPane = new JLabel(html);
 
                 final JButton confirmButton = new JButton("Yes, I'm sure",
                         new SVGIconUIColor("trash.svg", 0.75f, "foreground.error"));
@@ -474,9 +601,9 @@ public class FormInventoryBrowseProducts extends Form {
                 subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
 
                 add(title, "growx, wrap");
-                add(subtitle, "growx, wrap");
-                add(scroller, "growx, gapy 8px, wrap");
-                add(cancelButton, "gapy 20px, split 2");
+                add(subtitle, "growx, gapy 2px wrap");
+                add(scroller, "growx, gapy 4px, wrap");
+                add(cancelButton, "gapy 16px, split 2");
                 add(confirmButton, "gapx 4px");
 
                 pack();
@@ -499,6 +626,9 @@ public class FormInventoryBrowseProducts extends Form {
 
             private void confirmDelete() {
                 productsTable.changeStatusOfSelectedItems(ItemStatus.ARCHIVED);
+                SwingUtilities.invokeLater(() -> {
+                    dispose();
+                });
             }
         }
 
@@ -507,11 +637,11 @@ public class FormInventoryBrowseProducts extends Form {
 
             model.setRowCount(0);
 
-            for (final InventoryMetadataDto item : productListData.getItemsAtCurrentPage()) {
+            for (final InventoryMetadataDto item : productListData.getAcquire().getItemsAtCurrentPage()) {
                 model.addRow(new Object[] { new LabelWithImage.LabelWithImageData(item.displayImage(), item.itemName()),
-                        item.unitPricePhp(), new PercentageBar.PercentageBarData(item._itemStockId(),
-                                item.totalQuantity(), item.minimumQuantity(), "unit/s"),
-                        item.status(), "" });
+                        item.unitPricePhp(), new ItemStockQtyPercentageBarData(item._itemStockId(),
+                                item.totalQuantity(), item.minimumQuantity(), "unit/s", item.itemStockLocations()),
+                        item.status(), item._itemStockId(), item.brand() });
             }
 
             productsTableControlFooter.rerender();
@@ -914,7 +1044,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             try {
                 final int selectedPage = Integer.parseInt(clicked.getText());
-                productListData.setCurrentPage(selectedPage); // update page in your data
+                productListData.getAcquire().setCurrentPage(selectedPage); // update page in your data
 
                 SwingUtilities.invokeLater(() -> {
                     productsTable.populate();
@@ -925,11 +1055,15 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         public void rerender() {
-            rowsPerPageSpinner.setModel(new SpinnerNumberModel(productListData.getRowsPerPage(), 1,
-                    productListData.getTotalPages() * productListData.getRowsPerPage(), 1));
-            final int currentPage = productListData.getCurrentPage();
-            final int rowsPerPage = productListData.getRowsPerPage();
-            final int totalItems = productListData.getTotalPages() * rowsPerPage;
+            InventoryProductListData pld = productListData.getAcquire();
+
+            final int currentPage = pld.getCurrentPage();
+            final int rowsPerPage = pld.getRowsPerPage();
+            final int totalPages = pld.getTotalPages();
+            final int totalItems = totalPages * rowsPerPage;
+
+            rowsPerPageSpinner.setModel(new SpinnerNumberModel(rowsPerPage, 1,
+                    pld.getTotalPages() * rowsPerPage, 1));
 
             // Adjust displayed range
             final int startItem = (currentPage - 1) * rowsPerPage + 1;
@@ -937,15 +1071,14 @@ public class FormInventoryBrowseProducts extends Form {
 
             leftLabel.setText(String.format("Displaying product %d-%d of %d in total", startItem, endItem, totalItems));
 
-            if (productListData.getTotalPages() == 1) {
-                paginationContainer.removeAll();
+            paginationContainer.removeAll();
+
+            if (totalPages == 1) {
                 paginationContainer.revalidate();
-                paginationContainer.repaint();
+
                 return;
             }
 
-            // Clear old pagination
-            paginationContainer.removeAll();
             if (paginationButtons != null) {
                 for (final JButton b : paginationButtons) {
                     if (b != null) {
@@ -955,9 +1088,6 @@ public class FormInventoryBrowseProducts extends Form {
             }
 
             buttonGroup = new ButtonGroup();
-
-            // Calculate pages to display
-            final int totalPages = productListData.getTotalPages();
             int[] pages;
             final int MAX_PAGINATION_BUTTONS = 5;
 
@@ -1004,7 +1134,7 @@ public class FormInventoryBrowseProducts extends Form {
         public void stateChanged(final ChangeEvent e) {
             if (e.getSource() == rowsPerPageSpinner) {
                 final int newRows = (int) rowsPerPageSpinner.getValue();
-                productListData.setRowsPerPage(newRows);
+                productListData.getAcquire().setRowsPerPage(newRows);
 
                 SwingUtilities.invokeLater(() -> {
                     productsTable.populate();

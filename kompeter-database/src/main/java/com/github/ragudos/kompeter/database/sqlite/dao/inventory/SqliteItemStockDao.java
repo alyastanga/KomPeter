@@ -95,33 +95,22 @@ public final class SqliteItemStockDao implements ItemStockDao {
     }
 
     @Override
-    public int updateItemBrandById(final int brandID, final int id) throws SQLException, IOException {
-        final var query = SqliteQueryLoader.getInstance().get("update_item_brand_by_id", "items",
-                AbstractSqlQueryLoader.SqlQueryType.UPDATE);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
-            stmt.setInt("_item_brand_id", brandID);
+    public int updateItemMinimumQtyById(Connection conn, int id, int qty) throws SQLException, IOException {
+        try (var stmt = new NamedPreparedStatement(conn,
+                SqliteQueryLoader.getInstance().get("update_item_stock_minQty", "items", SqlQueryType.UPDATE))) {
+            stmt.setInt("minimum_quantity", qty);
             stmt.setInt("_item_stock_id", id);
+
             return stmt.executeUpdate();
         }
     }
 
     @Override
-    public int updateItemMinimumQtyById(final int minimumQty, final int id) throws SQLException, IOException {
-        final var query = SqliteQueryLoader.getInstance().get("update_item_stock_minQty", "items",
-                AbstractSqlQueryLoader.SqlQueryType.UPDATE);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
-            stmt.setInt("minimum_quantity", minimumQty);
-            stmt.setInt("_item_stock_id", id);
-            return stmt.executeUpdate();
-        }
-    }
-
-    @Override
-    public int updateItemUnitPriceById(final BigDecimal unitPrice, final int id) throws SQLException, IOException {
-        final var query = SqliteQueryLoader.getInstance().get("update_item_stock_price", "items",
-                AbstractSqlQueryLoader.SqlQueryType.UPDATE);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
-            stmt.setBigDecimal("unit_price_php", unitPrice);
+    public int updateItemUnitPriceById(Connection conn, int id, BigDecimal unitPricePhp)
+            throws SQLException, IOException {
+        try (var stmt = new NamedPreparedStatement(conn,
+                SqliteQueryLoader.getInstance().get("update_item_stock_price", "items", SqlQueryType.UPDATE))) {
+            stmt.setBigDecimal("unit_price_php", unitPricePhp);
             stmt.setInt("_item_stock_id", id);
             return stmt.executeUpdate();
         }

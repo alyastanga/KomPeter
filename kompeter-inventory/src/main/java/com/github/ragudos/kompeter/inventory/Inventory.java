@@ -21,6 +21,7 @@ import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -180,14 +181,36 @@ public final class Inventory {
             }
         } catch (SQLException | IOException err) {
             LOGGER.log(Level.SEVERE, "Failed to archive items", err);
-            throw new InventoryException("Failed archive inventory items", err);
+            throw new InventoryException(err.getMessage(), err);
+        }
+    }
+
+    public void updateStockQtyOfItemIn(final int id, final int storageId, final int qty) throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemStockStorageLocationDao itemStockStorageLocationDao = factoryDao.getItemStockStorageLocationDao();
+
+        try (Connection conn = factoryDao.getConnection()) {
+            itemStockStorageLocationDao.updateItemStockQuantity(conn, qty, id, storageId);
+        } catch (SQLException | IOException err) {
+            LOGGER.log(Level.SEVERE, "Failed to add quantity to item", err);
+
+            throw new InventoryException(err.getMessage(), err);
         }
     }
 
     public class InventoryProductListData {
+        public static final int DEFAULT_ROWS_PER_PAGE = 20;
+
+        public static int getNormalizedRowsPerPage(InventoryProductListData data) {
+            return data == null
+                    ? DEFAULT_ROWS_PER_PAGE
+                    : (data.rowsPerPage == 0 ? DEFAULT_ROWS_PER_PAGE : data.rowsPerPage);
+        }
+
         private int currentPage;
         private final InventoryMetadataDto[] flatItems; // keep a flat version for repagination
         private InventoryMetadataDto[][] items;
+
         private int rowsPerPage;
 
         public InventoryProductListData(final int rowsPerPage, final InventoryMetadataDto[] allItems) {

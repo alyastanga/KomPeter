@@ -29,10 +29,7 @@ public interface ItemStockDao {
 
     void setItemStocksStatusByName(Connection conn, String name, ItemStatus status) throws SQLException, IOException;
 
-    // UPDATE
-    int updateItemBrandById(int brandID, int id) throws SQLException, IOException;
+    int updateItemMinimumQtyById(Connection conn, int id, int qty) throws SQLException, IOException;
 
-    int updateItemMinimumQtyById(int minimumQty, int id) throws SQLException, IOException;
-
-    int updateItemUnitPriceById(BigDecimal unitPrice, int id) throws SQLException, IOException;
+    int updateItemUnitPriceById(Connection conn, int id, BigDecimal unitPricePhp) throws SQLException, IOException;
 }
