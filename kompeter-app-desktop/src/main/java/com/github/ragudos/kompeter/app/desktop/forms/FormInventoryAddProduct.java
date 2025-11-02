@@ -55,18 +55,19 @@ import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.ImageChooser;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.scroller.ScrollerFactory;
+import com.github.ragudos.kompeter.app.desktop.components.textpanes.TextAreaWithLimit;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
+import com.github.ragudos.kompeter.app.desktop.utilities.Validator;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
+import com.github.ragudos.kompeter.utilities.constants.StringLimits;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 import net.miginfocom.swing.MigLayout;
 import raven.extras.SlidePane;
-import raven.extras.SlidePaneTransition;
-import raven.modal.slider.PanelSlider.SliderCallback;
 
 @SystemForm(name = "Add Product", description = "Add product to inventory", tags = { "Inventory" })
 public class FormInventoryAddProduct extends Form {
@@ -165,7 +166,6 @@ public class FormInventoryAddProduct extends Form {
         JSpinner priceSpinner;
         JSpinner minQtySpinner;
         JLabel minQtyError;
-        QuantityPanel qtyPanel;
 
         private class QuantityPanel extends JPanel {
             public QuantityPanel() {
@@ -314,8 +314,47 @@ public class FormInventoryAddProduct extends Form {
         JLabel descriptionError;
 
         public boolean validateFields() {
-            return false;
+            boolean ok = true;
 
+            ok &= Validator.validateField(nameTextField, nameError, (n) -> {
+                if (n.isEmpty()) {
+                    return "Product name cannot be empty";
+                }
+
+                if (n.length() < StringLimits.PRODUCT_NAME.min()) {
+                    return String.format("Too short (min: %s)", StringLimits.PRODUCT_NAME.min());
+                }
+
+                if (n.length() > StringLimits.PRODUCT_NAME.max()) {
+                    return String.format("Too long (max: %s)", StringLimits.PRODUCT_NAME.max());
+                }
+
+                try {
+                    if (Inventory.getInstance().itemExists(n)) {
+                        return "Product already exists. Maybe go to View Product and add a brand for that product?";
+                    }
+                } catch (final InventoryException e) {
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), String
+                                .format("We failed to verify whether the product %s already exists. We apologize", n),
+                                "Failed to Verify Product Existence", JOptionPane.ERROR_MESSAGE);
+                    });
+
+                    return "System failure.";
+                }
+
+                return null;
+            });
+
+            ok &= Validator.validateAreaField(descriptionTextField, descriptionError, (d) -> {
+                if (d.length() > StringLimits.PRODUCT_DESCRIPTION.max()) {
+                    return String.format("Too long (max: %s)", StringLimits.PRODUCT_DESCRIPTION.max());
+                }
+
+                return null;
+            });
+
+            return ok;
         }
 
         public void clearErrors() {
@@ -330,10 +369,10 @@ public class FormInventoryAddProduct extends Form {
 
             final JLabel nameLabel = new JLabel("Product Name*");
             nameTextField = new JTextField();
-            nameError = new JLabel();
+            nameError = new JLabel("");
 
             final JLabel descriptionLabel = new JLabel("Product Description");
-            descriptionTextField = new JTextArea();
+            descriptionTextField = new TextAreaWithLimit(StringLimits.PRODUCT_DESCRIPTION.max());
             descriptionError = new JLabel();
 
             descriptionTextField.setRows(5);
@@ -416,7 +455,6 @@ public class FormInventoryAddProduct extends Form {
         setLayout(new MigLayout("insets 0 4 0 4, flowx, wrap", "[grow, center, fill]", "[top][grow, top, fill]"));
         createHeader();
 
-        leftPanel.setMaximumSize(new Dimension(520, leftPanel.getMaximumSize().height));
         nextConfirmButton.setIconTextGap(16);
         nextConfirmButton.setHorizontalTextPosition(SwingConstants.LEFT);
         nextConfirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
@@ -428,7 +466,7 @@ public class FormInventoryAddProduct extends Form {
 
         leftPanelButtonsContainer.add(nextConfirmButton, "cell 1 0");
 
-        leftPanel.add(progressBar, "grox, wrap");
+        leftPanel.add(progressBar, "growx, wrap");
         leftPanel.add(slidePane, "grow, wrap, gapy 10px");
         leftPanel.add(leftPanelButtonsContainer, "growx, gapy 8px");
         leftPanelWrapper.add(leftPanel, "grow");
@@ -499,13 +537,20 @@ public class FormInventoryAddProduct extends Form {
                 return;
             }
 
-            slidePane.addSlide(secondStepForm, SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_IN),
-                    new SliderCallback() {
-                        @Override
-                        public void complete() {
+            return;
+            // TODO
 
-                        }
-                    });
+            /*
+             * slidePane.addSlide(secondStepForm,
+             * SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_IN),
+             * new SliderCallback() {
+             * 
+             * @Override
+             * public void complete() {
+             * 
+             * }
+             * });
+             */
         }
 
         private void secondStep() {
@@ -552,6 +597,8 @@ public class FormInventoryAddProduct extends Form {
         public StepProgressBar(final int totalSteps) {
             this.totalSteps = totalSteps;
             currentStep = new AtomicInteger(1);
+
+            setPreferredSize(new Dimension(getPreferredSize().width, 36));
         }
 
         public void setCurrentStep(final int step) {
@@ -570,14 +617,14 @@ public class FormInventoryAddProduct extends Form {
             final int w = getWidth();
             final int h = getHeight();
             final int barY = h / 2;
-            final int margin = UIScale.scale(24);
+            final int margin = UIScale.scale(28);
             final int stepSpacing = (w - margin * 2) / (totalSteps - 1);
-            final int circleSize = UIScale.scale(12);
-            final int stroke = UIScale.scale(2);
+            final int circleSize = UIScale.scale(18);
+            final int stroke = UIScale.scale(6);
             final Color lineColor = UIManager.getColor("Component.borderColor");
             final Color progressColor = UIManager.getColor("Component.accentColor");
             final int filledX = margin + stepSpacing * (currentStep.get() - 1);
-            final Font font = getFont().deriveFont(Font.BOLD, UIScale.scale(12f));
+            final Font font = getFont().deriveFont(Font.BOLD, UIScale.scale(13f));
 
             if (progressColor == null) {
             }
@@ -604,10 +651,10 @@ public class FormInventoryAddProduct extends Form {
                 g2.fillOval(x, y, circleSize, circleSize);
 
                 final String txt = String.valueOf(i);
-
                 final int tx = cx - fm.stringWidth(txt) / 2;
                 final int ty = y + (circleSize + fm.getAscent()) / 2 - 3;
 
+                g2.setColor(UIManager.getColor("Label.foreground"));
                 g2.drawString(txt, tx, ty);
             }
 

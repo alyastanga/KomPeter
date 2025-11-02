@@ -15,11 +15,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.jetbrains.annotations.NotNull;
 
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
@@ -59,7 +61,6 @@ public final class Inventory {
         } catch (SQLException | IOException err) {
             throw new InventoryException("Failed to get brands", err);
         }
-
     }
 
     public String[] getAllItemBrands() throws InventoryException {
@@ -160,6 +161,17 @@ public final class Inventory {
         }
     }
 
+    public boolean itemExists(@NotNull final String itemName) throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemDao itemDao = factoryDao.getItemDao();
+
+        try (Connection conn = factoryDao.getConnection()) {
+            return itemDao.itemExists(conn, itemName);
+        } catch (SQLException | IOException err) {
+            throw new InventoryException("Failed to check if item exists", err);
+        }
+    }
+
     public void setStatusOfItemsByName(final String[] itemNames, final ItemStatus status) throws InventoryException {
         final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
         final ItemStockDao itemStockDao = factoryDao.getItemStockDao();
@@ -214,7 +226,7 @@ public final class Inventory {
     public class InventoryProductListData {
         public static final int DEFAULT_ROWS_PER_PAGE = 20;
 
-        public static int getNormalizedRowsPerPage(InventoryProductListData data) {
+        public static int getNormalizedRowsPerPage(final InventoryProductListData data) {
             return data == null
                     ? DEFAULT_ROWS_PER_PAGE
                     : (data.rowsPerPage == 0 ? DEFAULT_ROWS_PER_PAGE : data.rowsPerPage);
