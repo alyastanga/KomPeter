@@ -1,9 +1,15 @@
 package com.github.ragudos.kompeter.app.desktop.forms;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -22,6 +28,7 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -34,6 +41,7 @@ import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.text.DefaultCaret;
 
 import org.commonmark.node.Node;
@@ -42,6 +50,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.ui.FlatRoundBorder;
+import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.ImageChooser;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
@@ -56,6 +65,8 @@ import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 import net.miginfocom.swing.MigLayout;
 import raven.extras.SlidePane;
+import raven.extras.SlidePaneTransition;
+import raven.modal.slider.PanelSlider.SliderCallback;
 
 @SystemForm(name = "Add Product", description = "Add product to inventory", tags = { "Inventory" })
 public class FormInventoryAddProduct extends Form {
@@ -64,7 +75,6 @@ public class FormInventoryAddProduct extends Form {
     private JPanel headerPanel;
     private JSplitPane bodyPane;
 
-    private AtomicInteger currentStep;
     private SlidePane slidePane;
     private AtomicBoolean isBusy;
 
@@ -74,6 +84,8 @@ public class FormInventoryAddProduct extends Form {
     private SecondStepForm secondStepForm;
     private ThirdStepForm thirdStepForm;
     private FourthStepForm fourthStepForm;
+
+    private StepProgressBar progressBar;
 
     private JPanel leftPanelButtonsContainer;
     private JButton nextConfirmButton;
@@ -301,6 +313,18 @@ public class FormInventoryAddProduct extends Form {
         JTextArea descriptionTextField;
         JLabel descriptionError;
 
+        public boolean validateFields() {
+            return false;
+
+        }
+
+        public void clearErrors() {
+            nameTextField.putClientProperty("JComponent.outline", null);
+            descriptionTextField.putClientProperty("JComponent.outline", null);
+            nameError.setText("");
+            descriptionError.setText("");
+        }
+
         public FirstStepForm() {
             setLayout(new MigLayout("insets 0, wrap, flowx", "[grow, center, fill]"));
 
@@ -313,11 +337,17 @@ public class FormInventoryAddProduct extends Form {
             descriptionError = new JLabel();
 
             descriptionTextField.setRows(5);
-            nameTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter product name...");
+            descriptionTextField.setBorder(new FlatRoundBorder());
             descriptionTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT,
                     "Enter product description...");
 
-            descriptionTextField.setBorder(new FlatRoundBorder());
+            nameTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter product name...");
+
+            nameError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+            descriptionError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+
+            nameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+            descriptionError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
 
             add(nameLabel, "wrap");
             add(nameTextField, "growx, wrap, gapy 2px");
@@ -327,9 +357,6 @@ public class FormInventoryAddProduct extends Form {
             add(descriptionTextField, "growx, wrap, gapy 2px");
             add(descriptionError, "gapy 1px");
         }
-    }
-
-    private void clearFields() {
     }
 
     @Override
@@ -366,7 +393,6 @@ public class FormInventoryAddProduct extends Form {
     }
 
     private void init() {
-        currentStep = new AtomicInteger(1);
         isBusy = new AtomicBoolean(false);
         firstStepForm = new FirstStepForm();
         secondStepForm = new SecondStepForm();
@@ -376,7 +402,7 @@ public class FormInventoryAddProduct extends Form {
         leftPanelButtonsContainer = new JPanel(new MigLayout("insets 0", "[left]push[right]"));
         leftPanel = new JPanel(new MigLayout("insets 0 0 0 12", "[grow, fill, left]", "[top][top]"));
         final JPanel leftPanelWrapper = new JPanel(
-                new MigLayout("insets 0", "[grow, center, fill]", "[grow, top, fill]"));
+                new MigLayout("insets 0", "[grow, left, fill]", "[grow, top, fill]"));
         slidePane = new SlidePane();
         rightPanel = new RightPanel();
         nextIcon = new SVGIconUIColor("move-right.svg", 0.75f, "foreground.primary");
@@ -384,12 +410,13 @@ public class FormInventoryAddProduct extends Form {
         submitIcon = new SVGIconUIColor("check.svg", 0.75f, "foreground.primary");
         nextConfirmButton = new JButton("Continue", nextIcon);
         backButton = new JButton("Back", backIcon);
+        progressBar = new StepProgressBar(4);
         final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelWrapper);
 
         setLayout(new MigLayout("insets 0 4 0 4, flowx, wrap", "[grow, center, fill]", "[top][grow, top, fill]"));
         createHeader();
 
-        leftPanel.setMaximumSize(new Dimension(720, leftPanel.getMaximumSize().height));
+        leftPanel.setMaximumSize(new Dimension(520, leftPanel.getMaximumSize().height));
         nextConfirmButton.setIconTextGap(16);
         nextConfirmButton.setHorizontalTextPosition(SwingConstants.LEFT);
         nextConfirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
@@ -401,8 +428,9 @@ public class FormInventoryAddProduct extends Form {
 
         leftPanelButtonsContainer.add(nextConfirmButton, "cell 1 0");
 
-        leftPanel.add(slidePane, "grow, wrap");
-        leftPanel.add(leftPanelButtonsContainer, "growx");
+        leftPanel.add(progressBar, "grox, wrap");
+        leftPanel.add(slidePane, "grow, wrap, gapy 10px");
+        leftPanel.add(leftPanelButtonsContainer, "growx, gapy 8px");
         leftPanelWrapper.add(leftPanel, "grow");
 
         bodyPane.add(scroller);
@@ -422,13 +450,71 @@ public class FormInventoryAddProduct extends Form {
     private class BackButtonActionListener implements ActionListener {
         @Override
         public void actionPerformed(final ActionEvent e) {
+            switch (progressBar.currentStep()) {
+                case 2:
+                    secondStep();
+                    break;
+                case 3:
+                    thirdStep();
+                    break;
+                case 4:
+                    fourthStep();
+                    break;
+            }
+        }
 
+        private void secondStep() {
+        }
+
+        private void thirdStep() {
+        }
+
+        private void fourthStep() {
         }
     }
 
     private class NextConfirmButtonActionListener implements ActionListener {
         @Override
         public void actionPerformed(final ActionEvent e) {
+            switch (progressBar.currentStep()) {
+                case 1:
+                    firstStep();
+                    break;
+                case 2:
+                    secondStep();
+                    break;
+                case 3:
+                    thirdStep();
+                    break;
+                case 4:
+                    fourthStep();
+                    break;
+            }
+        }
+
+        private void firstStep() {
+            firstStepForm.clearErrors();
+
+            if (!firstStepForm.validateFields()) {
+                return;
+            }
+
+            slidePane.addSlide(secondStepForm, SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_IN),
+                    new SliderCallback() {
+                        @Override
+                        public void complete() {
+
+                        }
+                    });
+        }
+
+        private void secondStep() {
+        }
+
+        private void thirdStep() {
+        }
+
+        private void fourthStep() {
         }
     }
 
@@ -457,5 +543,75 @@ public class FormInventoryAddProduct extends Form {
         }
 
         return sb.toString();
+    }
+
+    private class StepProgressBar extends JComponent {
+        private final int totalSteps;
+        private final AtomicInteger currentStep;
+
+        public StepProgressBar(final int totalSteps) {
+            this.totalSteps = totalSteps;
+            currentStep = new AtomicInteger(1);
+        }
+
+        public void setCurrentStep(final int step) {
+            currentStep.setRelease(step);
+
+            repaint();
+        }
+
+        public int currentStep() {
+            return currentStep.get();
+        }
+
+        @Override
+        protected void paintComponent(final Graphics g) {
+            final Graphics2D g2 = (Graphics2D) g.create();
+            final int w = getWidth();
+            final int h = getHeight();
+            final int barY = h / 2;
+            final int margin = UIScale.scale(24);
+            final int stepSpacing = (w - margin * 2) / (totalSteps - 1);
+            final int circleSize = UIScale.scale(12);
+            final int stroke = UIScale.scale(2);
+            final Color lineColor = UIManager.getColor("Component.borderColor");
+            final Color progressColor = UIManager.getColor("Component.accentColor");
+            final int filledX = margin + stepSpacing * (currentStep.get() - 1);
+            final Font font = getFont().deriveFont(Font.BOLD, UIScale.scale(12f));
+
+            if (progressColor == null) {
+            }
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setStroke(new BasicStroke(stroke, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawLine(margin, barY, w - margin, barY);
+
+            g2.setColor(progressColor);
+            g2.drawLine(margin, barY, filledX, barY);
+
+            g2.setFont(font);
+
+            final FontMetrics fm = g2.getFontMetrics();
+
+            for (int i = 1; i <= totalSteps; ++i) {
+                final int cx = margin + (i - 1) * stepSpacing;
+                final int x = cx - circleSize / 2;
+                final int y = barY - circleSize / 2;
+
+                final boolean active = i <= currentStep();
+
+                g2.setColor(active ? progressColor : lineColor);
+                g2.fillOval(x, y, circleSize, circleSize);
+
+                final String txt = String.valueOf(i);
+
+                final int tx = cx - fm.stringWidth(txt) / 2;
+                final int ty = y + (circleSize + fm.getAscent()) / 2 - 3;
+
+                g2.drawString(txt, tx, ty);
+            }
+
+            g2.dispose();
+        }
     }
 }

@@ -20,6 +20,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -38,6 +39,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -143,7 +145,6 @@ public class FormPosShop extends Form {
     @Override
     public void formInit() {
         init();
-        formRefresh();
     }
 
     @Override
@@ -152,20 +153,10 @@ public class FormPosShop extends Form {
             return;
         }
 
-        new Thread(() -> {
-            isFetching.set(true);
-            showLoading();
-            loadData();
-        }, "Load Point of Sale Shop Data").start();
-    }
-
-    @Override
-    public void formRefresh() {
-        if (isFetching.get()) {
-            return;
-        }
-
-        new Thread(this::initializeData, "Initialize All Point of Sale Shop Data").start();
+        isFetching.set(true);
+        showLoading();
+        filterPopupMenu.populate();
+        loadData();
     }
 
     private void applyShadowBorder(final JPanel panel) {
@@ -175,66 +166,89 @@ public class FormPosShop extends Form {
     }
 
     private void buildLeftPanelContent() {
-        leftPanelContentContainer.removeAll();
+        SwingUtilities.invokeLater(() -> {
+            leftPanelContentContainer.removeAll();
+        });
 
-        final ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
-        final int itemLen = items.length();
+        new SwingWorker<Void, JPanel>() {
+            protected Void doInBackground() throws Exception {
+                final ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
+                final int itemLen = items.length();
 
-        if (itemLen == 0) {
-            layout.setJustifyContent(JustifyContent.CENTER);
-            leftPanelContentContainer.add(new NoResultsPanel());
+                if (itemLen == 0) {
+                    SwingUtilities.invokeLater(() -> {
+                        layout.setJustifyContent(JustifyContent.CENTER);
+                        leftPanelContentContainer.add(new NoResultsPanel());
 
-            leftPanelContentContainer.repaint();
-            leftPanelContentContainer.revalidate();
+                        leftPanelContentContainer.repaint();
+                        leftPanelContentContainer.revalidate();
+                    });
 
-            return;
-        }
-
-        layout.setJustifyContent(JustifyContent.START);
-
-        for (int i = 0; i < itemLen; ++i) {
-            final InventoryMetadataDto item = items.getAcquire(i);
-            final JPanel itemPanel = new JPanel(new BorderLayout()) {
-                @Override
-                public void updateUI() {
-                    super.updateUI();
-                    applyShadowBorder(this);
+                    return null;
                 }
+
+                layout.setJustifyContent(JustifyContent.START);
+
+                for (int i = 0; i < itemLen; ++i) {
+                    final InventoryMetadataDto item = items.getAcquire(i);
+                    final JPanel itemPanel = new JPanel(new BorderLayout()) {
+                        @Override
+                        public void updateUI() {
+                            super.updateUI();
+                            applyShadowBorder(this);
+                        }
+                    };
+
+                    final JPanel itemContentContainer = new JPanel(
+                            new MigLayout("flowx, wrap, insets 0", "[grow, fill, center]"));
+                    final String imagePath = item.displayImage() == null || item.displayImage().isEmpty()
+                            ? String.format("%s/images/placeholder.png",
+                                    AssetLoader.class.getPackageName().replace(".", "/"))
+                            : item.displayImage();
+                    final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
+                    final JLabel itemName = new JLabel(
+                            HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
+                    final JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
+                            StringUtils.formatBigDecimal(item.unitPricePhp())));
+
+                    itemName.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
+
+                    itemName.setHorizontalAlignment(JLabel.CENTER);
+                    itemPrice.setHorizontalAlignment(JLabel.CENTER);
+
+                    itemContentContainer.add(imagePanel, "grow");
+                    itemContentContainer.add(itemName, "growx, gaptop 6px");
+                    itemContentContainer.add(itemPrice, "growx, gaptop 2px");
+
+                    itemPanel.add(itemContentContainer);
+                    itemPanel
+                            .setToolTipText(String.format(
+                                    HtmlUtils.wrapInHtml("<p>Click this card to add <strong>%s</strong> to the"
+                                            + " cart.<br><p><em>Available: %s</em>"),
+                                    item.itemName(), item.totalQuantity()));
+
+                    itemPanel.addMouseListener(new ItemPanelMouseListener(item._itemStockId(), item.itemName(),
+                            item.totalQuantity(), item.unitPricePhp()));
+
+                    publish(itemPanel);
+                }
+
+                return null;
             };
 
-            final JPanel itemContentContainer = new JPanel(
-                    new MigLayout("flowx, wrap, insets 0", "[grow, fill, center]"));
-            final String imagePath = item.displayImage() == null || item.displayImage().isEmpty()
-                    ? String.format("%s/images/placeholder.png", AssetLoader.class.getPackageName().replace(".", "/"))
-                    : item.displayImage();
-            final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
-            final JLabel itemName = new JLabel(
-                    HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
-            final JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
-                    StringUtils.formatBigDecimal(item.unitPricePhp())));
+            protected void done() {
+                isFetching.set(false);
+            };
 
-            itemName.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
+            protected void process(final List<JPanel> chunks) {
+                for (final JPanel panel : chunks) {
+                    leftPanelContentContainer.add(panel);
+                }
 
-            itemName.setHorizontalAlignment(JLabel.CENTER);
-            itemPrice.setHorizontalAlignment(JLabel.CENTER);
-
-            itemContentContainer.add(imagePanel, "grow");
-            itemContentContainer.add(itemName, "growx, gaptop 6px");
-            itemContentContainer.add(itemPrice, "growx, gaptop 2px");
-
-            itemPanel.add(itemContentContainer);
-            itemPanel.setToolTipText(String.format(HtmlUtils.wrapInHtml(
-                    "<p>Click this card to add <strong>%s</strong> to the cart.<br><p><em>Available:" + " %s</em>"),
-                    item.itemName(), item.totalQuantity()));
-
-            leftPanelContentContainer.add(itemPanel, BorderLayout.CENTER);
-
-            itemPanel.addMouseListener(new ItemPanelMouseListener(item._itemStockId(), item.itemName(),
-                    item.totalQuantity(), item.unitPricePhp()));
-        }
-
-        leftPanelContentContainer.repaint();
-        leftPanelContentContainer.revalidate();
+                leftPanelContentContainer.repaint();
+                leftPanelContentContainer.revalidate();
+            };
+        }.execute();
     }
 
     private void buildRightPanelContent() {
@@ -500,23 +514,13 @@ public class FormPosShop extends Form {
         createRightPanel();
     }
 
-    private void initializeData() {
-        isFetching.set(true);
-        showLoading();
-        filterPopupMenu.populate();
-        loadData();
-    }
-
     private void loadData() {
         try {
             items = new AtomicReferenceArray<>(inventory.getInventoryItemsWithTotalQuantities(searchTextField.getText(),
                     filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
                     filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
 
-            SwingUtilities.invokeLater(() -> {
-                buildLeftPanelContent();
-                isFetching.set(false);
-            });
+            buildLeftPanelContent();
         } catch (final InventoryException err) {
             SwingUtilities.invokeLater(() -> {
                 JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),

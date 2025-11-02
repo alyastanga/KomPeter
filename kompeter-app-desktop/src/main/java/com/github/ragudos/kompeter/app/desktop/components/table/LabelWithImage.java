@@ -64,7 +64,13 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
         }
 
         if (value instanceof final LabelWithImageData data) {
-            imagePanel.setImage(AssetLoader.loadImage(data.imagePath, true));
+            AssetLoader.loadImageAsync(data.imagePath, true, (img) -> {
+                if (img != null) {
+                    imagePanel.setImage(img);
+                    table.repaint(table.getCellRect(row, column, false));
+                }
+            });
+
             label.setText(data.label);
         } else {
             LOGGER.severe("Invalid data for LabelWithImage \n" + value);

@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -106,7 +105,6 @@ public class FormInventoryBrowseProducts extends Form {
     @Override
     public void formInit() {
         init();
-        formRefresh();
     }
 
     @Override
@@ -115,32 +113,18 @@ public class FormInventoryBrowseProducts extends Form {
             return;
         }
 
-        new Thread(this::recreateProductListData, "Load Inventory Products Data").start();
-    }
+        isBusy.set(true);
 
-    @Override
-    public void formRefresh() {
-        if (isBusy.get()) {
-            return;
-        }
-
-        new Thread(this::initializeData, "Initialize All Inventory Products Data").start();
+        showLoading();
+        filterPopupMenu.populate();
+        statusFilterPopupMenu.populate();
+        recreateProductListData();
     }
 
     private void createBody() {
         productsTable = new ProductsTable();
         productsTableControlFooter = new ProductsTableFooter();
-        productsTableContainer = new JScrollPane(productsTable);
-
-        productsTableContainer.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        productsTableContainer.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        productsTableContainer.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        productsTableContainer.getVerticalScrollBar().setUnitIncrement(16);
-        productsTableContainer.getHorizontalScrollBar().setUnitIncrement(16);
-        productsTableContainer.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        productsTableContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        productsTableContainer = ScrollerFactory.createScrollPane(productsTable);
 
         productsTableControlFooter.putClientProperty(FlatClientProperties.STYLE, "background:$color.gray;");
 
@@ -241,15 +225,6 @@ public class FormInventoryBrowseProducts extends Form {
                     "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
             isBusy.set(false);
         }
-    }
-
-    private void initializeData() {
-        isBusy.set(true);
-
-        showLoading();
-        filterPopupMenu.populate();
-        statusFilterPopupMenu.populate();
-        recreateProductListData();
     }
 
     private void search() {
@@ -644,6 +619,8 @@ public class FormInventoryBrowseProducts extends Form {
 
             bodyPanel.repaint();
             bodyPanel.revalidate();
+
+            isBusy.set(false);
         }
 
         private class ProductsTableModel extends DefaultTableModel {
