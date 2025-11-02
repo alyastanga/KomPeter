@@ -14,8 +14,6 @@ import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
@@ -29,7 +27,6 @@ import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -47,8 +44,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -58,6 +53,9 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.combobox.ItemStockStorageLocationRenderer;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
+import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.StatusFilterPopupMenu;
+import com.github.ragudos.kompeter.app.desktop.components.panels.LoadingPanel;
+import com.github.ragudos.kompeter.app.desktop.components.scroller.ScrollerFactory;
 import com.github.ragudos.kompeter.app.desktop.components.table.Currency;
 import com.github.ragudos.kompeter.app.desktop.components.table.ItemStatusText;
 import com.github.ragudos.kompeter.app.desktop.components.table.LabelWithImage;
@@ -93,7 +91,6 @@ public class FormInventoryBrowseProducts extends Form {
     private JScrollPane productsTableContainer;
     private ProductsTableFooter productsTableControlFooter;
     private JTextField searchTextField;
-    private ItemStatus itemStatusFilter;
     private StatusFilterPopupMenu statusFilterPopupMenu;
 
     @Override
@@ -113,12 +110,21 @@ public class FormInventoryBrowseProducts extends Form {
     }
 
     @Override
+    public void formOpen() {
+        if (isBusy.get()) {
+            return;
+        }
+
+        new Thread(this::recreateProductListData, "Load Inventory Products Data").start();
+    }
+
+    @Override
     public void formRefresh() {
         if (isBusy.get()) {
             return;
         }
 
-        new Thread(this::loadData, "Load Inventory Products Data").start();
+        new Thread(this::initializeData, "Initialize All Inventory Products Data").start();
     }
 
     private void createBody() {
@@ -161,7 +167,6 @@ public class FormInventoryBrowseProducts extends Form {
         searchTextField = new JTextField();
         filterPopupMenu = new CategoryBrandFilterPopupMenu(this::search);
         manageStockPopupMenu = new ManageStockPopupMenu();
-        statusFilterPopupMenu = new StatusFilterPopupMenu();
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
         description.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
@@ -171,17 +176,29 @@ public class FormInventoryBrowseProducts extends Form {
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
         searchTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search products...");
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
-
+        searchTextField.setToolTipText("Search an item by name");
         searchTextField.getDocument().addDocumentListener(new SearchTextFieldDocumentListener());
+
+        filterPopupMenu.trigger().setToolTipText("Filter items by category and brand");
+        statusFilterPopupMenu.trigger().setToolTipText("Filter items by current status");
 
         headerPanel.add(searchTextField, "grow 50");
         headerPanel.add(filterPopupMenu.trigger());
-        headerPanel.add(statusFilterPopupMenu.statusFilterTrigger(), "gapleft 32px, wrap");
+        headerPanel.add(statusFilterPopupMenu.trigger(), "gapleft 32px, wrap");
         headerPanel.add(title, "wrap");
         headerPanel.add(description, "wrap");
     }
 
+    private void showLoading() {
+        productsTableContainer.setViewportView(new LoadingPanel());
+        productsTableContainer.repaint();
+        productsTableContainer.revalidate();
+        productsTableControlFooter.setVisible(false);
+
+    }
+
     private void init() {
+        statusFilterPopupMenu = new StatusFilterPopupMenu(this::search);
         productListData = new AtomicReference<>();
         isBusy = new AtomicBoolean(false);
         inventory = Inventory.getInstance();
@@ -193,12 +210,6 @@ public class FormInventoryBrowseProducts extends Form {
     }
 
     private void recreateProductListData() {
-        if (isBusy.get()) {
-            return;
-        }
-
-        isBusy.set(true);
-
         final ArrayList<String> brandFilters = filterPopupMenu.brandFilters.getAcquire();
         final ArrayList<String> categoryFilters = filterPopupMenu.categoryFilters.getAcquire();
 
@@ -207,11 +218,12 @@ public class FormInventoryBrowseProducts extends Form {
                     InventoryProductListData.getNormalizedRowsPerPage(productListData.getAcquire()),
                     searchTextField.getText(),
                     categoryFilters.toArray(String[]::new),
-                    brandFilters.toArray(String[]::new), itemStatusFilter));
+                    brandFilters.toArray(String[]::new), statusFilterPopupMenu.chosenStatus()));
 
             SwingUtilities.invokeLater(() -> {
                 if (productListData.getAcquire().getTotalPages() == 0) {
                     productsTableContainer.setViewportView(new NoResultsPanel());
+                    productsTableContainer.repaint();
                     productsTableContainer.revalidate();
                     productsTableControlFooter.setVisible(false);
 
@@ -221,25 +233,30 @@ public class FormInventoryBrowseProducts extends Form {
                 productsTableContainer.setViewportView(productsTable);
                 productsTableControlFooter.setVisible(true);
                 productsTable.populate();
+
+                isBusy.set(false);
             });
         } catch (final InventoryException err) {
             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                     "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
-        } finally {
             isBusy.set(false);
         }
     }
 
-    private void loadData() {
-        recreateProductListData();
+    private void initializeData() {
+        isBusy.set(true);
 
-        SwingUtilities.invokeLater(() -> {
-            filterPopupMenu.populate();
-        });
+        showLoading();
+        filterPopupMenu.populate();
+        statusFilterPopupMenu.populate();
+        recreateProductListData();
     }
 
     private void search() {
-        debouncer.call(this::recreateProductListData);
+        debouncer.call(() -> {
+            isBusy.set(true);
+            recreateProductListData();
+        });
     }
 
     public class ProductsTable extends JTable {
@@ -561,32 +578,18 @@ public class FormInventoryBrowseProducts extends Form {
                         """, Arrays.stream(namesToBeDeleted).map((n) -> String.format("<li>%s</li>", n))
                         .collect(Collectors.joining("\n")));
                 final JLabel textPane = new JLabel(html);
-
                 final JButton confirmButton = new JButton("Yes, I'm sure",
                         new SVGIconUIColor("trash.svg", 0.75f, "foreground.error"));
                 final JButton cancelButton = new JButton("No, Cancel",
                         new SVGIconUIColor("x.svg", 0.75f, "foreground.muted"));
+                final JScrollPane scroller = ScrollerFactory.createScrollPane(textPane);
 
                 confirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
                 cancelButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-
                 confirmButton.setActionCommand("confirm");
                 cancelButton.setActionCommand("cancel");
-
                 confirmButton.setToolTipText("Delete selected items");
                 cancelButton.setToolTipText("Cancel deletion");
-
-                final JScrollPane scroller = new JScrollPane(textPane);
-
-                scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                        "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-                scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                        "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-                scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-                scroller.getVerticalScrollBar().setUnitIncrement(16);
-                scroller.getHorizontalScrollBar().setUnitIncrement(16);
-                scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
                 title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3 primary");
                 subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
@@ -639,6 +642,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             productsTableControlFooter.rerender();
 
+            bodyPanel.repaint();
             bodyPanel.revalidate();
         }
 
@@ -704,103 +708,6 @@ public class FormInventoryBrowseProducts extends Form {
                     manageStockPopupMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
-        }
-    }
-
-    private class StatusFilterPopupMenu extends JPopupMenu implements ItemListener, ActionListener, PopupMenuListener {
-        private final SVGIconUIColor chevronDown;
-        private final SVGIconUIColor chevronUp;
-        private final JButton statusFilterTrigger;
-        private final ButtonGroup buttonGroup;
-
-        public StatusFilterPopupMenu() {
-            setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, center, fill]"));
-
-            chevronDown = new SVGIconUIColor("chevron-down.svg", 0.75f, "foreground.background");
-            chevronUp = new SVGIconUIColor("chevron-up.svg", 0.75f, "foreground.background");
-            buttonGroup = new ButtonGroup();
-
-            statusFilterTrigger = new JButton(chevronDown);
-
-            statusFilterTrigger.setText("Showing: all");
-            statusFilterTrigger.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            statusFilterTrigger.putClientProperty(FlatClientProperties.STYLE, "font:11;");
-
-            final JCheckBoxMenuItem allButton = new JCheckBoxMenuItem("ALL");
-
-            allButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            allButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
-            allButton.setToolTipText("Filter table to show items: ALL");
-            allButton.setActionCommand("all");
-            allButton.setSelected(true);
-            allButton.addItemListener(this);
-
-            buttonGroup.add(allButton);
-
-            add(allButton, "growx");
-
-            for (final ItemStatus status : ItemStatus.values()) {
-                final JCheckBoxMenuItem statusButton = new JCheckBoxMenuItem(status.toString());
-
-                statusButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-                statusButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
-                statusButton.setToolTipText(String.format("Filter table to show all: %s", status));
-                statusButton.setActionCommand(status.toString());
-                statusButton.addItemListener(this);
-
-                buttonGroup.add(statusButton);
-
-                add(statusButton, "growx");
-            }
-
-            statusFilterTrigger.addActionListener(this);
-        }
-
-        @Override
-        public void itemStateChanged(final ItemEvent e) {
-            final JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) e.getItemSelectable();
-
-            if (menuItem.getActionCommand().equals("all")) {
-                itemStatusFilter = null;
-            } else if (menuItem.getActionCommand().equals(ItemStatus.ARCHIVED.toString())) {
-                itemStatusFilter = ItemStatus.ARCHIVED;
-            } else if (menuItem.getActionCommand().equals(ItemStatus.ACTIVE.toString())) {
-                itemStatusFilter = ItemStatus.ACTIVE;
-            } else if (menuItem.getActionCommand().equals(ItemStatus.INACTIVE.toString())) {
-                itemStatusFilter = ItemStatus.INACTIVE;
-            }
-
-            search();
-
-            SwingUtilities.invokeLater(() -> {
-                statusFilterTrigger
-                        .setText(String.format("Showing: %s", buttonGroup.getSelection().getActionCommand()));
-            });
-
-        }
-
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            show(statusFilterTrigger, 0, statusFilterTrigger.getHeight());
-        }
-
-        public JButton statusFilterTrigger() {
-            return statusFilterTrigger;
-        }
-
-        @Override
-        public void popupMenuCanceled(final PopupMenuEvent e) {
-            statusFilterTrigger.setIcon(chevronDown);
-        }
-
-        @Override
-        public void popupMenuWillBecomeInvisible(final PopupMenuEvent e) {
-            statusFilterTrigger.setIcon(chevronDown);
-        }
-
-        @Override
-        public void popupMenuWillBecomeVisible(final PopupMenuEvent e) {
-            statusFilterTrigger.setIcon(chevronUp);
         }
     }
 
@@ -872,8 +779,6 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         private void toggleMenuForAllUnArchived() {
-            removeAll();
-
             if (deleteButton == null) {
                 createDeleteButton();
             }
@@ -946,8 +851,6 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         public void toggleArchiveMenu() {
-            removeAll();
-
             if (unDeleteButton == null) {
                 createUnDeleteButton();
             }
@@ -956,13 +859,15 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         public void rebuildMenu() {
-            if (itemStatusFilter == null) {
+            removeAll();
+
+            if (statusFilterPopupMenu.chosenStatus() == null) {
                 toggleMenuForAllUnArchived();
-            } else if (itemStatusFilter == ItemStatus.ARCHIVED) {
+            } else if (statusFilterPopupMenu.chosenStatus() == ItemStatus.ARCHIVED) {
                 toggleArchiveMenu();
-            } else if (itemStatusFilter == ItemStatus.ACTIVE) {
+            } else if (statusFilterPopupMenu.chosenStatus() == ItemStatus.ACTIVE) {
                 toggleMenuForAllActive();
-            } else if (itemStatusFilter == ItemStatus.INACTIVE) {
+            } else if (statusFilterPopupMenu.chosenStatus() == ItemStatus.INACTIVE) {
                 toggleMenuForAllInactive();
             }
         }
@@ -1067,6 +972,7 @@ public class FormInventoryBrowseProducts extends Form {
             paginationContainer.removeAll();
 
             if (totalPages == 1) {
+                paginationContainer.repaint();
                 paginationContainer.revalidate();
 
                 return;
@@ -1108,8 +1014,8 @@ public class FormInventoryBrowseProducts extends Form {
                 final JButton b = new JButton(String.valueOf(page));
                 b.addActionListener(this);
                 b.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-                b.putClientProperty(FlatClientProperties.STYLE, "arc:0;font:12;");
-                b.setMaximumSize(new Dimension(36, 36));
+                b.putClientProperty(FlatClientProperties.STYLE, "arc:0;font:9;");
+                b.setMaximumSize(new Dimension(38, 38));
 
                 if (page == currentPage) {
                     b.setSelected(true);
@@ -1120,6 +1026,7 @@ public class FormInventoryBrowseProducts extends Form {
                 paginationButtons[i] = b;
             }
 
+            paginationContainer.repaint();
             paginationContainer.revalidate();
         }
 

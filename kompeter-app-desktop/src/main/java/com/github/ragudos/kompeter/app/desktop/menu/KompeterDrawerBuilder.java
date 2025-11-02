@@ -86,6 +86,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
             @Override
             public void styleMenuItem(final JButton menu, final int[] index, final boolean isMainItem) {
                 menu.putClientProperty(FlatClientProperties.STYLE, "margin: -1, 0, -1, 0;");
+                menu.setToolTipText("Navigate to " + menu.getText());
             }
         });
 

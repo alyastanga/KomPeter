@@ -15,18 +15,25 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
+
+import net.miginfocom.swing.MigLayout;
 
 public abstract class FilterPopupMenu extends JPopupMenu implements ItemListener, ActionListener {
 
@@ -152,6 +159,110 @@ public abstract class FilterPopupMenu extends JPopupMenu implements ItemListener
             }
 
             listener.run();
+        }
+    }
+
+    public static class StatusFilterPopupMenu extends FilterPopupMenu implements ItemListener, PopupMenuListener {
+        private final ButtonGroup buttonGroup;
+        private final SVGIconUIColor chevronDown;
+        private final SVGIconUIColor chevronUp;
+        private final AtomicReference<ItemStatus> chosenStatus;
+
+        public StatusFilterPopupMenu(final Runnable listener) {
+            super(listener);
+
+            setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, center, fill]"));
+
+            chosenStatus = new AtomicReference<>(null);
+            chevronDown = new SVGIconUIColor("chevron-down.svg", 0.75f, "foreground.background");
+            chevronUp = new SVGIconUIColor("chevron-up.svg", 0.75f, "foreground.background");
+            buttonGroup = new ButtonGroup();
+
+            trigger.setText("Showing:");
+        }
+
+        public ItemStatus chosenStatus() {
+            return chosenStatus.get();
+        }
+
+        @Override
+        public void itemStateChanged(final ItemEvent e) {
+            final JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) e.getItemSelectable();
+
+            if (menuItem.getActionCommand().equals("ALL")) {
+                chosenStatus.setRelease(null);
+            } else if (menuItem.getActionCommand().equals(ItemStatus.ARCHIVED.toString())) {
+                chosenStatus.setRelease(ItemStatus.ARCHIVED);
+            } else if (menuItem.getActionCommand().equals(ItemStatus.ACTIVE.toString())) {
+                chosenStatus.setRelease(ItemStatus.ACTIVE);
+            } else if (menuItem.getActionCommand().equals(ItemStatus.INACTIVE.toString())) {
+                chosenStatus.setRelease(ItemStatus.INACTIVE);
+            }
+
+            listener.run();
+
+            SwingUtilities.invokeLater(() -> {
+                trigger.setText(String.format("Showing: %s", buttonGroup.getSelection().getActionCommand()));
+            });
+        }
+
+        @Override
+        public void populate() {
+            removeAllItemListeners(this);
+            removeAll();
+
+            final JCheckBoxMenuItem allButton = new JCheckBoxMenuItem("ALL");
+
+            allButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+            allButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            allButton.setToolTipText("Filter table to show items: ALL");
+            allButton.setActionCommand("ALL");
+
+            if (chosenStatus.get() == null) {
+                allButton.setSelected(true);
+            }
+
+            allButton.addItemListener(this);
+
+            buttonGroup.add(allButton);
+
+            add(allButton, "growx");
+
+            for (final ItemStatus status : ItemStatus.values()) {
+                final JCheckBoxMenuItem statusButton = new JCheckBoxMenuItem(status.toString());
+
+                statusButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
+                statusButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+                statusButton.setToolTipText(String.format("Filter table to show all: %s", status));
+                statusButton.setActionCommand(status.toString());
+
+                if (status == chosenStatus.get()) {
+                    statusButton.setSelected(true);
+                }
+
+                statusButton.addItemListener(this);
+
+                buttonGroup.add(statusButton);
+
+                add(statusButton, "growx");
+            }
+
+            trigger.setText(String.format("Showing: %s", buttonGroup.getSelection().getActionCommand()));
+        }
+
+        @Override
+        public void popupMenuCanceled(final PopupMenuEvent e) {
+            trigger.setIcon(chevronDown);
+        }
+
+        @Override
+        public void popupMenuWillBecomeInvisible(final PopupMenuEvent e) {
+            trigger.setIcon(chevronDown);
+        }
+
+        @Override
+        public void popupMenuWillBecomeVisible(final PopupMenuEvent e) {
+            trigger.setIcon(chevronUp);
         }
     }
 }

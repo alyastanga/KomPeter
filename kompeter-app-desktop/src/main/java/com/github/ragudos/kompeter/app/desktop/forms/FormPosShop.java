@@ -46,6 +46,9 @@ import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
+import com.github.ragudos.kompeter.app.desktop.components.panels.LoadingPanel;
+import com.github.ragudos.kompeter.app.desktop.components.panels.NoResultsPanel;
+import com.github.ragudos.kompeter.app.desktop.components.scroller.ScrollerFactory;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
@@ -145,6 +148,15 @@ public class FormPosShop extends Form {
 
     @Override
     public void formOpen() {
+        if (isFetching.get()) {
+            return;
+        }
+
+        new Thread(() -> {
+            isFetching.set(true);
+            showLoading();
+            loadData();
+        }, "Load Point of Sale Shop Data").start();
     }
 
     @Override
@@ -153,7 +165,7 @@ public class FormPosShop extends Form {
             return;
         }
 
-        new Thread(this::loadData, "Load Point of Sale Shop Data").start();
+        new Thread(this::initializeData, "Initialize All Point of Sale Shop Data").start();
     }
 
     private void applyShadowBorder(final JPanel panel) {
@@ -166,7 +178,6 @@ public class FormPosShop extends Form {
         leftPanelContentContainer.removeAll();
 
         final ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
-
         final int itemLen = items.length();
 
         if (itemLen == 0) {
@@ -183,7 +194,6 @@ public class FormPosShop extends Form {
 
         for (int i = 0; i < itemLen; ++i) {
             final InventoryMetadataDto item = items.getAcquire(i);
-
             final JPanel itemPanel = new JPanel(new BorderLayout()) {
                 @Override
                 public void updateUI() {
@@ -194,11 +204,9 @@ public class FormPosShop extends Form {
 
             final JPanel itemContentContainer = new JPanel(
                     new MigLayout("flowx, wrap, insets 0", "[grow, fill, center]"));
-
             final String imagePath = item.displayImage() == null || item.displayImage().isEmpty()
-                    ? "Acer Nitro 5 Laptop.png"
+                    ? String.format("%s/images/placeholder.png", AssetLoader.class.getPackageName().replace(".", "/"))
                     : item.displayImage();
-
             final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
             final JLabel itemName = new JLabel(
                     HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
@@ -215,6 +223,9 @@ public class FormPosShop extends Form {
             itemContentContainer.add(itemPrice, "growx, gaptop 2px");
 
             itemPanel.add(itemContentContainer);
+            itemPanel.setToolTipText(String.format(HtmlUtils.wrapInHtml(
+                    "<p>Click this card to add <strong>%s</strong> to the cart.<br><p><em>Available:" + " %s</em>"),
+                    item.itemName(), item.totalQuantity()));
 
             leftPanelContentContainer.add(itemPanel, BorderLayout.CENTER);
 
@@ -235,9 +246,7 @@ public class FormPosShop extends Form {
         if (cart.isEmpty()) {
             rightPanel.remove(cartButtonsContainer);
             cartContentContainer.remove(cartMetadataContainer);
-
             cartPanel.add(new NoItemsInCartPanel());
-
             rightPanel.repaint();
             rightPanel.revalidate();
 
@@ -259,27 +268,16 @@ public class FormPosShop extends Form {
                 new ResponsiveLayout(JustifyContent.CENTER, new Dimension(190, -1), 1, 1));
         final JLabel title = new JLabel("Products");
         final JLabel subtitle = new JLabel("Click a product card to add them to cart.");
+        final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelContentContainer);
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
         subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
-        final JScrollPane scroller = new JScrollPane(leftPanelContentContainer);
-
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
-
-        scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         containerSplitPane.setResizeWeight(0.7);
         containerSplitPane.setContinuousLayout(true);
         containerSplitPane.setOneTouchExpandable(true);
-
-        scroller.getVerticalScrollBar().setUnitIncrement(16);
-        scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         leftPanel.add(leftPanelHeader, "growx");
         leftPanel.add(title, "growx");
@@ -336,6 +334,7 @@ public class FormPosShop extends Form {
     private void createLeftPanel() {
         searchTextField = new JTextField();
 
+        searchTextField.setToolTipText("Search an item by name");
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
@@ -343,6 +342,8 @@ public class FormPosShop extends Form {
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
         searchTextField.getDocument().addDocumentListener(new SearchTextFieldDocumentListener());
+
+        filterPopupMenu.trigger().setToolTipText("Filter items by category and brand");
 
         buildLeftPanelContent();
 
@@ -363,7 +364,7 @@ public class FormPosShop extends Form {
         final JLabel title = new JLabel("Cart", new SVGIconUIColor("shopping-cart.svg", 0.75f, "color.primary"),
                 JLabel.RIGHT);
         cartPanel = new JPanel(new MigLayout("insets 0, flowx, wrap, al center top", "[grow, fill, center]"));
-        final JScrollPane scroller = new JScrollPane(cartPanel);
+        final JScrollPane scroller = ScrollerFactory.createScrollPane(cartPanel);
         checkoutButton = new JButton("Checkout");
         clearCartButton = new JButton("Clear Cart");
         cartMetadataContainer = new JPanel(
@@ -383,16 +384,6 @@ public class FormPosShop extends Form {
 
         rightPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 25%);");
 
-        scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scroller.getVerticalScrollBar().setUnitIncrement(16);
-        scroller.getHorizontalScrollBar().setUnitIncrement(16);
-        scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        scroller.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
-
         cartPanel.putClientProperty(FlatClientProperties.STYLE, "background: null;");
         cartButtonsContainer.putClientProperty(FlatClientProperties.STYLE, "background: null;");
         cartTotalPriceContainer.putClientProperty(FlatClientProperties.STYLE, "background: null;");
@@ -408,6 +399,9 @@ public class FormPosShop extends Form {
 
         clearCartButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
         checkoutButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+
+        clearCartButton.setToolTipText("Remove all items in cart");
+        checkoutButton.setToolTipText("Confirm the order and proceed to checkout");
 
         cartTotalPriceContainer.add(totalPriceTitle, "pushx");
         cartTotalPriceContainer.add(cartTotalPriceLabel);
@@ -506,47 +500,30 @@ public class FormPosShop extends Form {
         createRightPanel();
     }
 
-    private void loadData() {
+    private void initializeData() {
         isFetching.set(true);
+        showLoading();
+        filterPopupMenu.populate();
+        loadData();
+    }
 
-        SwingUtilities.invokeLater(() -> {
-            leftPanelContentContainer.removeAll();
-
-            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
-
-            leftPanelContentContainer.add(new LoadingPanel());
-            leftPanelContentContainer.repaint();
-            leftPanelContentContainer.revalidate();
-        });
-
+    private void loadData() {
         try {
-            final InventoryMetadataDto[] items = inventory.getInventoryItemsWithTotalQuantities(
-                    searchTextField.getText(), filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
-                    filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE);
-
-            this.items = new AtomicReferenceArray<>(items);
-
-            filterPopupMenu.populate();
+            items = new AtomicReferenceArray<>(inventory.getInventoryItemsWithTotalQuantities(searchTextField.getText(),
+                    filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
+                    filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
 
             SwingUtilities.invokeLater(() -> {
                 buildLeftPanelContent();
-
                 isFetching.set(false);
             });
         } catch (final InventoryException err) {
-            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
-                    "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
-
             SwingUtilities.invokeLater(() -> {
-                leftPanelContentContainer.removeAll();
-
-                ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
-
-                leftPanelContentContainer.add(new ErrorPanel());
-                leftPanelContentContainer.repaint();
-                leftPanelContentContainer.revalidate();
+                JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                        "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
             });
 
+            showError();
             isFetching.set(false);
         }
     }
@@ -567,44 +544,29 @@ public class FormPosShop extends Form {
 
     private void search() {
         debouncer.call(() -> {
-            if (isFetching.get()) {
-                return;
-            }
+            isFetching.set(true);
+            showLoading();
+            loadData();
+        });
+    }
 
-            SwingUtilities.invokeLater(() -> {
-                leftPanelContentContainer.removeAll();
+    private void showError() {
+        SwingUtilities.invokeLater(() -> {
+            leftPanelContentContainer.removeAll();
+            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
+            leftPanelContentContainer.add(new ErrorPanel());
+            leftPanelContentContainer.repaint();
+            leftPanelContentContainer.revalidate();
+        });
+    }
 
-                ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
-
-                leftPanelContentContainer.add(new LoadingPanel());
-                leftPanelContentContainer.repaint();
-                leftPanelContentContainer.revalidate();
-
-                try {
-                    items = new AtomicReferenceArray<>(inventory.getInventoryItemsWithTotalQuantities(
-                            searchTextField.getText(),
-                            filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
-                            filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
-
-                    SwingUtilities.invokeLater(() -> {
-                        buildLeftPanelContent();
-                    });
-                } catch (final InventoryException err) {
-                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
-                            "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
-
-                    SwingUtilities.invokeLater(() -> {
-                        leftPanelContentContainer.removeAll();
-
-                        ((ResponsiveLayout) leftPanelContentContainer.getLayout())
-                                .setJustifyContent(JustifyContent.CENTER);
-
-                        leftPanelContentContainer.add(new ErrorPanel());
-                        leftPanelContentContainer.repaint();
-                        leftPanelContentContainer.revalidate();
-                    });
-                }
-            });
+    private void showLoading() {
+        SwingUtilities.invokeLater(() -> {
+            leftPanelContentContainer.removeAll();
+            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
+            leftPanelContentContainer.add(new LoadingPanel());
+            leftPanelContentContainer.repaint();
+            leftPanelContentContainer.revalidate();
         });
     }
 
@@ -899,18 +861,6 @@ public class FormPosShop extends Form {
         }
     }
 
-    private class LoadingPanel extends JPanel {
-        public LoadingPanel() {
-            setLayout(new BorderLayout());
-
-            putClientProperty(FlatClientProperties.STYLE, "background: null;");
-
-            final JLabel loading = new JLabel("Loading...");
-
-            add(loading, BorderLayout.WEST);
-        }
-    }
-
     private class NoItemsInCartPanel extends JPanel {
         public NoItemsInCartPanel() {
             setLayout(new BorderLayout());
@@ -920,17 +870,6 @@ public class FormPosShop extends Form {
             final JLabel text = new JLabel("No items in cart yet :(");
 
             add(text, BorderLayout.NORTH);
-        }
-    }
-
-    private class NoResultsPanel extends JPanel {
-        public NoResultsPanel() {
-            setLayout(new BorderLayout());
-
-            putClientProperty(FlatClientProperties.STYLE, "background: null;");
-
-            final JLabel noResults = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>No results were found :("));
-            add(noResults, BorderLayout.NORTH);
         }
     }
 

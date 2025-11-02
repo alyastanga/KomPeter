@@ -31,7 +31,7 @@ public class FormManager {
         return frame;
     }
 
-    public static void install(JFrame f) {
+    public static void install(final JFrame f) {
         frame = f;
         install();
 
@@ -75,7 +75,7 @@ public class FormManager {
 
     public static void redo() {
         if (FORMS.isRedoAble()) {
-            Form form = FORMS.redoDry().get();
+            final Form form = FORMS.redoDry().get();
 
             Drawer.setSelectedItemClass(form.getClass());
         }
@@ -86,11 +86,12 @@ public class FormManager {
             SwingUtilities.invokeLater(() -> {
                 FORMS.current().get().formRefresh();
             });
+
             mainForm.refresh();
         }
     }
 
-    public static void showAuthForm(Form form) {
+    public static void showAuthForm(final Form form) {
         if (AUTH_FORMS.current().isEmpty() || form != AUTH_FORMS.current().get()) {
             AUTH_FORMS.add(form);
             form.formCheck();
@@ -100,7 +101,7 @@ public class FormManager {
         }
     }
 
-    public static void showForm(Form form) {
+    public static void showForm(final Form form) {
         if (FORMS.recentAction() == RecentAction.REDO || FORMS.recentAction() == RecentAction.UNDO) {
             if (FORMS.recentAction() == RecentAction.REDO) {
                 FORMS.redo();
@@ -122,14 +123,13 @@ public class FormManager {
             form.formOpen();
             mainForm.setForm(form);
             mainForm.refresh();
-            form.formRefresh();
             form.formAfterOpen();
         }
     }
 
     public static void undo() {
         if (FORMS.isUndoAble()) {
-            Form form = FORMS.undoDry().get();
+            final Form form = FORMS.undoDry().get();
 
             Drawer.setSelectedItemClass(form.getClass());
         }
@@ -162,7 +162,7 @@ public class FormManager {
     private static void install() {
     }
 
-    private boolean isLoggedOut = true;
+    private final boolean isLoggedOut = true;
 
     public boolean isLoggedOut() {
         return isLoggedOut;

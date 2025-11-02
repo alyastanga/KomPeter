@@ -149,7 +149,6 @@ public class ImagePanel extends JPanel {
                 final int rgb = src.getRGB(x, y);
                 final Color c = new Color(rgb, true);
 
-                // 🎨 make "almost white" pixels transparent
                 if (c.getRed() > 240 && c.getGreen() > 240 && c.getBlue() > 240) {
                     dest.setRGB(x, y, 0x00FFFFFF); // fully transparent
                 } else {

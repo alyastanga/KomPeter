@@ -45,6 +45,7 @@ import com.formdev.flatlaf.ui.FlatRoundBorder;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.ImageChooser;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
+import com.github.ragudos.kompeter.app.desktop.components.scroller.ScrollerFactory;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
@@ -378,30 +379,17 @@ public class FormInventoryAddProduct extends Form {
                 new MigLayout("insets 0", "[grow, center, fill]", "[grow, top, fill]"));
         slidePane = new SlidePane();
         rightPanel = new RightPanel();
-
-        setLayout(new MigLayout("insets 0 4 0 4, flowx, wrap", "[grow, center, fill]", "[top][grow, top, fill]"));
-        createHeader();
-
-        leftPanel.setMaximumSize(new Dimension(720, leftPanel.getMaximumSize().height));
-
         nextIcon = new SVGIconUIColor("move-right.svg", 0.75f, "foreground.primary");
         backIcon = new SVGIconUIColor("move-left.svg", 0.75f, "foreground.muted");
         submitIcon = new SVGIconUIColor("check.svg", 0.75f, "foreground.primary");
         nextConfirmButton = new JButton("Continue", nextIcon);
         backButton = new JButton("Back", backIcon);
+        final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelWrapper);
 
-        final JScrollPane scroller = new JScrollPane(leftPanelWrapper);
+        setLayout(new MigLayout("insets 0 4 0 4, flowx, wrap", "[grow, center, fill]", "[top][grow, top, fill]"));
+        createHeader();
 
-        scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-        scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        scroller.getVerticalScrollBar().setUnitIncrement(16);
-        scroller.getHorizontalScrollBar().setUnitIncrement(16);
-        scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
+        leftPanel.setMaximumSize(new Dimension(720, leftPanel.getMaximumSize().height));
         nextConfirmButton.setIconTextGap(16);
         nextConfirmButton.setHorizontalTextPosition(SwingConstants.LEFT);
         nextConfirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
