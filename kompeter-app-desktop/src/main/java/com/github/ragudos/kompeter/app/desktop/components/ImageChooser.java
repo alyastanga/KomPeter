@@ -1,22 +1,28 @@
+/*
+*
+* MIT License
+* Authors: Aaron Ragudos, Peter Dela Cruz, Hanz Mapua, Jerick Remo
+* (C) 2025
+*
+*/
 package com.github.ragudos.kompeter.app.desktop.components;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TooManyListenersException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -24,151 +30,169 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
+import com.github.ragudos.kompeter.app.desktop.components.border.KompeterBorderFactory;
+import com.github.ragudos.kompeter.configurations.ApplicationConfig;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import com.github.ragudos.kompeter.utilities.platform.SystemInfo;
 
-public class ImageChooser implements DropTargetListener {
-    private JLabel imageLabel;
-    private JFileChooser imageChooser;
-    private ProductImageChooserMouseListener productImageChooserMouseListener;
+public class ImageChooser extends JFileChooser {
+    private static final Logger LOGGER = KompeterLogger.getLogger(ImageChooser.class);
+
     private ImagePanel chosenImage;
     private File chosenImageFile;
+    private DropTarget dropTarget;
+    private FileNameExtensionFilter fileNameExtensionFilter;
+    private ImageChooserDtdeListener imageChooserDtdeListener;
+    private ImageChooserMouseListener imageChooserMouseListener;
 
-    public final static String[] ALLOWED_EXTENSIONS = { ".png", ".jpg", ".jpeg" };
+    private JLabel imageLabel;
 
-    public File chosenImageFile() {
-        return chosenImageFile;
-    }
+    public ImageChooser() {
+        final String imageDirectory = ApplicationConfig.getInstance().getConfig().getProperty("images.directory",
+                String.format("%s%sPictures", SystemInfo.USER_HOME, File.separator));
+        final File imageDirectoryFile = new File(imageDirectory);
 
-    public JLabel imageLabel() {
-        return imageLabel;
+        if (!imageDirectoryFile.exists()) {
+            JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                    String.format("Directory %s does not exist. We cannot open a file chooser to choose your image."
+                            + " Please modify it in settings.", imageDirectory),
+                    "Cannot Open Directory", JOptionPane.ERROR_MESSAGE);
+
+            return;
+        }
+
+        setCurrentDirectory(imageDirectoryFile);
+
+        imageChooserMouseListener = new ImageChooserMouseListener();
+        imageChooserDtdeListener = new ImageChooserDtdeListener();
+        chosenImage = new ImagePanel(null);
+        imageLabel = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>Drag & Drop product image"));
+
+        chosenImage.setMinimumSize(new Dimension(100, 100));
+        chosenImage.setScaleMode(ImagePanel.ScaleMode.CONTAIN);
+
+        imageLabel.setPreferredSize(new Dimension(400, 300));
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel
+                .setBorder(BorderFactory.createCompoundBorder(
+                        KompeterBorderFactory.createDashedBorder(10f, 2f, new float[]{5f, 5f}, 0f,
+                                UIManager.getColor("foreground.background")),
+                        BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
+        imageLabel.putClientProperty(FlatClientProperties.STYLE, "font: 11;");
+
+        dropTarget = new DropTarget(imageLabel, null);
     }
 
     public ImagePanel chosenImage() {
         return chosenImage;
     }
 
-    private class ProductImageChooserMouseListener extends MouseAdapter {
+    public File chosenImageFile() {
+        return chosenImageFile;
+    }
+
+    public void destroy() {
+        dropTarget.removeDropTargetListener(imageChooserDtdeListener);
+        imageLabel.removeMouseListener(imageChooserMouseListener);
+    }
+
+    public JLabel imageLabel() {
+        return imageLabel;
+    }
+
+    public void initialize() {
+        imageLabel.addMouseListener(imageChooserMouseListener);
+
+        try {
+            dropTarget.addDropTargetListener(imageChooserDtdeListener);
+        } catch (TooManyListenersException err) {
+            LOGGER.log(Level.SEVERE, err.getMessage(), err);
+        }
+    }
+
+    public void setAllowedImageExtensions(final FileNameExtensionFilter fileNameExtensionFilter) {
+        this.fileNameExtensionFilter = fileNameExtensionFilter;
+
+        setFileFilter(fileNameExtensionFilter);
+        setAcceptAllFileFilterUsed(false);
+    }
+
+    private class ImageChooserDtdeListener extends DropTargetAdapter {
         @Override
-        public void mouseClicked(MouseEvent e) {
-            int result = imageChooser.showOpenDialog(KompeterDesktopApp.getRootFrame());
+        public void drop(DropTargetDropEvent dtde) {
+            try {
+                if ((dtde.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) == 0) {
+                    dtde.rejectDrop();
+
+                    return;
+                }
+
+                dtde.acceptDrop(DnDConstants.ACTION_COPY);
+
+                final Transferable transferable = dtde.getTransferable();
+
+                if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                    @SuppressWarnings("unchecked")
+                    final List<File> droppedFiles = (List<File>) transferable
+                            .getTransferData(DataFlavor.javaFileListFlavor);
+
+                    if (droppedFiles.isEmpty()) {
+                        dtde.dropComplete(false);
+                        return;
+                    }
+
+                    final File file = droppedFiles.get(0);
+
+                    fileNameExtensionFilter.getExtensions();
+
+                    if (fileNameExtensionFilter != null) {
+                        if (Arrays.stream(fileNameExtensionFilter.getExtensions())
+                                .anyMatch((s) -> file.getName().toLowerCase().endsWith(s))) {
+                            chosenImageFile = file;
+                            chosenImage.setImage(ImageIO.read(file));
+                        } else {
+                            JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                                    "Unsupported images. Only png and jpegs are allowed", "Invalid Extensions",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        chosenImageFile = file;
+                        chosenImage.setImage(ImageIO.read(file));
+                    }
+                }
+            } catch (final Exception err) {
+                err.printStackTrace();
+            }
+        }
+    }
+
+    private class ImageChooserMouseListener extends MouseAdapter {
+        @Override
+        public void mouseClicked(final MouseEvent e) {
+            final int result = showOpenDialog(KompeterDesktopApp.getRootFrame());
 
             if (result == JFileChooser.APPROVE_OPTION) {
-                File sFile = imageChooser.getSelectedFile();
+                final File sFile = getSelectedFile();
 
                 try {
                     chosenImageFile = sFile;
                     chosenImage.setImage(ImageIO.read(sFile));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                } catch (final IOException e1) {
+                    JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), e1.getMessage(),
+                            e1.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+                    LOGGER.log(Level.SEVERE, "Failed to set Image", e1);
                 }
 
                 System.out.println("Selected PNG: " + sFile.getAbsolutePath());
             }
         }
-    }
-
-    public ImageChooser() {
-        productImageChooserMouseListener = new ProductImageChooserMouseListener();
-        chosenImage = new ImagePanel(null);
-        FileNameExtensionFilter imgFilter = new FileNameExtensionFilter(
-                "PNG Images", "png", "jpg", "JPG Images", "jpeg", "JPEG Images");
-        imageLabel = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>Drag & Drop product image"));
-        imageChooser = new JFileChooser(String.format("%s%sPictures", SystemInfo.USER_HOME, File.separator));
-
-        chosenImage.setMinimumSize(new Dimension(100, 100));
-        chosenImage.setScaleMode(ImagePanel.ScaleMode.CONTAIN);
-        imageLabel.setPreferredSize(new Dimension(200, 150));
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        float[] dash = { 5f, 5f };
-        Border dashedBorder = BorderFactory.createStrokeBorder(
-                new BasicStroke(
-                        2f,
-                        BasicStroke.CAP_BUTT,
-                        BasicStroke.JOIN_MITER,
-                        10f,
-                        dash,
-                        0f),
-                UIManager.getColor("foreground.background"));
-
-        imageLabel.setBorder(BorderFactory.createCompoundBorder(
-                dashedBorder,
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
-        imageLabel.putClientProperty(FlatClientProperties.STYLE, "font: 11;");
-
-        imageChooser.setFileFilter(imgFilter);
-        imageChooser.setAcceptAllFileFilterUsed(false);
-
-        imageLabel.addMouseListener(productImageChooserMouseListener);
-
-        new DropTarget(imageLabel, this);
-    }
-
-    @Override
-    public void dragEnter(DropTargetDragEvent dtde) {
-
-    }
-
-    @Override
-    public void dragOver(DropTargetDragEvent dtde) {
-
-    }
-
-    @Override
-    public void dropActionChanged(DropTargetDragEvent dtde) {
-
-    }
-
-    @Override
-    public void dragExit(DropTargetEvent dte) {
-
-    }
-
-    @Override
-    public void drop(DropTargetDropEvent dtde) {
-        try {
-            if ((dtde.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) == 0) {
-                dtde.rejectDrop();
-
-                return;
-            }
-
-            dtde.acceptDrop(DnDConstants.ACTION_COPY);
-
-            Transferable transferable = dtde.getTransferable();
-
-            if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                @SuppressWarnings("unchecked")
-                List<File> droppedFiles = (List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-
-                if (droppedFiles.isEmpty()) {
-                    dtde.dropComplete(false);
-                    return;
-                }
-
-                File file = droppedFiles.get(0);
-
-                if (Arrays.stream(ALLOWED_EXTENSIONS).anyMatch((s) -> file.getName().toLowerCase().endsWith(s))) {
-                    chosenImageFile = file;
-                    chosenImage.setImage(ImageIO.read(file));
-                } else {
-                    JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
-                            "Unsupported images. Only png and jpegs are allowed", "Invalid Extensions",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        } catch (Exception err) {
-            err.printStackTrace();
-        }
-
     }
 }

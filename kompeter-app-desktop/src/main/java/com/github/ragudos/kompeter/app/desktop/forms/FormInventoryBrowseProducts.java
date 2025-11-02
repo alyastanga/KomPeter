@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -96,7 +95,6 @@ public class FormInventoryBrowseProducts extends Form {
     private JTextField searchTextField;
     private ItemStatus itemStatusFilter;
     private StatusFilterPopupMenu statusFilterPopupMenu;
-    private AtomicInteger prevProductTableRowsPerPage;
 
     @Override
     public boolean formBeforeClose() {
@@ -145,7 +143,7 @@ public class FormInventoryBrowseProducts extends Form {
     }
 
     private void createContainers() {
-        setLayout(new MigLayout("insets 2, flowx, wrap", "[grow, fill, center]", "[]12px[grow, top, fill]"));
+        setLayout(new MigLayout("insets 2, flowx, wrap", "[grow, fill, center]", "[]8px[grow, top, fill]"));
 
         headerPanel = new JPanel(new MigLayout("insets 0, flowx", "[grow 50]8px[]push[]", "[]16[]4[]"));
         bodyPanel = new JPanel(
@@ -172,6 +170,7 @@ public class FormInventoryBrowseProducts extends Form {
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
                 new SVGIconUIColor("search.svg", 0.5f, "TextField.placeholderForeground"));
         searchTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search products...");
+        searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
         searchTextField.getDocument().addDocumentListener(new SearchTextFieldDocumentListener());
 
@@ -184,7 +183,6 @@ public class FormInventoryBrowseProducts extends Form {
 
     private void init() {
         productListData = new AtomicReference<>();
-        prevProductTableRowsPerPage = new AtomicInteger(0);
         isBusy = new AtomicBoolean(false);
         inventory = Inventory.getInstance();
         debouncer = new Debouncer(250);

@@ -61,9 +61,9 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     }
 
     private static MenuOption createSimpleMenuOption() {
-        MenuOption menuOption = new MenuOption();
+        final MenuOption menuOption = new MenuOption();
 
-        MenuItem[] items = new MenuItem[] { new Item("Profile", "user.svg", FormProfile.class),
+        final MenuItem[] items = new MenuItem[]{new Item("Profile", "user.svg", FormProfile.class),
                 new Item("Dashboard", "circle-gauge.svg", FormDashboard.class),
                 new Item("Point of Sale", "store.svg").subMenu(new Item("Shop", "shopping-cart.svg", FormPosShop.class))
                         .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormPosTransactions.class)),
@@ -75,16 +75,16 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                         .subMenu(new Item("Sales", "badge-dollar-sign.svg", FormMonitoringSales.class))
                         .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
                         .subMenu(new Item("Audits", "notepad-text.svg")),
-                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg") };
+                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg")};
 
         menuOption.setMenuStyle(new MenuStyle() {
             @Override
-            public void styleMenu(JComponent component) {
+            public void styleMenu(final JComponent component) {
                 component.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
             }
 
             @Override
-            public void styleMenuItem(JButton menu, int[] index, boolean isMainItem) {
+            public void styleMenuItem(final JButton menu, final int[] index, final boolean isMainItem) {
                 menu.putClientProperty(FlatClientProperties.STYLE, "margin: -1, 0, -1, 0;");
             }
         });
@@ -95,15 +95,15 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
 
         menuOption.addMenuEvent(new MenuEvent() {
             @Override
-            public void selected(MenuAction action, int[] index) {
-                Class<?> itemClass = action.getItem().getItemClass();
+            public void selected(final MenuAction action, final int[] index) {
+                final Class<?> itemClass = action.getItem().getItemClass();
 
-                int i = index[0];
+                final int i = index[0];
 
-                if (i == 7) {
+                if (i == 6) {
                     action.consume();
 
-                    Optional<Form> currentForm = FormManager.FORMS.current();
+                    final Optional<Form> currentForm = FormManager.FORMS.current();
 
                     if (currentForm.isPresent() && !currentForm.get().formBeforeLogout()) {
                         return;
@@ -111,7 +111,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
 
                     try {
                         Authentication.signOut();
-                    } catch (AuthenticationException err) {
+                    } catch (final AuthenticationException err) {
                         JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), err.getMessage(),
                                 "Sign Out Failure :(", JOptionPane.ERROR_MESSAGE);
 
@@ -132,10 +132,10 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                 }
 
                 @SuppressWarnings("unchecked") // already has been checked above if it is a clazz that extends Form
-                Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
-                Form form = AllForms.getForm(formClass);
+                final Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
+                final Form form = AllForms.getForm(formClass);
 
-                Optional<Form> currentForm = FormManager.FORMS.current();
+                final Optional<Form> currentForm = FormManager.FORMS.current();
 
                 if (currentForm.isPresent() && !currentForm.get().formBeforeClose()) {
                     action.consume();
@@ -165,7 +165,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     }
 
     @Override
-    public void build(DrawerPanel drawerPanel) {
+    public void build(final DrawerPanel drawerPanel) {
         drawerPanel.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
     }
 

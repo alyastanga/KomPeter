@@ -1,29 +1,27 @@
 package com.github.ragudos.kompeter.app.desktop.forms;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -32,15 +30,20 @@ import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.DefaultCaret;
+
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.ui.FlatRoundBorder;
+import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.ImageChooser;
-import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
@@ -48,20 +51,90 @@ import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
-import com.github.ragudos.kompeter.utilities.HtmlUtils;
-import com.github.ragudos.kompeter.utilities.platform.SystemInfo;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 import net.miginfocom.swing.MigLayout;
+import raven.extras.SlidePane;
 
 @SystemForm(name = "Add Product", description = "Add product to inventory", tags = { "Inventory" })
 public class FormInventoryAddProduct extends Form {
+    private static final Logger LOGGER = KompeterLogger.getLogger(FormInventoryAddProduct.class);
+
     private JPanel headerPanel;
     private JSplitPane bodyPane;
 
+    private AtomicInteger currentStep;
+    private SlidePane slidePane;
+    private AtomicBoolean isBusy;
+
+    private RightPanel rightPanel;
+    private JPanel leftPanel;
     private FirstStepForm firstStepForm;
     private SecondStepForm secondStepForm;
     private ThirdStepForm thirdStepForm;
     private FourthStepForm fourthStepForm;
+
+    private JPanel leftPanelButtonsContainer;
+    private JButton nextConfirmButton;
+    private JButton backButton;
+    private SVGIconUIColor submitIcon;
+    private SVGIconUIColor nextIcon;
+    private SVGIconUIColor backIcon;
+
+    private class RightPanel extends JPanel {
+        public RightPanel() {
+            setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 0));
+
+            final String markString = loadMarkdown();
+
+            final Parser parser = Parser.builder().build();
+            final HtmlRenderer renderer = HtmlRenderer.builder().build();
+            final Node node = parser.parse(markString);
+            final String htmlString = renderer.render(node);
+
+            final JTextPane textPane = new JTextPane();
+
+            textPane.setContentType("text/html");
+            textPane.setEditable(false);
+            textPane.setCaret(new DefaultCaret() {
+                @Override
+                public void paint(final Graphics g) {
+                }
+            });
+
+            textPane.setText(String.format("""
+                    <html>
+                    <head>
+                        <style>
+                            body {
+                                font-family: "Montserrat", sans-serif;
+                                padding: 12px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        %s
+                    </body>
+                    </html>
+                    """, htmlString));
+
+            final JScrollPane scroller = new JScrollPane(textPane);
+
+            scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                    "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+            scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                    "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+            scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+            scroller.getVerticalScrollBar().setUnitIncrement(16);
+            scroller.getHorizontalScrollBar().setUnitIncrement(16);
+            scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+            setLayout(new MigLayout("insets 0", "[grow, center, fill]", "[grow, center, fill]"));
+
+            add(scroller, "grow");
+        }
+    }
 
     private class FourthStepForm extends JPanel {
         ImageChooser productImageChooser;
@@ -70,6 +143,8 @@ public class FormInventoryAddProduct extends Form {
         public FourthStepForm() {
             productImageChooser = new ImageChooser();
             statusBox = new JComboBox<>();
+
+            productImageChooser.initialize();
         }
     }
 
@@ -78,6 +153,12 @@ public class FormInventoryAddProduct extends Form {
         JSpinner minQtySpinner;
         JLabel minQtyError;
         QuantityPanel qtyPanel;
+
+        private class QuantityPanel extends JPanel {
+            public QuantityPanel() {
+                setBorder(BorderFactory.createTitledBorder("Quantities per location"));
+            }
+        }
 
         public ThirdStepForm() {
             priceSpinner = new JSpinner(new SpinnerNumberModel(1.00, 1.00, Double.MAX_VALUE, 1.00));
@@ -94,30 +175,30 @@ public class FormInventoryAddProduct extends Form {
 
         void populateBrands() {
             try {
-                for (ItemBrandDto brand : Inventory.getInstance().getAllItemBrandDtos()) {
+                for (final ItemBrandDto brand : Inventory.getInstance().getAllItemBrandDtos()) {
                     brands.addItem(brand);
                 }
-            } catch (InventoryException err) {
+            } catch (final InventoryException err) {
                 JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                         "Failed to get categories", JOptionPane.ERROR_MESSAGE);
             }
         }
 
         class CategoryPanel extends JPanel implements ActionListener {
-            private JPanel rowsPanel;
-            private JButton addCategoryBtn;
+            private final JPanel rowsPanel;
+            private final JButton addCategoryBtn;
 
-            private AtomicReference<String[]> allCategories;
+            private final AtomicReference<String[]> allCategories;
 
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
 
             }
 
             void populate() {
                 try {
                     allCategories.set(Inventory.getInstance().getAllItemCategories());
-                } catch (InventoryException err) {
+                } catch (final InventoryException err) {
                     JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                             "Failed to get categories", JOptionPane.ERROR_MESSAGE);
                 }
@@ -130,7 +211,7 @@ public class FormInventoryAddProduct extends Form {
                 setLayout(new BorderLayout(0, 9));
 
                 rowsPanel = new JPanel(new MigLayout("insets 4, gap 4, wrap 1", "[grow, fill]"));
-                JScrollPane scrollPane = new JScrollPane(rowsPanel);
+                final JScrollPane scrollPane = new JScrollPane(rowsPanel);
                 addCategoryBtn = new JButton("+ Add Category");
 
                 add(scrollPane, BorderLayout.CENTER);
@@ -139,21 +220,21 @@ public class FormInventoryAddProduct extends Form {
                 addCategoryBtn.addActionListener(this);
             }
 
-            void addCategoryRow(String preselected) {
-                List<String> available = getAvailableCategories();
+            void addCategoryRow(final String preselected) {
+                final List<String> available = getAvailableCategories();
 
                 if (available.isEmpty() && preselected == null) {
                     return;
                 }
 
-                JComboBox<String> combo = new JComboBox<>(available.toArray(new String[0]));
+                final JComboBox<String> combo = new JComboBox<>(available.toArray(new String[0]));
 
                 if (preselected != null) {
                     combo.setSelectedItem(preselected);
                 }
 
-                JButton removeBtn = new JButton("Remove", new SVGIconUIColor("x.svg", 0.5f, "foreground.muted"));
-                JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[grow, fill][30!]"));
+                final JButton removeBtn = new JButton("Remove", new SVGIconUIColor("x.svg", 0.5f, "foreground.muted"));
+                final JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[grow, fill][30!]"));
 
                 row.add(combo);
                 row.add(removeBtn);
@@ -165,10 +246,10 @@ public class FormInventoryAddProduct extends Form {
             }
 
             List<String> getAvailableCategories() {
-                Set<String> chosen = getChosenCategories();
-                List<String> available = new ArrayList<String>();
+                final Set<String> chosen = getChosenCategories();
+                final List<String> available = new ArrayList<String>();
 
-                for (String cat : allCategories.getAcquire()) {
+                for (final String cat : allCategories.getAcquire()) {
                     if (!chosen.contains(cat)) {
                         available.add(cat);
                     }
@@ -178,13 +259,13 @@ public class FormInventoryAddProduct extends Form {
             }
 
             Set<String> getChosenCategories() {
-                Set<String> chosen = new HashSet<String>();
+                final Set<String> chosen = new HashSet<String>();
 
-                for (Component comp : rowsPanel.getComponents()) {
-                    if (comp instanceof JPanel row) {
-                        for (Component c : row.getComponents()) {
-                            if (c instanceof JComboBox<?> combo) {
-                                Object val = combo.getSelectedItem();
+                for (final Component comp : rowsPanel.getComponents()) {
+                    if (comp instanceof final JPanel row) {
+                        for (final Component c : row.getComponents()) {
+                            if (c instanceof final JComboBox<?> combo) {
+                                final Object val = combo.getSelectedItem();
 
                                 if (val != null) {
                                     chosen.add(val.toString());
@@ -203,8 +284,8 @@ public class FormInventoryAddProduct extends Form {
     private void createHeader() {
         headerPanel = new JPanel(new MigLayout("insets 0, flowx"));
 
-        JLabel title = new JLabel("Add Product");
-        JLabel subtitle = new JLabel("Add a new product to inventory.");
+        final JLabel title = new JLabel("Add Product");
+        final JLabel subtitle = new JLabel("Add a new product to inventory.");
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h4");
         subtitle.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.muted;font:11;");
@@ -220,13 +301,22 @@ public class FormInventoryAddProduct extends Form {
         JLabel descriptionError;
 
         public FirstStepForm() {
-            JLabel nameLabel = new JLabel("Product Name");
+            setLayout(new MigLayout("insets 0, wrap, flowx", "[grow, center, fill]"));
+
+            final JLabel nameLabel = new JLabel("Product Name*");
             nameTextField = new JTextField();
             nameError = new JLabel();
 
-            JLabel descriptionLabel = new JLabel("Product Description");
+            final JLabel descriptionLabel = new JLabel("Product Description");
             descriptionTextField = new JTextArea();
             descriptionError = new JLabel();
+
+            descriptionTextField.setRows(5);
+            nameTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter product name...");
+            descriptionTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT,
+                    "Enter product description...");
+
+            descriptionTextField.setBorder(new FlatRoundBorder());
 
             add(nameLabel, "wrap");
             add(nameTextField, "growx, wrap, gapy 2px");
@@ -235,15 +325,6 @@ public class FormInventoryAddProduct extends Form {
             add(descriptionLabel, "wrap, gapy 4px");
             add(descriptionTextField, "growx, wrap, gapy 2px");
             add(descriptionError, "gapy 1px");
-        }
-    }
-
-    private void createForm() {
-    }
-
-    private class QuantityPanel extends JPanel {
-        public QuantityPanel() {
-            setBorder(BorderFactory.createTitledBorder("Quantities per location"));
         }
     }
 
@@ -256,6 +337,9 @@ public class FormInventoryAddProduct extends Form {
         formRefresh();
     }
 
+    public FormInventoryAddProduct() {
+    }
+
     @Override
     public void formRefresh() {
         new Thread(() -> {
@@ -264,7 +348,15 @@ public class FormInventoryAddProduct extends Form {
 
     @Override
     public boolean formBeforeClose() {
-        return super.formBeforeClose();
+        if (!isBusy.get()) {
+            return true;
+        }
+
+        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                "The current page is busy. Please wait until the page buttons are enabled again.", "Page Busy",
+                JOptionPane.ERROR_MESSAGE);
+
+        return false;
     }
 
     @Override
@@ -273,7 +365,109 @@ public class FormInventoryAddProduct extends Form {
     }
 
     private void init() {
-        setLayout(new BorderLayout());
-        createForm();
+        currentStep = new AtomicInteger(1);
+        isBusy = new AtomicBoolean(false);
+        firstStepForm = new FirstStepForm();
+        secondStepForm = new SecondStepForm();
+        thirdStepForm = new ThirdStepForm();
+        fourthStepForm = new FourthStepForm();
+        bodyPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        leftPanelButtonsContainer = new JPanel(new MigLayout("insets 0", "[left]push[right]"));
+        leftPanel = new JPanel(new MigLayout("insets 0 0 0 12", "[grow, fill, left]", "[top][top]"));
+        final JPanel leftPanelWrapper = new JPanel(
+                new MigLayout("insets 0", "[grow, center, fill]", "[grow, top, fill]"));
+        slidePane = new SlidePane();
+        rightPanel = new RightPanel();
+
+        setLayout(new MigLayout("insets 0 4 0 4, flowx, wrap", "[grow, center, fill]", "[top][grow, top, fill]"));
+        createHeader();
+
+        leftPanel.setMaximumSize(new Dimension(720, leftPanel.getMaximumSize().height));
+
+        nextIcon = new SVGIconUIColor("move-right.svg", 0.75f, "foreground.primary");
+        backIcon = new SVGIconUIColor("move-left.svg", 0.75f, "foreground.muted");
+        submitIcon = new SVGIconUIColor("check.svg", 0.75f, "foreground.primary");
+        nextConfirmButton = new JButton("Continue", nextIcon);
+        backButton = new JButton("Back", backIcon);
+
+        final JScrollPane scroller = new JScrollPane(leftPanelWrapper);
+
+        scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+        scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
+                "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
+        scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        scroller.getVerticalScrollBar().setUnitIncrement(16);
+        scroller.getHorizontalScrollBar().setUnitIncrement(16);
+        scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        nextConfirmButton.setIconTextGap(16);
+        nextConfirmButton.setHorizontalTextPosition(SwingConstants.LEFT);
+        nextConfirmButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+        backButton.setIconTextGap(16);
+        backButton.setHorizontalTextPosition(SwingConstants.RIGHT);
+        backButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+
+        slidePane.addSlide(firstStepForm);
+
+        leftPanelButtonsContainer.add(nextConfirmButton, "cell 1 0");
+
+        leftPanel.add(slidePane, "grow, wrap");
+        leftPanel.add(leftPanelButtonsContainer, "growx");
+        leftPanelWrapper.add(leftPanel, "grow");
+
+        bodyPane.add(scroller);
+        bodyPane.add(rightPanel);
+
+        add(headerPanel, "growx");
+        add(bodyPane, "gapy 16px, grow");
+
+        bodyPane.setResizeWeight(0.4);
+        bodyPane.setContinuousLayout(true);
+        bodyPane.setOneTouchExpandable(true);
+
+        backButton.addActionListener(new BackButtonActionListener());
+        nextConfirmButton.addActionListener(new NextConfirmButtonActionListener());
+    }
+
+    private class BackButtonActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+
+        }
+    }
+
+    private class NextConfirmButtonActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+        }
+    }
+
+    private String loadMarkdown() {
+        final StringBuilder sb = new StringBuilder();
+
+        try (InputStream st = FormInventoryAddProduct.class.getResourceAsStream("AddProductFormGuide.md")) {
+            if (st == null) {
+                LOGGER.severe("Cannot find AddProductFormGuide.md in resources.");
+
+                return "";
+            }
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(st))) {
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                    sb.append("\n");
+                }
+            }
+        } catch (final Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to read AddProductFormGuide.md", e);
+
+            return "";
+        }
+
+        return sb.toString();
     }
 }

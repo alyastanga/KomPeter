@@ -98,6 +98,8 @@ public class FormAuthLogin extends Form {
 
         emailTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your email");
         passwordTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your password");
+        passwordTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+        passwordTextField.putClientProperty("PasswordField.showCapsLock", true);
 
         emailError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
         passwordError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");

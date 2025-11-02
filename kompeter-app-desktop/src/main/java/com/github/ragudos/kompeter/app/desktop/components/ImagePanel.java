@@ -31,7 +31,7 @@ public class ImagePanel extends JPanel {
     private Image image;
     private ScaleMode mode = ScaleMode.COVER;
 
-    public Image img() {
+    public Image image() {
         return image;
     }
 
