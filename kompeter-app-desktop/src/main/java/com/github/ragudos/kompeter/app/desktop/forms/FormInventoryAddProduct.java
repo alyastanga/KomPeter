@@ -1,7 +1,6 @@
 package com.github.ragudos.kompeter.app.desktop.forms;
 
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -53,6 +52,7 @@ import com.formdev.flatlaf.ui.FlatRoundBorder;
 import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.ImageChooser;
+import com.github.ragudos.kompeter.app.desktop.components.combobox.ItemBrandRenderer;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.scroller.ScrollerFactory;
 import com.github.ragudos.kompeter.app.desktop.components.textpanes.TextAreaWithLimit;
@@ -63,11 +63,14 @@ import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
+import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.constants.StringLimits;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 import net.miginfocom.swing.MigLayout;
 import raven.extras.SlidePane;
+import raven.extras.SlidePaneTransition;
+import raven.modal.slider.PanelSlider.SliderCallback;
 
 @SystemForm(name = "Add Product", description = "Add product to inventory", tags = { "Inventory" })
 public class FormInventoryAddProduct extends Form {
@@ -179,11 +182,29 @@ public class FormInventoryAddProduct extends Form {
     }
 
     private class SecondStepForm extends JPanel {
-        private JComboBox<ItemBrandDto> brands;
-        private CategoryPanel categoryPanel;
+        JComboBox<ItemBrandDto> brands;
+        JLabel brandError;
+        CategoryPanel categoryPanel;
 
         public SecondStepForm() {
+            setLayout(new MigLayout("insets 0, wrap, flowx", "[grow, center, fill]"));
 
+            final JLabel brandLabel = new JLabel("Product Brand*");
+            brandError = new JLabel();
+            brands = new JComboBox<>();
+            categoryPanel = new CategoryPanel();
+            final JLabel categoryLabel = new JLabel(HtmlUtils.wrapInHtml("Product Categories (at least one)*"));
+
+            brands.setRenderer(new ItemBrandRenderer());
+            brandError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+            brandError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+
+            add(brandLabel, "growx");
+            add(brands, "growx, gapy 2px");
+            add(brandError, "growx, gapy 1px");
+
+            add(categoryLabel, "growx, gapy 4px");
+            add(categoryPanel, "growx, gapy 2px");
         }
 
         void populateBrands() {
@@ -205,7 +226,59 @@ public class FormInventoryAddProduct extends Form {
 
             @Override
             public void actionPerformed(final ActionEvent e) {
+                final Object src = e.getSource();
 
+                if (src == addCategoryBtn) {
+                    addCategoryRow(null);
+                    return;
+                }
+
+                // Handle remove button click
+                if (src instanceof JButton) {
+                    for (final Component comp : rowsPanel.getComponents()) {
+                        if (comp instanceof final JPanel row) {
+                            for (final Component c : row.getComponents()) {
+                                if (c == src) {
+                                    rowsPanel.remove(row);
+                                    rowsPanel.revalidate();
+                                    rowsPanel.repaint();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Handle category selection change
+                if (src instanceof JComboBox) {
+                    // Optional: ensure categories are unique
+                    for (final Component comp : rowsPanel.getComponents()) {
+                        if (comp instanceof final JPanel row) {
+                            for (final Component c : row.getComponents()) {
+                                if (c instanceof final JComboBox<?> combo) {
+                                    combo.setEnabled(true);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (src instanceof JComboBox) {
+                    for (final Component comp : rowsPanel.getComponents()) {
+                        if (comp instanceof final JPanel row) {
+                            for (final Component c : row.getComponents()) {
+                                if (c instanceof final JComboBox<?> combo && combo != src) {
+                                    final String selected = combo.getSelectedItem() != null
+                                            ? combo.getSelectedItem().toString()
+                                            : null;
+                                    if (selected != null) {
+                                        combo.setSelectedItem(selected);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             void populate() {
@@ -217,18 +290,37 @@ public class FormInventoryAddProduct extends Form {
                 }
             }
 
+            public void removeListeners() {
+                addCategoryBtn.removeActionListener(this);
+
+                for (final Component comp : rowsPanel.getComponents()) {
+                    if (comp instanceof final JPanel row) {
+                        for (final Component c : row.getComponents()) {
+                            if (c instanceof final JButton btn) {
+                                btn.removeActionListener(this);
+                            } else if (c instanceof final JComboBox<?> combo) {
+                                combo.removeActionListener(this);
+                            }
+                        }
+                    }
+                }
+            }
+
             public CategoryPanel() {
                 allCategories = new AtomicReference<>();
 
-                setBorder(BorderFactory.createTitledBorder("Categories"));
-                setLayout(new BorderLayout(0, 9));
+                setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, left]"));
 
                 rowsPanel = new JPanel(new MigLayout("insets 4, gap 4, wrap 1", "[grow, fill]"));
-                final JScrollPane scrollPane = new JScrollPane(rowsPanel);
-                addCategoryBtn = new JButton("+ Add Category");
+                final JScrollPane scrollPane = ScrollerFactory.createScrollPane(rowsPanel);
+                addCategoryBtn = new JButton("Category",
+                        new SVGIconUIColor("plus.svg", 0.5f, "foreground.background"));
 
-                add(scrollPane, BorderLayout.CENTER);
-                add(addCategoryBtn, BorderLayout.SOUTH);
+                addCategoryBtn.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+                addCategoryBtn.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+
+                add(scrollPane, "growx");
+                add(addCategoryBtn, "align left");
 
                 addCategoryBtn.addActionListener(this);
             }
@@ -246,12 +338,15 @@ public class FormInventoryAddProduct extends Form {
                     combo.setSelectedItem(preselected);
                 }
 
-                final JButton removeBtn = new JButton("Remove", new SVGIconUIColor("x.svg", 0.5f, "foreground.muted"));
+                final JButton removeBtn = new JButton(new SVGIconUIColor("x.svg", 0.5f, "foreground.muted"));
                 final JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[grow, fill][30!]"));
+
+                removeBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
                 row.add(combo);
                 row.add(removeBtn);
                 rowsPanel.add(row, "growx, wrap");
+                rowsPanel.repaint();
                 rowsPanel.revalidate();
 
                 removeBtn.addActionListener(this);
@@ -410,6 +505,8 @@ public class FormInventoryAddProduct extends Form {
     @Override
     public void formRefresh() {
         new Thread(() -> {
+            secondStepForm.populateBrands();
+            secondStepForm.categoryPanel.populate();
         }, "Load data for FormInventoryAddProduct").start();
     }
 
@@ -488,6 +585,10 @@ public class FormInventoryAddProduct extends Form {
     private class BackButtonActionListener implements ActionListener {
         @Override
         public void actionPerformed(final ActionEvent e) {
+            if (isBusy.get()) {
+                return;
+            }
+
             switch (progressBar.currentStep()) {
                 case 2:
                     secondStep();
@@ -502,6 +603,22 @@ public class FormInventoryAddProduct extends Form {
         }
 
         private void secondStep() {
+            isBusy.set(true);
+
+            leftPanelButtonsContainer.remove(backButton);
+
+            slidePane.addSlide(firstStepForm,
+                    SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_OUT),
+                    new SliderCallback() {
+
+                        @Override
+                        public void complete() {
+                            progressBar.currentStep.setRelease(1);
+                            progressBar.repaint();
+                            isBusy.set(false);
+                            nextConfirmButton.setEnabled(true);
+                        }
+                    });
         }
 
         private void thirdStep() {
@@ -514,6 +631,10 @@ public class FormInventoryAddProduct extends Form {
     private class NextConfirmButtonActionListener implements ActionListener {
         @Override
         public void actionPerformed(final ActionEvent e) {
+            if (isBusy.get()) {
+                return;
+            }
+
             switch (progressBar.currentStep()) {
                 case 1:
                     firstStep();
@@ -537,20 +658,21 @@ public class FormInventoryAddProduct extends Form {
                 return;
             }
 
-            return;
-            // TODO
+            isBusy.set(true);
 
-            /*
-             * slidePane.addSlide(secondStepForm,
-             * SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_IN),
-             * new SliderCallback() {
-             * 
-             * @Override
-             * public void complete() {
-             * 
-             * }
-             * });
-             */
+            leftPanelButtonsContainer.add(backButton, 0);
+
+            slidePane.addSlide(secondStepForm,
+                    SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_IN),
+                    new SliderCallback() {
+
+                        @Override
+                        public void complete() {
+                            progressBar.currentStep.setRelease(2);
+                            progressBar.repaint();
+                            isBusy.set(false);
+                        }
+                    });
         }
 
         private void secondStep() {

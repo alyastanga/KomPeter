@@ -159,7 +159,6 @@ public class FormPosShop extends Form {
         isFetching.set(true);
         SwingUtilities.invokeLater(() -> {
             leftPanelContentContainer.removeAll();
-            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
             leftPanelContentContainer.add(loadingPanel);
             leftPanelContentContainer.repaint();
             leftPanelContentContainer.revalidate();
@@ -167,6 +166,11 @@ public class FormPosShop extends Form {
 
         filterPopupMenu.populate();
         loadData();
+    }
+
+    @Override
+    public void formRefresh() {
+        debouncer.call(() -> formOpen());
     }
 
     private void applyShadowBorder(final JPanel panel) {
@@ -182,12 +186,10 @@ public class FormPosShop extends Form {
 
         new SwingWorker<Void, JPanel>() {
             protected Void doInBackground() throws Exception {
-                final ResponsiveLayout layout = (ResponsiveLayout) leftPanelContentContainer.getLayout();
                 final int itemLen = items.length();
 
                 if (itemLen == 0) {
                     SwingUtilities.invokeLater(() -> {
-                        layout.setJustifyContent(JustifyContent.CENTER);
                         leftPanelContentContainer.add(new NoResultsPanel());
 
                         leftPanelContentContainer.repaint();
@@ -196,8 +198,6 @@ public class FormPosShop extends Form {
 
                     return null;
                 }
-
-                layout.setJustifyContent(JustifyContent.START);
 
                 for (int i = 0; i < itemLen; ++i) {
                     final InventoryMetadataDto item = items.getAcquire(i);
@@ -296,7 +296,7 @@ public class FormPosShop extends Form {
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
         leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
-                new ResponsiveLayout(JustifyContent.CENTER, new Dimension(190, -1), 1, 1));
+                new ResponsiveLayout(JustifyContent.START, new Dimension(190, -1), 1, 1));
         final JLabel title = new JLabel("Products");
         final JLabel subtitle = new JLabel("Click a product card to add them to cart.");
         final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelContentContainer);

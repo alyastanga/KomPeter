@@ -179,6 +179,9 @@ public abstract class FilterPopupMenu extends JPopupMenu implements ItemListener
             buttonGroup = new ButtonGroup();
 
             trigger.setText("Showing:");
+            trigger.setIcon(chevronDown);
+
+            addPopupMenuListener(this);
         }
 
         public ItemStatus chosenStatus() {

@@ -121,6 +121,11 @@ public class FormInventoryBrowseProducts extends Form {
         recreateProductListData();
     }
 
+    @Override
+    public void formRefresh() {
+        debouncer.call(() -> formOpen());
+    }
+
     private void createBody() {
         productsTable = new ProductsTable();
         productsTableControlFooter = new ProductsTableFooter();
@@ -246,14 +251,14 @@ public class FormInventoryBrowseProducts extends Form {
 
         public ItemStatus getSelectedRowItemStatus() {
             final int row = convertRowIndexToModel(getSelectedRow());
-            final int col = convertColumnIndexToModel(COL_STATUS);
+            final int col = convertColumnIndexToView(COL_STATUS);
 
             return (ItemStatus) getValueAt(row, col);
         }
 
         public boolean allSelectedRowsAreOfStatus(final ItemStatus status) {
             final int[] selectedRows = getSelectedRows();
-            final int col = convertColumnIndexToModel(COL_STATUS);
+            final int col = convertColumnIndexToView(COL_STATUS);
 
             if (selectedRows.length == 1) {
                 final int realRow = convertRowIndexToModel(selectedRows[0]);
@@ -288,7 +293,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             final ProductsTableModel tableModel = new ProductsTableModel();
 
-            tableModel.setColumnIdentifiers(new String[] { "Name", "Price", "Current Stock", "Status", "Id", "Brand" });
+            tableModel.setColumnIdentifiers(new String[] { "Name", "Brand", "Price", "Current Stock", "Status", "Id" });
 
             setModel(tableModel);
 
@@ -305,7 +310,6 @@ public class FormInventoryBrowseProducts extends Form {
             columnModel.getColumn(COL_STATUS).setPreferredWidth(82);
 
             columnModel.removeColumn(columnModel.getColumn(COL_ID));
-            columnModel.removeColumn(columnModel.getColumn(COL_BRAND - 1));
 
             setRowSorter(new ProductsTableRowSorter(tableModel));
 
@@ -323,11 +327,39 @@ public class FormInventoryBrowseProducts extends Form {
             colIndex = convertColumnIndexToModel(colIndex);
             final Object value = getModel().getValueAt(rowIndex, colIndex);
 
-            if (colIndex == COL_STOCK_QTY && value instanceof final ItemStockQtyPercentageBarData data) {
+            if (value instanceof final LabelWithImage.LabelWithImageData data) {
+                final String brand = (String) getModel().getValueAt(rowIndex, COL_BRAND);
+                return String.format(
+                        """
+                                <html>
+                                <head>
+                                    <style>
+                                        body {
+                                            line-height: 1.2;
+                                        }
+                                        ul {
+                                            margin-left: 12px;
+                                            padding: 0;
+                                        }
+                                        h3 {
+                                            margin: 4px;
+                                            padding: 0;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <h3>%s</h3>
+                                    <p>Brand: %s</p>
+                                </body>
+                                </html>
+                                """, data.label(), brand);
+            }
+
+            if (value instanceof final ItemStockQtyPercentageBarData data) {
                 final String htmlList = Arrays.stream(data.getLocationQtyData())
                         .map((d) -> String.format("<li>%s</li>", d)).collect(Collectors.joining(""));
                 final String name = ((LabelWithImageData) getModel().getValueAt(rowIndex,
-                        convertColumnIndexToModel(COL_NAME)))
+                        COL_NAME))
                         .label();
 
                 return String.format(
@@ -350,11 +382,12 @@ public class FormInventoryBrowseProducts extends Form {
                                 </head>
                                 <body>
                                     <h3>Quantity breakdown for %s</h3>
+                                    <h6>Minimum Quantity %s</h6>
                                     <ul>%s</ul>
                                 </body>
                                 </html>
                                 """,
-                        name, htmlList);
+                        name, data.minimumThreshold(), htmlList);
             }
 
             return super.getToolTipText(e);
@@ -373,11 +406,10 @@ public class FormInventoryBrowseProducts extends Form {
 
         public String[] getNamesOfSelectedItems() {
             final int[] selectedRows = getModelSelectedRows();
-            final int col = convertColumnIndexToModel(COL_NAME);
             final String[] names = new String[selectedRows.length];
 
             for (int i = 0; i < selectedRows.length; ++i) {
-                final LabelWithImageData data = (LabelWithImageData) getModel().getValueAt(selectedRows[i], col);
+                final LabelWithImageData data = (LabelWithImageData) getModel().getValueAt(selectedRows[i], COL_NAME);
 
                 names[i] = data.label();
             }
@@ -399,7 +431,7 @@ public class FormInventoryBrowseProducts extends Form {
 
         public ItemStockQtyPercentageBarData getQuantityOfSelectedItem() {
             return ((ItemStockQtyPercentageBarData) getModel().getValueAt(convertRowIndexToModel(getSelectedRow()),
-                    convertColumnIndexToModel(COL_STOCK_QTY)));
+                    COL_STOCK_QTY));
         }
 
         public void addStockToSelectedItem() {
@@ -511,7 +543,7 @@ public class FormInventoryBrowseProducts extends Form {
                                             total,
                                             qty.minimumThreshold(), qty.measure(), qty.locations()),
                                     selectedRow,
-                                    convertColumnIndexToModel(COL_STOCK_QTY));
+                                    convertColumnIndexToView(COL_STOCK_QTY));
                         });
                     } catch (final InventoryException err) {
                         JOptionPane.showMessageDialog(this, err.getMessage(),

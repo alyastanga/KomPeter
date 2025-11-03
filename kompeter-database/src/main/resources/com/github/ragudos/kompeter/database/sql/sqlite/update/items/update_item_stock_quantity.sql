@@ -15,4 +15,6 @@ ON
         _storage_location_id
     )
 DO UPDATE SET
-    quantity = quantity + excluded.quantity;
+    -- since our update's logic literally just a replace and not an addition,
+    -- we just make the quantity to that
+    quantity = excluded.quantity;
