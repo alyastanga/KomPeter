@@ -9,6 +9,7 @@ package com.github.ragudos.kompeter.app.desktop.assets;
 
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,20 @@ public class AssetLoader {
                     IMAGES.update(p, image);
 
                     return image;
+                } catch (final FileNotFoundException err) {
+                    if (IMAGES.containsKey("images/placeholder.png")) {
+                        return IMAGES.get("images/placeholder.png");
+                    }
+
+                    LOGGER.log(Level.WARNING, "Failed to find file", err);
+
+                    try (InputStream is = AssetLoader.class.getResourceAsStream("images/placeholder.png")) {
+                        final BufferedImage image = ImageIO.read(is);
+
+                        IMAGES.update("images/placeholder.png", image);
+
+                        return image;
+                    }
                 }
             }
 

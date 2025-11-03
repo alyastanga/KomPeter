@@ -38,7 +38,7 @@ public class KompeterDesktopApp extends JFrame {
         return ROOT_FRAME;
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         FileUtils.setupConfig();
         AbstractMigratorFactory.setupSqlite();
         FontSetup.setup();
@@ -52,7 +52,7 @@ public class KompeterDesktopApp extends JFrame {
 
         try {
             Authentication.signInFromStoredSessionToken();
-        } catch (AuthenticationException e) {
+        } catch (final AuthenticationException e) {
             JOptionPane.showMessageDialog(null,
                     "Application cannot be started safely. Please contact the developers.\nReason:\n\n"
                             + e.getMessage(),
@@ -84,11 +84,12 @@ public class KompeterDesktopApp extends JFrame {
 
     private class MainFrameWindowListener extends WindowAdapter {
         @Override
-        public void windowClosing(WindowEvent e) {
+        public void windowClosing(final WindowEvent e) {
             MainForm.getMemoryBar().uninstallMemoryBar();
             removeWindowListener(windowListener);
 
             dispose();
+            System.exit(0);
         }
     }
 }

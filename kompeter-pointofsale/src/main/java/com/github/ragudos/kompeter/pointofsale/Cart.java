@@ -16,13 +16,14 @@ import java.util.function.Consumer;
 import com.github.ragudos.kompeter.utilities.observer.Observer;
 
 public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Cart.CartEvent> {
-    private AtomicReference<ArrayList<CartItem>> items = new AtomicReference<>(new ArrayList<>());
-    private AtomicReference<ArrayList<Consumer<CartEvent>>> subscribers = new AtomicReference<>(new ArrayList<>());
+    private final AtomicReference<ArrayList<CartItem>> items = new AtomicReference<>(new ArrayList<>());
+    private final AtomicReference<ArrayList<Consumer<CartEvent>>> subscribers = new AtomicReference<>(
+            new ArrayList<>());
 
     public record CartEvent(CartEventType eventType, CartItem payload, CartItem previousPayload) {
     }
 
-    public void addItem(CartItem item) {
+    public void addItem(final CartItem item) {
         items.getAcquire().add(item);
 
         notifySubscribers(new CartEvent(CartEventType.ADD_ITEM, item, null));
@@ -34,21 +35,21 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
         notifySubscribers(new CartEvent(CartEventType.CLEAR, null, null));
     }
 
-    public void decreaseItemQty(int _itemStockId, int qty) throws NegativeQuantityException {
-        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+    public void decreaseItemQty(final int _itemStockId, final int qty) throws NegativeQuantityException {
+        final CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
                 .findFirst().orElseThrow();
 
-        CartItem prev = cartItem.clone();
+        final CartItem prev = cartItem.clone();
         cartItem.decreaseQty(qty);
 
         notifySubscribers(new CartEvent(CartEventType.DECREASE_ITEM_QTY, cartItem, prev));
     }
 
-    public void decrementItem(int _itemStockId) throws NegativeQuantityException {
-        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+    public void decrementItem(final int _itemStockId) throws NegativeQuantityException {
+        final CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
                 .findFirst().orElseThrow();
 
-        CartItem prev = cartItem.clone();
+        final CartItem prev = cartItem.clone();
         cartItem.decrement();
 
         notifySubscribers(new CartEvent(CartEventType.DECREMENT_ITEM, cartItem, prev));
@@ -58,8 +59,8 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
         items.getAcquire().clear();
     }
 
-    public boolean exists(int _itemStockId) {
-        for (CartItem item : items.getAcquire()) {
+    public boolean exists(final int _itemStockId) {
+        for (final CartItem item : items.getAcquire()) {
             if (item._itemStockId() == _itemStockId) {
                 return true;
             }
@@ -72,25 +73,29 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
         return items.getAcquire();
     }
 
+    public Optional<CartItem> getItem(final int _itemStockId) {
+        return items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId).findFirst();
+    }
+
     public CartItem getLast() {
         return items.getAcquire().getLast();
     }
 
-    public void increaseItemQty(int _itemStockId, int qty) throws InsufficientStockException {
-        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+    public void increaseItemQty(final int _itemStockId, final int qty) throws InsufficientStockException {
+        final CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
                 .findFirst().orElseThrow();
 
-        CartItem prev = cartItem.clone();
+        final CartItem prev = cartItem.clone();
         cartItem.increaseQty(qty);
 
         notifySubscribers(new CartEvent(CartEventType.INCREASE_ITEM_QTY, cartItem, prev));
     }
 
-    public void incrementItem(int _itemStockId) throws InsufficientStockException {
-        CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
+    public void incrementItem(final int _itemStockId) throws InsufficientStockException {
+        final CartItem cartItem = items.getAcquire().stream().filter((item) -> item._itemStockId() == _itemStockId)
                 .findFirst().orElseThrow();
 
-        CartItem prev = cartItem.clone();
+        final CartItem prev = cartItem.clone();
         cartItem.increment();
 
         notifySubscribers(new CartEvent(CartEventType.INCREMENT_ITEM, cartItem, prev));
@@ -101,20 +106,20 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
     }
 
     @Override
-    public void notifySubscribers(CartEvent value) {
-        for (Consumer<CartEvent> acquire : subscribers.getAcquire()) {
+    public void notifySubscribers(final CartEvent value) {
+        for (final Consumer<CartEvent> acquire : subscribers.get()) {
             acquire.accept(value);
         }
     }
 
-    public void removeItem(CartItem item) {
+    public void removeItem(final CartItem item) {
         items.getAcquire().remove(item);
 
         notifySubscribers(new CartEvent(CartEventType.REMOVE_ITEM, item, null));
     }
 
-    public void removeItem(int id) {
-        Optional<CartItem> item = items.getAcquire().stream().filter(i -> i._itemStockId() == id).findFirst();
+    public void removeItem(final int id) {
+        final Optional<CartItem> item = items.getAcquire().stream().filter(i -> i._itemStockId() == id).findFirst();
 
         if (item.isEmpty()) {
             return;
@@ -126,8 +131,8 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
     }
 
     @Override
-    public void subscribe(Consumer<CartEvent> subscriber) {
-        subscribers.getAcquire().add(subscriber);
+    public void subscribe(final Consumer<CartEvent> subscriber) {
+        subscribers.get().add(subscriber);
     }
 
     public BigDecimal totalPrice() {
@@ -140,8 +145,8 @@ public class Cart implements Observer<com.github.ragudos.kompeter.pointofsale.Ca
     }
 
     @Override
-    public void unsubscribe(Consumer<CartEvent> subscriber) {
-        subscribers.getAcquire().remove(subscriber);
+    public void unsubscribe(final Consumer<CartEvent> subscriber) {
+        subscribers.get().remove(subscriber);
     }
 
     public enum CartEventType {

@@ -21,6 +21,7 @@ import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -44,6 +45,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
@@ -94,6 +96,7 @@ public class FormPosShop extends Form {
     private JPanel leftPanel;
     private JPanel leftPanelContentContainer;
     private JPanel leftPanelHeader;
+    private LoadingPanel loadingPanel;
     private JPanel rightPanel;
 
     private JTextField searchTextField;
@@ -154,7 +157,14 @@ public class FormPosShop extends Form {
         }
 
         isFetching.set(true);
-        showLoading();
+        SwingUtilities.invokeLater(() -> {
+            leftPanelContentContainer.removeAll();
+            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
+            leftPanelContentContainer.add(loadingPanel);
+            leftPanelContentContainer.repaint();
+            leftPanelContentContainer.revalidate();
+        });
+
         filterPopupMenu.populate();
         loadData();
     }
@@ -238,12 +248,19 @@ public class FormPosShop extends Form {
 
             protected void done() {
                 isFetching.set(false);
+                leftPanelContentContainer.remove(loadingPanel);
+                leftPanelContentContainer.repaint();
+                leftPanelContentContainer.revalidate();
             };
 
             protected void process(final List<JPanel> chunks) {
+                leftPanelContentContainer.remove(loadingPanel);
+
                 for (final JPanel panel : chunks) {
                     leftPanelContentContainer.add(panel);
                 }
+
+                leftPanelContentContainer.remove(loadingPanel);
 
                 leftPanelContentContainer.repaint();
                 leftPanelContentContainer.revalidate();
@@ -273,7 +290,7 @@ public class FormPosShop extends Form {
     private void createContainers() {
         containerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         leftPanel = new JPanel(new MigLayout("insets 0 2 0 0, flowy, al center center", "[grow, fill, center]",
-                "[top]16px[top]4px[top]8px[grow,fill, center]"));
+                "[top]16px[top]4px[top]8px[grow,fill, center][]"));
         final JPanel rightPanelWrapper = new JPanel(
                 new MigLayout("insets 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
@@ -332,7 +349,7 @@ public class FormPosShop extends Form {
         addBtn.putClientProperty(FlatClientProperties.STYLE, "arc:999;");
 
         addBtn.addActionListener(new IncrementItemQuantityCartActionListener(item._itemStockId()));
-        decBtn.addActionListener(new DecrementItemQuantityCartActionListener(item._itemStockId(), item.qty()));
+        decBtn.addActionListener(new DecrementItemQuantityCartActionListener(item._itemStockId()));
 
         qtyPanel.add(decBtn, "center");
         qtyPanel.add(productQty, "center");
@@ -499,6 +516,7 @@ public class FormPosShop extends Form {
     }
 
     private void init() {
+        loadingPanel = new LoadingPanel();
         filterPopupMenu = new CategoryBrandFilterPopupMenu(this::search);
         inventory = Inventory.getInstance();
         isFetching = new AtomicBoolean(false);
@@ -517,8 +535,8 @@ public class FormPosShop extends Form {
     private void loadData() {
         try {
             items = new AtomicReferenceArray<>(inventory.getInventoryItemsWithTotalQuantities(searchTextField.getText(),
-                    filterPopupMenu.categoryFilters.getAcquire().toArray(String[]::new),
-                    filterPopupMenu.brandFilters.getAcquire().toArray(String[]::new), ItemStatus.ACTIVE));
+                    filterPopupMenu.categoryFilters.get().toArray(String[]::new),
+                    filterPopupMenu.brandFilters.get().toArray(String[]::new), ItemStatus.ACTIVE));
 
             buildLeftPanelContent();
         } catch (final InventoryException err) {
@@ -527,7 +545,14 @@ public class FormPosShop extends Form {
                         "Failed to load data :(", JOptionPane.ERROR_MESSAGE);
             });
 
-            showError();
+            SwingUtilities.invokeLater(() -> {
+                leftPanelContentContainer.removeAll();
+                ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
+                leftPanelContentContainer.add(new ErrorPanel());
+                leftPanelContentContainer.repaint();
+                leftPanelContentContainer.revalidate();
+            });
+
             isFetching.set(false);
         }
     }
@@ -549,28 +574,15 @@ public class FormPosShop extends Form {
     private void search() {
         debouncer.call(() -> {
             isFetching.set(true);
-            showLoading();
+            SwingUtilities.invokeLater(() -> {
+                leftPanelContentContainer.removeAll();
+                ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
+                leftPanelContentContainer.add(loadingPanel);
+                leftPanelContentContainer.repaint();
+                leftPanelContentContainer.revalidate();
+            });
+
             loadData();
-        });
-    }
-
-    private void showError() {
-        SwingUtilities.invokeLater(() -> {
-            leftPanelContentContainer.removeAll();
-            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
-            leftPanelContentContainer.add(new ErrorPanel());
-            leftPanelContentContainer.repaint();
-            leftPanelContentContainer.revalidate();
-        });
-    }
-
-    private void showLoading() {
-        SwingUtilities.invokeLater(() -> {
-            leftPanelContentContainer.removeAll();
-            ((ResponsiveLayout) leftPanelContentContainer.getLayout()).setJustifyContent(JustifyContent.CENTER);
-            leftPanelContentContainer.add(new LoadingPanel());
-            leftPanelContentContainer.repaint();
-            leftPanelContentContainer.revalidate();
         });
     }
 
@@ -582,9 +594,28 @@ public class FormPosShop extends Form {
     }
 
     private class AddToCartDialog extends JDialog {
-        public AddToCartDialog(final int id, final String itemName, final int totalQuantity,
-                final BigDecimal unitPricePhp, final Window owner) {
+        public AddToCartDialog(final int id, final String itemName, int totalQuantity, final BigDecimal unitPricePhp,
+                final Window owner) {
             super(owner, "Add to Cart", Dialog.ModalityType.APPLICATION_MODAL);
+
+            final Cart c = cart.getAcquire();
+            final Optional<CartItem> cItem = c.getItem(id);
+
+            if (cItem.isPresent()) {
+                totalQuantity -= cItem.get().qty();
+            }
+
+            if (totalQuantity == 0) {
+                SwingUtilities.invokeLater(() -> {
+                    dispose();
+
+                    JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                            String.format("All available quantities for %s are already in the cart.", itemName),
+                            "Invalid Request", JOptionPane.ERROR_MESSAGE);
+                });
+
+                return;
+            }
 
             putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background,20%);");
             setLayout(new MigLayout("insets 9, flowx, wrap", "[grow, fill, center]"));
@@ -651,7 +682,6 @@ public class FormPosShop extends Form {
             @Override
             public void actionPerformed(final ActionEvent e) {
                 final Integer val = (Integer) numberSpinner.getValue();
-
                 final Cart cartVal = cart.getAcquire();
 
                 try {
@@ -710,7 +740,7 @@ public class FormPosShop extends Form {
                                 break;
                             case DECREASE_ITEM_QTY :
                             case DECREMENT_ITEM : {
-                                if (cartItem.qty() == 1) {
+                                if (cartItem.qty() <= 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
                                 }
@@ -790,18 +820,16 @@ public class FormPosShop extends Form {
 
     private class DecrementItemQuantityCartActionListener implements ActionListener {
         private final int id;
-        private final int qty;
 
-        public DecrementItemQuantityCartActionListener(final int id, final int qty) {
+        public DecrementItemQuantityCartActionListener(final int id) {
             this.id = id;
-            this.qty = qty;
         }
 
         @Override
         public void actionPerformed(final ActionEvent e) {
             final Cart acquiredCart = cart.getAcquire();
 
-            if (qty == 1) {
+            if (acquiredCart.getItem(id).get().qty() == 1) {
                 acquiredCart.removeItem(id);
             } else {
                 try {
