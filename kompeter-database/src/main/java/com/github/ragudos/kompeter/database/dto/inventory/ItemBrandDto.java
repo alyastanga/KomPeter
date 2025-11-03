@@ -11,5 +11,14 @@ import java.sql.Timestamp;
 
 import org.jetbrains.annotations.NotNull;
 
-public record ItemBrandDto(int _itemBrandId, @NotNull Timestamp _createdAt, @NotNull String name, String description) {
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class ItemBrandDto {
+    @NotNull Timestamp _createdAt;
+    int _itemBrandId;
+    String description;
+    @NotNull String name;
 }

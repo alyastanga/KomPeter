@@ -28,7 +28,7 @@ public class ItemBrandRenderer extends DefaultListCellRenderer {
         } else {
             final ItemBrandDto v = (ItemBrandDto) value;
 
-            label.setText(v.name());
+            label.setText(v.getName());
         }
 
         return label;

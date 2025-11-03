@@ -16,8 +16,8 @@ public class CartItem implements Cloneable {
     private int qty;
     private final int stockQty;
 
-    public CartItem(int _itemStockId, String name, int stockQty, int qty, BigDecimal price)
-            throws InsufficientStockException, NegativeQuantityException {
+    public CartItem(final int _itemStockId, final String name, final int stockQty, final int qty,
+            final BigDecimal price) throws InsufficientStockException, NegativeQuantityException {
         this._itemStockId = _itemStockId;
         this.name = name;
         this.qty = qty;
@@ -38,7 +38,7 @@ public class CartItem implements Cloneable {
         return _itemStockId;
     }
 
-    public void decreaseQty(int qty) throws NegativeQuantityException {
+    public void decreaseQty(final int qty) throws NegativeQuantityException {
         if (this.qty == 0 || this.qty - qty < 0) {
             throw new NegativeQuantityException(
                     String.format("Quantity of %s cannot exceed below 0, but %s was requested.", name, this.qty - qty));
@@ -60,7 +60,7 @@ public class CartItem implements Cloneable {
         return price.multiply(new BigDecimal(String.format("%s", qty)));
     }
 
-    public void increaseQty(int qty) throws InsufficientStockException {
+    public void increaseQty(final int qty) throws InsufficientStockException {
         if (this.qty == Integer.MAX_VALUE || this.qty + qty > Integer.MAX_VALUE) {
             return;
         }
@@ -106,7 +106,7 @@ public class CartItem implements Cloneable {
     protected CartItem clone() {
         try {
             return (CartItem) super.clone();
-        } catch (CloneNotSupportedException err) {
+        } catch (final CloneNotSupportedException err) {
             throw new AssertionError();
         }
     }

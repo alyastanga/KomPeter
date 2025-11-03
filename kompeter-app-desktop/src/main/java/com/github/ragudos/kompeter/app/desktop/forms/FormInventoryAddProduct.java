@@ -3,6 +3,7 @@ package com.github.ragudos.kompeter.app.desktop.forms;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -11,13 +12,12 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -61,6 +62,7 @@ import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 import com.github.ragudos.kompeter.app.desktop.utilities.Validator;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
+import com.github.ragudos.kompeter.database.dto.inventory.StorageLocationDto;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
@@ -135,20 +137,9 @@ public class FormInventoryAddProduct extends Form {
                     </html>
                     """, htmlString));
 
-            final JScrollPane scroller = new JScrollPane(textPane);
-
-            scroller.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                    "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-            scroller.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE,
-                    "" + "trackArc:$ScrollBar.thumbArc;" + "thumbInsets:0,0,0,0;" + "width:9;");
-            scroller.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-            scroller.getVerticalScrollBar().setUnitIncrement(16);
-            scroller.getHorizontalScrollBar().setUnitIncrement(16);
-            scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            final JScrollPane scroller = ScrollerFactory.createScrollPane(textPane);
 
             setLayout(new MigLayout("insets 0", "[grow, center, fill]", "[grow, center, fill]"));
-
             add(scroller, "grow");
         }
     }
@@ -168,16 +159,82 @@ public class FormInventoryAddProduct extends Form {
     private class ThirdStepForm extends JPanel {
         JSpinner priceSpinner;
         JSpinner minQtySpinner;
-        JLabel minQtyError;
-
-        private class QuantityPanel extends JPanel {
-            public QuantityPanel() {
-                setBorder(BorderFactory.createTitledBorder("Quantities per location"));
-            }
-        }
+        QuantityPanel qtyPanel;
 
         public ThirdStepForm() {
             priceSpinner = new JSpinner(new SpinnerNumberModel(1.00, 1.00, Double.MAX_VALUE, 1.00));
+            minQtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
+            qtyPanel = new QuantityPanel();
+        }
+
+        public class QuantityPanel extends JPanel implements ActionListener {
+            private AtomicReference<StorageLocationDto[]> storageLocations;
+            private final JButton addLocationButton;
+            private JPanel container;
+            private final JLabel emptyLabel;
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+
+            }
+
+            public void populate() {
+                try {
+                    storageLocations.setRelease(Inventory.getInstance().getAllStorageLocations());
+
+                    SwingUtilities.invokeLater(() -> {
+                        container.removeAll();
+
+                        if (storageLocations.getAcquire().length == 0) {
+                            container.add(emptyLabel);
+                            container.repaint();
+                            container.revalidate();
+
+                            return;
+                        }
+                    });
+                } catch (final InventoryException e) {
+                    JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), e.getMessage(),
+                            "Failed to get storage locations", JOptionPane.ERROR_MESSAGE);
+                    LOGGER.severe(e.getMessage());
+                }
+            }
+
+            public QuantityPanel() {
+                setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, fill, left]"));
+
+                emptyLabel = new JLabel("No location selected");
+                addLocationButton = new JButton("Location",
+                        new SVGIconUIColor("plus.svg", 0.75f, "foreground.background"));
+
+                addLocationButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+                addLocationButton.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+
+                container.setLayout(new MigLayout("insets 0, flowx, wrap, gapy 1px", "[grow, fill, left]"));
+
+                container.add(emptyLabel);
+
+                add(container, "growx");
+                add(addLocationButton, "gapy 4px");
+            }
+        }
+    }
+
+    private void removeListenersRecursively(final Container container) {
+        for (final Component comp : container.getComponents()) {
+            if (comp instanceof final Container nested) {
+                removeListenersRecursively(nested);
+            }
+
+            if (comp instanceof final JCheckBox checkBox) {
+                for (final ItemListener l : checkBox.getItemListeners()) {
+                    checkBox.removeItemListener(l);
+                }
+            } else if (comp instanceof final JButton button) {
+                for (final ActionListener l : button.getActionListeners()) {
+                    button.removeActionListener(l);
+                }
+            }
         }
     }
 
@@ -209,184 +266,75 @@ public class FormInventoryAddProduct extends Form {
 
         void populateBrands() {
             try {
-                for (final ItemBrandDto brand : Inventory.getInstance().getAllItemBrandDtos()) {
-                    brands.addItem(brand);
-                }
+                final ItemBrandDto[] itemBrands = Inventory.getInstance().getAllItemBrandDtos();
+
+                SwingUtilities.invokeLater(() -> {
+                    final ItemBrandDto selected = (ItemBrandDto) brands.getSelectedItem();
+
+                    brands.removeAllItems();
+
+                    for (final ItemBrandDto brand : itemBrands) {
+                        brands.addItem(brand);
+
+                        if (selected.get_itemBrandId() == brand.get_itemBrandId()) {
+                            brands.setSelectedItem(selected);
+                        }
+                    }
+
+                });
             } catch (final InventoryException err) {
-                JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
-                        "Failed to get categories", JOptionPane.ERROR_MESSAGE);
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                            "Failed to get categories", JOptionPane.ERROR_MESSAGE);
+                });
             }
         }
 
-        class CategoryPanel extends JPanel implements ActionListener {
-            private final JPanel rowsPanel;
-            private final JButton addCategoryBtn;
-
-            private final AtomicReference<String[]> allCategories;
+        class CategoryPanel extends JPanel implements ItemListener {
+            private final AtomicReference<HashSet<String>> chosenCategories;
 
             @Override
-            public void actionPerformed(final ActionEvent e) {
-                final Object src = e.getSource();
+            public void itemStateChanged(final ItemEvent e) {
+                final JCheckBox checkBox = (JCheckBox) e.getItemSelectable();
 
-                if (src == addCategoryBtn) {
-                    addCategoryRow(null);
-                    return;
-                }
-
-                // Handle remove button click
-                if (src instanceof JButton) {
-                    for (final Component comp : rowsPanel.getComponents()) {
-                        if (comp instanceof final JPanel row) {
-                            for (final Component c : row.getComponents()) {
-                                if (c == src) {
-                                    rowsPanel.remove(row);
-                                    rowsPanel.revalidate();
-                                    rowsPanel.repaint();
-                                    return;
-                                }
-                            }
-                        }
+                switch (e.getStateChange()) {
+                    case ItemEvent.DESELECTED -> {
+                        chosenCategories.getAcquire().remove(checkBox.getName());
                     }
-                }
-
-                // Handle category selection change
-                if (src instanceof JComboBox) {
-                    // Optional: ensure categories are unique
-                    for (final Component comp : rowsPanel.getComponents()) {
-                        if (comp instanceof final JPanel row) {
-                            for (final Component c : row.getComponents()) {
-                                if (c instanceof final JComboBox<?> combo) {
-                                    combo.setEnabled(true);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (src instanceof JComboBox) {
-                    for (final Component comp : rowsPanel.getComponents()) {
-                        if (comp instanceof final JPanel row) {
-                            for (final Component c : row.getComponents()) {
-                                if (c instanceof final JComboBox<?> combo && combo != src) {
-                                    final String selected = combo.getSelectedItem() != null
-                                            ? combo.getSelectedItem().toString()
-                                            : null;
-                                    if (selected != null) {
-                                        combo.setSelectedItem(selected);
-                                    }
-                                }
-                            }
-                        }
+                    case ItemEvent.SELECTED -> {
+                        chosenCategories.getAcquire().add(checkBox.getName());
                     }
                 }
             }
 
             void populate() {
                 try {
-                    allCategories.set(Inventory.getInstance().getAllItemCategories());
+                    removeListenersRecursively(this);
+                    removeAll();
+
+                    for (final String category : Inventory.getInstance().getAllItemCategories()) {
+                        final JCheckBox checkBox = new JCheckBox(category);
+
+                        checkBox.setName(category);
+                        checkBox.addItemListener(this);
+
+                        add(checkBox);
+                    }
+
+                    repaint();
+                    revalidate();
                 } catch (final InventoryException err) {
                     JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
                             "Failed to get categories", JOptionPane.ERROR_MESSAGE);
                 }
             }
 
-            public void removeListeners() {
-                addCategoryBtn.removeActionListener(this);
-
-                for (final Component comp : rowsPanel.getComponents()) {
-                    if (comp instanceof final JPanel row) {
-                        for (final Component c : row.getComponents()) {
-                            if (c instanceof final JButton btn) {
-                                btn.removeActionListener(this);
-                            } else if (c instanceof final JComboBox<?> combo) {
-                                combo.removeActionListener(this);
-                            }
-                        }
-                    }
-                }
-            }
-
             public CategoryPanel() {
-                allCategories = new AtomicReference<>();
+                chosenCategories = new AtomicReference<>(new HashSet<>());
 
                 setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, left]"));
-
-                rowsPanel = new JPanel(new MigLayout("insets 4, gap 4, wrap 1", "[grow, fill]"));
-                final JScrollPane scrollPane = ScrollerFactory.createScrollPane(rowsPanel);
-                addCategoryBtn = new JButton("Category",
-                        new SVGIconUIColor("plus.svg", 0.5f, "foreground.background"));
-
-                addCategoryBtn.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
-                addCategoryBtn.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-
-                add(scrollPane, "growx");
-                add(addCategoryBtn, "align left");
-
-                addCategoryBtn.addActionListener(this);
-            }
-
-            void addCategoryRow(final String preselected) {
-                final List<String> available = getAvailableCategories();
-
-                if (available.isEmpty() && preselected == null) {
-                    return;
-                }
-
-                final JComboBox<String> combo = new JComboBox<>(available.toArray(new String[0]));
-
-                if (preselected != null) {
-                    combo.setSelectedItem(preselected);
-                }
-
-                final JButton removeBtn = new JButton(new SVGIconUIColor("x.svg", 0.5f, "foreground.muted"));
-                final JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[grow, fill][30!]"));
-
-                removeBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-
-                row.add(combo);
-                row.add(removeBtn);
-                rowsPanel.add(row, "growx, wrap");
-                rowsPanel.repaint();
-                rowsPanel.revalidate();
-
-                removeBtn.addActionListener(this);
-                combo.addActionListener(this);
-            }
-
-            List<String> getAvailableCategories() {
-                final Set<String> chosen = getChosenCategories();
-                final List<String> available = new ArrayList<String>();
-
-                for (final String cat : allCategories.getAcquire()) {
-                    if (!chosen.contains(cat)) {
-                        available.add(cat);
-                    }
-                }
-
-                return available;
-            }
-
-            Set<String> getChosenCategories() {
-                final Set<String> chosen = new HashSet<String>();
-
-                for (final Component comp : rowsPanel.getComponents()) {
-                    if (comp instanceof final JPanel row) {
-                        for (final Component c : row.getComponents()) {
-                            if (c instanceof final JComboBox<?> combo) {
-                                final Object val = combo.getSelectedItem();
-
-                                if (val != null) {
-                                    chosen.add(val.toString());
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return chosen;
             }
         }
-
     }
 
     private void createHeader() {
@@ -507,6 +455,7 @@ public class FormInventoryAddProduct extends Form {
         new Thread(() -> {
             secondStepForm.populateBrands();
             secondStepForm.categoryPanel.populate();
+            thirdStepForm.qtyPanel.populate();
         }, "Load data for FormInventoryAddProduct").start();
     }
 
@@ -565,7 +514,7 @@ public class FormInventoryAddProduct extends Form {
 
         leftPanel.add(progressBar, "growx, wrap");
         leftPanel.add(slidePane, "grow, wrap, gapy 10px");
-        leftPanel.add(leftPanelButtonsContainer, "growx, gapy 8px");
+        leftPanel.add(leftPanelButtonsContainer, "growx, gapy 42px");
         leftPanelWrapper.add(leftPanel, "grow");
 
         bodyPane.add(scroller);
@@ -608,7 +557,7 @@ public class FormInventoryAddProduct extends Form {
             leftPanelButtonsContainer.remove(backButton);
 
             slidePane.addSlide(firstStepForm,
-                    SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_OUT),
+                    SlidePaneTransition.create(SlidePaneTransition.Type.BACK),
                     new SliderCallback() {
 
                         @Override
@@ -663,7 +612,7 @@ public class FormInventoryAddProduct extends Form {
             leftPanelButtonsContainer.add(backButton, 0);
 
             slidePane.addSlide(secondStepForm,
-                    SlidePaneTransition.create(SlidePaneTransition.Type.ZOOM_IN),
+                    SlidePaneTransition.create(SlidePaneTransition.Type.FORWARD),
                     new SliderCallback() {
 
                         @Override
@@ -743,10 +692,10 @@ public class FormInventoryAddProduct extends Form {
             final int stepSpacing = (w - margin * 2) / (totalSteps - 1);
             final int circleSize = UIScale.scale(18);
             final int stroke = UIScale.scale(6);
-            final Color lineColor = UIManager.getColor("Component.borderColor");
-            final Color progressColor = UIManager.getColor("Component.accentColor");
+            final Color lineColor = UIManager.getColor("color.lightBlue");
+            final Color progressColor = UIManager.getColor("color.darkBlue");
             final int filledX = margin + stepSpacing * (currentStep.get() - 1);
-            final Font font = getFont().deriveFont(Font.BOLD, UIScale.scale(13f));
+            final Font font = getFont().deriveFont(Font.BOLD, UIScale.scale(12f));
 
             if (progressColor == null) {
             }

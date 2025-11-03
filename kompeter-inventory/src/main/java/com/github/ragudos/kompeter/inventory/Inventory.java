@@ -24,9 +24,11 @@ import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
+import com.github.ragudos.kompeter.database.dao.inventory.StorageLocationDao;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
+import com.github.ragudos.kompeter.database.dto.inventory.StorageLocationDto;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public final class Inventory {
@@ -57,7 +59,7 @@ public final class Inventory {
         final ItemBrandDao brandDao = factoryDao.getItemBrandDao();
 
         try (Connection conn = factoryDao.getConnection()) {
-            return brandDao.getAllBrands().toArray(ItemBrandDto[]::new);
+            return brandDao.getAllBrands(conn);
         } catch (SQLException | IOException err) {
             throw new InventoryException("Failed to get brands", err);
         }
@@ -68,7 +70,8 @@ public final class Inventory {
         final ItemBrandDao brandDao = factoryDao.getItemBrandDao();
 
         try (Connection conn = factoryDao.getConnection()) {
-            return brandDao.getAllBrands().stream().map((item) -> item.name()).toArray(String[]::new);
+            return Arrays.stream(brandDao.getAllBrands(conn)).map((final ItemBrandDto item) -> item.getName())
+                    .toArray(String[]::new);
         } catch (SQLException | IOException err) {
             throw new InventoryException("Failed to get brands", err);
         }
@@ -78,10 +81,21 @@ public final class Inventory {
         final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
         final ItemCategoryDao categoryDao = factoryDao.getItemCategoryDao();
 
-        try (Connection conn = factoryDao.getConnection()) {
+        try {
             return categoryDao.getAllCategories().stream().map((item) -> item.name()).toArray(String[]::new);
         } catch (SQLException | IOException err) {
             throw new InventoryException("Failed to get brands", err);
+        }
+    }
+
+    public StorageLocationDto[] getAllStorageLocations() throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final StorageLocationDao storageLocationDao = factoryDao.getStorageLocationDao();
+
+        try (Connection conn = factoryDao.getConnection()) {
+            return storageLocationDao.getAllStorageLocations(conn);
+        } catch (SQLException | IOException err) {
+            throw new InventoryException("Failed to get storage locations", err);
         }
     }
 

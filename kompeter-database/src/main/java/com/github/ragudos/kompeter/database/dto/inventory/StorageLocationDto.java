@@ -11,9 +11,14 @@ import java.sql.Timestamp;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Peter M. Dela Cruz
- */
-public record StorageLocationDto(int _storageLocationId, @NotNull Timestamp _createdAt, String name,
-        String description) {
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class StorageLocationDto {
+    private @NotNull Timestamp _createdAt;
+    private int _storageLocationId;
+    private String description;
+    private @NotNull String name;
 }
