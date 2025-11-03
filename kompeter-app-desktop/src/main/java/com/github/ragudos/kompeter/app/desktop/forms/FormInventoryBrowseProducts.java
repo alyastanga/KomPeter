@@ -241,11 +241,11 @@ public class FormInventoryBrowseProducts extends Form {
 
     public class ProductsTable extends JTable {
         public static final int COL_NAME = 0;
-        public static final int COL_PRICE = 1;
-        public static final int COL_STATUS = 3;
-        public static final int COL_STOCK_QTY = 2;
-        public static final int COL_ID = 4;
-        public static final int COL_BRAND = 5;
+        public static final int COL_BRAND = 1;
+        public static final int COL_PRICE = 2;
+        public static final int COL_STOCK_QTY = 3;
+        public static final int COL_STATUS = 4;
+        public static final int COL_ID = 5;
 
         private final ProductsTableMouseAdapter mouseListener;
 
@@ -305,8 +305,9 @@ public class FormInventoryBrowseProducts extends Form {
             columnModel.getColumn(COL_STATUS).setCellRenderer(new ItemStatusText());
 
             columnModel.getColumn(COL_NAME).setPreferredWidth(800);
-            columnModel.getColumn(COL_PRICE).setPreferredWidth(96);
-            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(142);
+            columnModel.getColumn(COL_BRAND).setPreferredWidth(115);
+            columnModel.getColumn(COL_PRICE).setPreferredWidth(100);
+            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(150);
             columnModel.getColumn(COL_STATUS).setPreferredWidth(82);
 
             columnModel.removeColumn(columnModel.getColumn(COL_ID));
@@ -642,9 +643,10 @@ public class FormInventoryBrowseProducts extends Form {
 
             for (final InventoryMetadataDto item : productListData.getAcquire().getItemsAtCurrentPage()) {
                 model.addRow(new Object[] { new LabelWithImage.LabelWithImageData(item.displayImage(), item.itemName()),
+                        item.brand(),
                         item.unitPricePhp(), new ItemStockQtyPercentageBarData(item._itemStockId(),
                                 item.totalQuantity(), item.minimumQuantity(), "unit/s", item.itemStockLocations()),
-                        item.status(), item._itemStockId(), item.brand() });
+                        item.status(), item._itemStockId() });
             }
 
             productsTableControlFooter.rerender();
@@ -666,6 +668,7 @@ public class FormInventoryBrowseProducts extends Form {
                 // class types for comparison
                 return switch (columnIndex) {
                     case COL_NAME -> String.class;
+                    case COL_BRAND -> String.class;
                     case COL_PRICE -> BigDecimal.class;
                     case COL_STOCK_QTY -> Integer.class;
                     case COL_STATUS -> Integer.class;
@@ -683,6 +686,11 @@ public class FormInventoryBrowseProducts extends Form {
             public Comparator<?> getComparator(final int column) {
                 return switch (column) {
                     case COL_NAME -> Comparator.comparing(LabelWithImageData::label);
+                    case COL_BRAND -> new Comparator<String>() {
+                        public int compare(final String arg0, final String arg1) {
+                            return arg0.compareTo(arg1);
+                        };
+                    };
                     case COL_PRICE -> new Comparator<BigDecimal>() {
                         public int compare(final BigDecimal arg0, final BigDecimal arg1) {
                             return arg0.compareTo(arg1);
