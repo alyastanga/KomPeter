@@ -304,10 +304,10 @@ public class FormInventoryBrowseProducts extends Form {
             columnModel.getColumn(COL_STOCK_QTY).setCellRenderer(new PercentageBar());
             columnModel.getColumn(COL_STATUS).setCellRenderer(new ItemStatusText());
 
-            columnModel.getColumn(COL_NAME).setPreferredWidth(800);
-            columnModel.getColumn(COL_BRAND).setPreferredWidth(115);
-            columnModel.getColumn(COL_PRICE).setPreferredWidth(100);
-            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(150);
+            columnModel.getColumn(COL_NAME).setPreferredWidth(750);
+            columnModel.getColumn(COL_BRAND).setPreferredWidth(105);
+            columnModel.getColumn(COL_PRICE).setPreferredWidth(120);
+            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(175);
             columnModel.getColumn(COL_STATUS).setPreferredWidth(82);
 
             columnModel.removeColumn(columnModel.getColumn(COL_ID));
@@ -383,7 +383,7 @@ public class FormInventoryBrowseProducts extends Form {
                                 </head>
                                 <body>
                                     <h3>Quantity breakdown for %s</h3>
-                                    <h6>Minimum Quantity %s</h6>
+                                    <h4>Minimum Quantity %s</h4>
                                     <ul>%s</ul>
                                 </body>
                                 </html>
@@ -461,6 +461,7 @@ public class FormInventoryBrowseProducts extends Form {
         private class AddStockDialog extends JDialog implements ActionListener {
             private final JSpinner qtySpinner;
             private final JComboBox<ItemStockStorageLocationDto> comboBox;
+            private final JLabel comboBoxError;
 
             public AddStockDialog(final Window owner) {
                 super(owner, "Add stock", Dialog.ModalityType.APPLICATION_MODAL);
@@ -484,8 +485,10 @@ public class FormInventoryBrowseProducts extends Form {
 
                 final JLabel locationLabel = new JLabel("Storage location");
                 comboBox = new JComboBox<>(data.locations());
+                comboBoxError = new JLabel();
 
                 comboBox.setRenderer(new ItemStockStorageLocationRenderer());
+                comboBox.setSelectedIndex(-1);
 
                 confirmButton.setToolTipText("Add the specified amount of quantity to stock");
                 cancelButton.setToolTipText("Cancel adding stock");
@@ -518,6 +521,16 @@ public class FormInventoryBrowseProducts extends Form {
             public void actionPerformed(final ActionEvent e) {
                 if (e.getActionCommand().equals("confirm")) {
                     try {
+                        if (comboBox.getSelectedItem() == null) {
+                            comboBox.putClientProperty("JComponent.outline", "error");
+                            comboBoxError.setText("Please choose a location.");
+
+                            return;
+                        }
+
+                        comboBox.putClientProperty("JComponent.outline", null);
+                        comboBoxError.setText("");
+
                         final int id = getIdOfSelectedItem();
                         final ItemStockQtyPercentageBarData qty = getQuantityOfSelectedItem();
                         final int selectedRow = convertRowIndexToModel(getSelectedRow());
@@ -943,6 +956,9 @@ public class FormInventoryBrowseProducts extends Form {
                     "foreground:$TextField.placeholderForeground;font:10;");
             rowsPerPageSpinner.putClientProperty(FlatClientProperties.STYLE, "arc:0;");
 
+            rowsPerPageSpinner.setToolTipText("Change the visible amount of rows per table page.");
+
+            rowsPerPageSpinner.putClientProperty(FlatClientProperties.STYLE, "font:10;");
             rowsPerPageSpinner.addChangeListener(this);
 
             add(leftLabel);

@@ -19,6 +19,7 @@ module kompeter.app.desktop {
     requires org.apache.commons.text;
     requires static org.jetbrains.annotations;
     requires org.commonmark;
+    requires lombok;
     requires modal.dialog;
 
     exports com.github.ragudos.kompeter.app.desktop;

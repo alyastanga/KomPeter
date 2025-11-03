@@ -44,7 +44,7 @@ public class SqliteStorageLocationDao implements StorageLocationDao {
     @Override
     public int insertStorageLocation(final String setString, final String description)
             throws SQLException, IOException {
-        final var query = SqliteQueryLoader.getInstance().get("insert_storage_location", "items",
+        final var query = SqliteQueryLoader.getInstance().get("insert_storage_location", "storage_locations",
                 AbstractSqlQueryLoader.SqlQueryType.INSERT);
         try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query,
                 Statement.RETURN_GENERATED_KEYS);) {

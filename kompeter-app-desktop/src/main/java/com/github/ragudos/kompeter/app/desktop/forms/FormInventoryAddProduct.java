@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -15,20 +16,26 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -41,6 +48,7 @@ import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultCaret;
 
@@ -54,18 +62,23 @@ import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.ImageChooser;
 import com.github.ragudos.kompeter.app.desktop.components.combobox.ItemBrandRenderer;
+import com.github.ragudos.kompeter.app.desktop.components.combobox.StorageLocationRenderer;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
+import com.github.ragudos.kompeter.app.desktop.components.jspinner.CurrencySpinner;
 import com.github.ragudos.kompeter.app.desktop.components.scroller.ScrollerFactory;
 import com.github.ragudos.kompeter.app.desktop.components.textpanes.TextAreaWithLimit;
+import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
+import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 import com.github.ragudos.kompeter.app.desktop.utilities.Validator;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
-import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.StorageLocationDto;
 import com.github.ragudos.kompeter.inventory.Inventory;
 import com.github.ragudos.kompeter.inventory.InventoryException;
+import com.github.ragudos.kompeter.inventory.QuantityMetadata;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
+import com.github.ragudos.kompeter.utilities.StringUtils;
 import com.github.ragudos.kompeter.utilities.constants.StringLimits;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
@@ -146,53 +159,236 @@ public class FormInventoryAddProduct extends Form {
 
     private class FourthStepForm extends JPanel {
         ImageChooser productImageChooser;
-        JComboBox<ItemStatus> statusBox;
+        JButton clearBtn;
 
-        public FourthStepForm() {
-            productImageChooser = new ImageChooser();
-            statusBox = new JComboBox<>();
+        public void reset() {
+            productImageChooser.clear();
+        }
+
+        public void populate() {
+            if (productImageChooser.initialized()) {
+                return;
+            }
 
             productImageChooser.initialize();
+        }
+
+        public FourthStepForm() {
+            setLayout(new MigLayout("insets 0, flowx", "[grow, fill, left]"));
+
+            clearBtn = new JButton("Clear", new SVGIconUIColor("circle-x.svg", 0.75f, "foreground.background"));
+            final JLabel imageLabel = new JLabel("Product Image ");
+            final JLabel resName = new JLabel(new SVGIconUIColor("image-file.svg", 0.5f, "Label.disabledForeground"));
+            productImageChooser = new ImageChooser(() -> {
+                SwingUtilities.invokeLater(() -> {
+                    resName.setText(productImageChooser.chosenImageFile() == null ? ""
+                            : productImageChooser.chosenImageFile().getAbsolutePath());
+
+                    if (productImageChooser.chosenImageFile() != null) {
+                        add(resName, "gapy 1px, wrap", 1);
+                    } else {
+                        remove(resName);
+                    }
+
+                    leftPanel.repaint();
+                    leftPanel.revalidate();
+                });
+            });
+
+            clearBtn.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+            clearBtn.putClientProperty(FlatClientProperties.STYLE, "font:10;");
+
+            resName.setHorizontalAlignment(JLabel.LEFT);
+            resName.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;font:9;");
+
+            final JPanel buttonContainer = new JPanel(new MigLayout("insets 0"));
+            buttonContainer.add(clearBtn);
+
+            add(imageLabel, "growx, wrap, gapy 12px");
+            add(productImageChooser.imageLabel(), "growx, wrap, gapy 2px");
+            add(productImageChooser.chosenImage(), "growx, wrap, gapy 4px");
+            add(buttonContainer, "gapy 6px");
+
+            clearBtn.addActionListener((e) -> {
+                productImageChooser.clear();
+            });
         }
     }
 
     private class ThirdStepForm extends JPanel {
-        JSpinner priceSpinner;
+        CurrencySpinner priceSpinner;
         JSpinner minQtySpinner;
         QuantityPanel qtyPanel;
 
+        public void reset() {
+            priceSpinner.setValue(new BigDecimal("0.00"));
+            minQtySpinner.setValue(0);
+            qtyPanel.reset();
+        }
+
         public ThirdStepForm() {
-            priceSpinner = new JSpinner(new SpinnerNumberModel(1.00, 1.00, Double.MAX_VALUE, 1.00));
+            setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, fill, left]"));
+
+            priceSpinner = new CurrencySpinner();
             minQtySpinner = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
             qtyPanel = new QuantityPanel();
+
+            final JLabel priceLabel = new JLabel("Product Price (Php)");
+            final JLabel minQtyLabel = new JLabel("Minimum Quantity");
+            final JLabel qtyLabel = new JLabel("Initial Quantity");
+
+            priceSpinner.setToolTipText("Set the price of the product");
+            minQtySpinner.setToolTipText("Set the min quantity of the product");
+            qtyPanel.setToolTipText("Set the initial quantities of the product");
+
+            add(priceLabel, "growx, gapy 12px");
+            add(priceSpinner, "growx, gapy 2px");
+            add(minQtyLabel, "growx, gapy 4px");
+            add(minQtySpinner, "growx, gapy 2px");
+            add(qtyLabel, "growx");
+            add(qtyPanel, "growx");
         }
 
         public class QuantityPanel extends JPanel implements ActionListener {
-            private AtomicReference<StorageLocationDto[]> storageLocations;
-            private final JButton addLocationButton;
-            private JPanel container;
-            private final JLabel emptyLabel;
+            AtomicReference<StorageLocationDto[]> storageLocations;
+            AtomicReference<ArrayList<StorageLocationDto>> selectedStorageLocations;
+            AtomicReference<ArrayList<RowPanel>> rows;
+            final JButton addLocationButton;
+            JPanel container;
+            final JLabel emptyLabel;
+
+            public void reset() {
+                for (final RowPanel acquire : rows.getAcquire()) {
+                    removeRow(acquire);
+                }
+            }
+
+            private void updateAllComboBoxes() {
+                final ArrayList<StorageLocationDto> selected = new ArrayList<>();
+
+                for (final RowPanel row : rows.getAcquire()) {
+                    final StorageLocationDto item = (StorageLocationDto) row.locationComboBox.getSelectedItem();
+                    if (item != null) {
+                        selected.add(item);
+                    }
+                }
+
+                selectedStorageLocations.setRelease(selected);
+
+                for (final RowPanel row : rows.getAcquire()) {
+                    row.populate();
+                }
+            }
+
+            private void removeRow(final RowPanel row) {
+                rows.getAcquire().remove(row);
+                container.remove(row);
+                updateAllComboBoxes();
+
+                if (rows.getAcquire().isEmpty()) {
+                    container.add(emptyLabel);
+                }
+                qtyPanel.repaint();
+                qtyPanel.revalidate();
+            }
+
+            private class RowPanel extends JPanel implements ItemListener, ActionListener {
+                JSpinner qtySpinner;
+                final JComboBox<StorageLocationDto> locationComboBox;
+                private final JButton removeButton;
+                private final AtomicBoolean updating;
+
+                public QuantityMetadata getData() {
+                    return QuantityMetadata.builder().qty((Integer) qtySpinner.getValue())
+                            .storageLocation((StorageLocationDto) locationComboBox.getSelectedItem()).build();
+                }
+
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    removeRow(this);
+                }
+
+                public RowPanel() {
+                    setLayout(new MigLayout("insets 0, flowx, gapx 1", "[grow, fill]", "[grow, top]"));
+                    updating = new AtomicBoolean(false);
+                    removeButton = new JButton(new SVGIconUIColor("x.svg", 0.5f, "foreground.background"));
+                    qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+                    locationComboBox = new JComboBox<>();
+
+                    locationComboBox.putClientProperty(FlatClientProperties.STYLE, "font: 9;");
+                    qtySpinner.putClientProperty(FlatClientProperties.STYLE, "font: 9;");
+                    removeButton.putClientProperty(FlatClientProperties.STYLE, "font: 9;");
+                    removeButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+
+                    locationComboBox.setRenderer(new StorageLocationRenderer());
+                    locationComboBox.addItemListener(this);
+
+                    add(locationComboBox, "growx, wrap");
+                    add(qtySpinner, "growx, growy, gapy 1px, split 2");
+                    add(removeButton, "growy, gapx 1px");
+
+                    removeButton.addActionListener(this);
+                }
+
+                @Override
+                public void itemStateChanged(final ItemEvent e) {
+                    if (updating.getAcquire()) {
+                        return;
+                    }
+
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        updateAllComboBoxes();
+                    }
+                }
+
+                public void populate() {
+                    final StorageLocationDto curr = (StorageLocationDto) locationComboBox.getSelectedItem();
+
+                    updating.setRelease(true);
+                    locationComboBox.removeAllItems();
+
+                    for (final StorageLocationDto dto : storageLocations.getAcquire()) {
+                        if (!selectedStorageLocations.getAcquire().contains(dto) || dto.equals(curr)) {
+                            locationComboBox.addItem(dto);
+                        }
+                    }
+
+                    if (curr != null) {
+                        locationComboBox.setSelectedItem(curr);
+                    }
+
+                    updating.setRelease(false);
+                }
+            }
 
             @Override
             public void actionPerformed(final ActionEvent e) {
+                if (selectedStorageLocations.getAcquire().size() == storageLocations.getAcquire().length) {
+                    JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                            "All available storage locations have already been selected.", "",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
+                addRow();
+            }
+
+            void addRow() {
+                final RowPanel row = new RowPanel();
+
+                rows.getAcquire().add(row);
+                container.add(row);
+                row.populate();
+
+                updateAllComboBoxes();
+                container.remove(emptyLabel);
+                qtyPanel.repaint();
+                qtyPanel.revalidate();
             }
 
             public void populate() {
                 try {
                     storageLocations.setRelease(Inventory.getInstance().getAllStorageLocations());
-
-                    SwingUtilities.invokeLater(() -> {
-                        container.removeAll();
-
-                        if (storageLocations.getAcquire().length == 0) {
-                            container.add(emptyLabel);
-                            container.repaint();
-                            container.revalidate();
-
-                            return;
-                        }
-                    });
                 } catch (final InventoryException e) {
                     JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), e.getMessage(),
                             "Failed to get storage locations", JOptionPane.ERROR_MESSAGE);
@@ -201,21 +397,38 @@ public class FormInventoryAddProduct extends Form {
             }
 
             public QuantityPanel() {
-                setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, fill, left]"));
+                setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, left, fill]"));
 
+                rows = new AtomicReference<>(new ArrayList<>());
+                storageLocations = new AtomicReference<>();
+                selectedStorageLocations = new AtomicReference<>(new ArrayList<>());
                 emptyLabel = new JLabel("No location selected");
                 addLocationButton = new JButton("Location",
                         new SVGIconUIColor("plus.svg", 0.75f, "foreground.background"));
+                container = new JPanel();
+                final JScrollPane scroller = ScrollerFactory.createScrollPane(container);
 
+                scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+                scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+                addLocationButton.setToolTipText("Add initial product quantity based on storage location.");
+
+                emptyLabel.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;");
                 addLocationButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
-                addLocationButton.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+                addLocationButton.putClientProperty(FlatClientProperties.STYLE, "font:10;");
+                addLocationButton.setIconTextGap(16);
 
-                container.setLayout(new MigLayout("insets 0, flowx, wrap, gapy 1px", "[grow, fill, left]"));
-
+                container.setLayout(new ResponsiveLayout(JustifyContent.FIT_CONTENT, new Dimension(-1, -1), 9, 9));
                 container.add(emptyLabel);
 
-                add(container, "growx");
-                add(addLocationButton, "gapy 4px");
+                final JPanel buttonContainer = new JPanel(new MigLayout("insets 0"));
+
+                buttonContainer.add(addLocationButton);
+
+                add(scroller, "growx, gapy 2px");
+                add(buttonContainer, "align left, gapy 4px");
+
+                addLocationButton.addActionListener(this);
             }
         }
     }
@@ -226,13 +439,24 @@ public class FormInventoryAddProduct extends Form {
                 removeListenersRecursively(nested);
             }
 
-            if (comp instanceof final JCheckBox checkBox) {
-                for (final ItemListener l : checkBox.getItemListeners()) {
-                    checkBox.removeItemListener(l);
+            switch (comp) {
+                case final JCheckBox checkBox -> {
+                    for (final ItemListener l : checkBox.getItemListeners()) {
+                        checkBox.removeItemListener(l);
+                    }
                 }
-            } else if (comp instanceof final JButton button) {
-                for (final ActionListener l : button.getActionListeners()) {
-                    button.removeActionListener(l);
+                case final JButton button -> {
+                    for (final ActionListener l : button.getActionListeners()) {
+                        button.removeActionListener(l);
+                    }
+                }
+                case final JComboBox<?> cb -> {
+                    for (final ItemListener l : cb.getItemListeners()) {
+                        cb.removeItemListener(l);
+                    }
+                }
+                case final ImageChooser ic -> ic.destroy();
+                case null, default -> {
                 }
             }
         }
@@ -242,26 +466,72 @@ public class FormInventoryAddProduct extends Form {
         JComboBox<ItemBrandDto> brands;
         JLabel brandError;
         CategoryPanel categoryPanel;
+        JLabel categoryError;
+
+        public void reset() {
+            clearErrors();
+            brands.setSelectedIndex(-1);
+            categoryPanel.reset();
+        }
+
+        public void clearErrors() {
+            brandError.setText("");
+            brands.putClientProperty("JComponent.outline", null);
+            categoryPanel.setBorder(null);
+            categoryError.setText("");
+        }
+
+        public boolean validateFields() {
+            boolean ok = true;
+
+            if (brands.getSelectedIndex() == -1) {
+                brands.putClientProperty("JComponent.outline", "error");
+                brandError.setText("A brand is required");
+
+                ok = false;
+            }
+
+            if (categoryPanel.chosenCategories.getAcquire().isEmpty()) {
+                categoryError.setText("Please select at least one category.");
+
+                final FlatRoundBorder b = new FlatRoundBorder();
+
+                b.applyStyleProperty("outline", "error");
+
+                categoryPanel.setBorder(b);
+
+                ok = false;
+            }
+
+            return ok;
+        }
 
         public SecondStepForm() {
-            setLayout(new MigLayout("insets 0, wrap, flowx", "[grow, center, fill]"));
+            setLayout(new MigLayout("insets 0, wrap, flowx", "[grow, left]"));
 
             final JLabel brandLabel = new JLabel("Product Brand*");
             brandError = new JLabel();
             brands = new JComboBox<>();
             categoryPanel = new CategoryPanel();
+
             final JLabel categoryLabel = new JLabel(HtmlUtils.wrapInHtml("Product Categories (at least one)*"));
+            categoryError = new JLabel();
 
             brands.setRenderer(new ItemBrandRenderer());
             brandError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
             brandError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+            categoryError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+            categoryError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
 
-            add(brandLabel, "growx");
+            brands.setToolTipText("Select a brand for this product.");
+
+            add(brandLabel, "growx,gapy 12px");
             add(brands, "growx, gapy 2px");
-            add(brandError, "growx, gapy 1px");
+            add(brandError, "growx, gapy");
 
             add(categoryLabel, "growx, gapy 4px");
             add(categoryPanel, "growx, gapy 2px");
+            add(categoryError, "growx, gapy");
         }
 
         void populateBrands() {
@@ -276,9 +546,13 @@ public class FormInventoryAddProduct extends Form {
                     for (final ItemBrandDto brand : itemBrands) {
                         brands.addItem(brand);
 
-                        if (selected.get_itemBrandId() == brand.get_itemBrandId()) {
+                        if (selected != null && selected.get_itemBrandId() == brand.get_itemBrandId()) {
                             brands.setSelectedItem(selected);
                         }
+                    }
+
+                    if (selected == null) {
+                        brands.setSelectedIndex(-1);
                     }
 
                 });
@@ -307,25 +581,48 @@ public class FormInventoryAddProduct extends Form {
                 }
             }
 
+            public void reset() {
+                for (final Component c : getComponents()) {
+                    if (c instanceof final JCheckBox jcb) {
+                        jcb.setSelected(false);
+                    }
+                }
+            }
+
             void populate() {
                 try {
-                    removeListenersRecursively(this);
-                    removeAll();
+                    final String[] categories = Inventory.getInstance().getAllItemCategories();
 
-                    for (final String category : Inventory.getInstance().getAllItemCategories()) {
-                        final JCheckBox checkBox = new JCheckBox(category);
+                    SwingUtilities.invokeLater(() -> {
+                        removeListenersRecursively(this);
+                        removeAll();
 
-                        checkBox.setName(category);
-                        checkBox.addItemListener(this);
+                        final HashSet<String> chosenSet = chosenCategories.getAcquire();
 
-                        add(checkBox);
-                    }
+                        for (final String category : categories) {
+                            final JCheckBox checkBox = new JCheckBox(category);
 
-                    repaint();
-                    revalidate();
+                            if (chosenSet.contains(category)) {
+                                checkBox.setSelected(true);
+                            }
+
+                            checkBox.setToolTipText(String.format(
+                                    "<html><body>This product will be in the category <strong>%s</strong></body></html>",
+                                    category));
+                            checkBox.setName(category);
+                            checkBox.addItemListener(this);
+
+                            add(checkBox);
+                        }
+
+                        repaint();
+                        revalidate();
+                    });
                 } catch (final InventoryException err) {
-                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
-                            "Failed to get categories", JOptionPane.ERROR_MESSAGE);
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
+                                "Failed to get categories", JOptionPane.ERROR_MESSAGE);
+                    });
                 }
             }
 
@@ -355,6 +652,15 @@ public class FormInventoryAddProduct extends Form {
         JLabel nameError;
         JTextArea descriptionTextField;
         JLabel descriptionError;
+
+        public void reset() {
+            nameTextField.setText("");
+            nameError.setText("");
+            descriptionTextField.setText("");
+            descriptionError.setText("");
+            nameTextField.putClientProperty("JComponent.outline", null);
+            descriptionTextField.putClientProperty("JComponent.outline", null);
+        }
 
         public boolean validateFields() {
             boolean ok = true;
@@ -409,7 +715,6 @@ public class FormInventoryAddProduct extends Form {
 
         public FirstStepForm() {
             setLayout(new MigLayout("insets 0, wrap, flowx", "[grow, center, fill]"));
-
             final JLabel nameLabel = new JLabel("Product Name*");
             nameTextField = new JTextField();
             nameError = new JLabel("");
@@ -417,6 +722,9 @@ public class FormInventoryAddProduct extends Form {
             final JLabel descriptionLabel = new JLabel("Product Description");
             descriptionTextField = new TextAreaWithLimit(StringLimits.PRODUCT_DESCRIPTION.max());
             descriptionError = new JLabel();
+
+            nameTextField.setToolTipText("The name of the product. Must be unique.");
+            descriptionTextField.setToolTipText("The description of the product.");
 
             descriptionTextField.setRows(5);
             descriptionTextField.setBorder(new FlatRoundBorder());
@@ -431,7 +739,7 @@ public class FormInventoryAddProduct extends Form {
             nameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
             descriptionError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
 
-            add(nameLabel, "wrap");
+            add(nameLabel, "growx, wrap, gapy 12px");
             add(nameTextField, "growx, wrap, gapy 2px");
             add(nameError, "gapy 1px, wrap");
 
@@ -456,6 +764,7 @@ public class FormInventoryAddProduct extends Form {
             secondStepForm.populateBrands();
             secondStepForm.categoryPanel.populate();
             thirdStepForm.qtyPanel.populate();
+            fourthStepForm.populate();
         }, "Load data for FormInventoryAddProduct").start();
     }
 
@@ -474,7 +783,30 @@ public class FormInventoryAddProduct extends Form {
 
     @Override
     public boolean formBeforeLogout() {
-        return super.formBeforeLogout();
+        if (progressBar.currentStep() == 1 && firstStepForm.nameTextField.getText().isEmpty()
+                && firstStepForm.descriptionTextField.getText().isEmpty()) {
+            return true;
+        }
+
+        final int res = JOptionPane.showConfirmDialog(KompeterDesktopApp.getRootFrame(),
+                "Adding a product in progress. Are you sure you want to sign out?", "Sign Out",
+                JOptionPane.YES_NO_OPTION);
+
+        switch (res) {
+            case JOptionPane.YES_OPTION: {
+                removeListenersRecursively(this);
+                firstStepForm.reset();
+                secondStepForm.reset();
+                thirdStepForm.reset();
+                fourthStepForm.reset();
+                return true;
+            }
+            case JOptionPane.NO_OPTION: {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void init() {
@@ -492,7 +824,7 @@ public class FormInventoryAddProduct extends Form {
         rightPanel = new RightPanel();
         nextIcon = new SVGIconUIColor("move-right.svg", 0.75f, "foreground.primary");
         backIcon = new SVGIconUIColor("move-left.svg", 0.75f, "foreground.muted");
-        submitIcon = new SVGIconUIColor("check.svg", 0.75f, "foreground.primary");
+        submitIcon = new SVGIconUIColor("circle-check.svg", 0.75f, "foreground.primary");
         nextConfirmButton = new JButton("Continue", nextIcon);
         backButton = new JButton("Back", backIcon);
         progressBar = new StepProgressBar(4);
@@ -500,6 +832,9 @@ public class FormInventoryAddProduct extends Form {
 
         setLayout(new MigLayout("insets 0 4 0 4, flowx, wrap", "[grow, center, fill]", "[top][grow, top, fill]"));
         createHeader();
+
+        nextConfirmButton.setToolTipText("Go to next step or finalize creating this product.");
+        backButton.setToolTipText("Go back to previous step");
 
         nextConfirmButton.setIconTextGap(16);
         nextConfirmButton.setHorizontalTextPosition(SwingConstants.LEFT);
@@ -513,8 +848,8 @@ public class FormInventoryAddProduct extends Form {
         leftPanelButtonsContainer.add(nextConfirmButton, "cell 1 0");
 
         leftPanel.add(progressBar, "growx, wrap");
-        leftPanel.add(slidePane, "grow, wrap, gapy 10px");
-        leftPanel.add(leftPanelButtonsContainer, "growx, gapy 42px");
+        leftPanel.add(slidePane, "grow, wrap, gapy 8px");
+        leftPanel.add(leftPanelButtonsContainer, "growx, gapy 24px");
         leftPanelWrapper.add(leftPanel, "grow");
 
         bodyPane.add(scroller);
@@ -523,7 +858,7 @@ public class FormInventoryAddProduct extends Form {
         add(headerPanel, "growx");
         add(bodyPane, "gapy 16px, grow");
 
-        bodyPane.setResizeWeight(0.4);
+        bodyPane.setResizeWeight(0.35);
         bodyPane.setContinuousLayout(true);
         bodyPane.setOneTouchExpandable(true);
 
@@ -555,6 +890,7 @@ public class FormInventoryAddProduct extends Form {
             isBusy.set(true);
 
             leftPanelButtonsContainer.remove(backButton);
+            progressBar.setCurrentStep(1);
 
             slidePane.addSlide(firstStepForm,
                     SlidePaneTransition.create(SlidePaneTransition.Type.BACK),
@@ -562,18 +898,44 @@ public class FormInventoryAddProduct extends Form {
 
                         @Override
                         public void complete() {
-                            progressBar.currentStep.setRelease(1);
-                            progressBar.repaint();
                             isBusy.set(false);
-                            nextConfirmButton.setEnabled(true);
                         }
                     });
         }
 
         private void thirdStep() {
+            isBusy.set(true);
+
+            progressBar.setCurrentStep(2);
+            secondStepForm.repaint();
+            secondStepForm.revalidate();
+
+            slidePane.addSlide(secondStepForm,
+                    SlidePaneTransition.create(SlidePaneTransition.Type.BACK),
+                    new SliderCallback() {
+
+                        @Override
+                        public void complete() {
+                            isBusy.set(false);
+                        }
+                    });
         }
 
         private void fourthStep() {
+            isBusy.set(true);
+            progressBar.setCurrentStep(3);
+
+            slidePane.addSlide(thirdStepForm,
+                    SlidePaneTransition.create(SlidePaneTransition.Type.BACK),
+                    new SliderCallback() {
+
+                        @Override
+                        public void complete() {
+                            isBusy.set(false);
+                            nextConfirmButton.setText("Continue");
+                            nextConfirmButton.setIcon(nextIcon);
+                        }
+                    });
         }
     }
 
@@ -611,26 +973,223 @@ public class FormInventoryAddProduct extends Form {
 
             leftPanelButtonsContainer.add(backButton, 0);
 
+            progressBar.setCurrentStep(2);
+
             slidePane.addSlide(secondStepForm,
                     SlidePaneTransition.create(SlidePaneTransition.Type.FORWARD),
                     new SliderCallback() {
 
                         @Override
                         public void complete() {
-                            progressBar.currentStep.setRelease(2);
-                            progressBar.repaint();
                             isBusy.set(false);
                         }
                     });
         }
 
         private void secondStep() {
+            secondStepForm.clearErrors();
+
+            if (!secondStepForm.validateFields()) {
+                return;
+            }
+
+            isBusy.set(true);
+            progressBar.setCurrentStep(3);
+
+            slidePane.addSlide(thirdStepForm,
+                    SlidePaneTransition.create(SlidePaneTransition.Type.FORWARD),
+                    new SliderCallback() {
+
+                        @Override
+                        public void complete() {
+                            isBusy.set(false);
+                        }
+                    });
         }
 
         private void thirdStep() {
+            isBusy.set(true);
+            progressBar.setCurrentStep(4);
+
+            slidePane.addSlide(fourthStepForm,
+                    SlidePaneTransition.create(SlidePaneTransition.Type.FORWARD),
+                    new SliderCallback() {
+
+                        @Override
+                        public void complete() {
+                            isBusy.set(false);
+                            nextConfirmButton.setText("Add Product");
+                            nextConfirmButton.setIcon(submitIcon);
+                        }
+                    });
         }
 
         private void fourthStep() {
+            isBusy.set(true);
+
+            final String name = firstStepForm.nameTextField.getText();
+            final String description = firstStepForm.descriptionTextField.getText();
+            final ItemBrandDto chosenBrand = (ItemBrandDto) secondStepForm.brands.getSelectedItem();
+            final String[] chosenCategories = secondStepForm.categoryPanel.chosenCategories.getAcquire()
+                    .toArray(String[]::new);
+            final BigDecimal price = (BigDecimal) thirdStepForm.priceSpinner.getValue();
+            final Integer minQty = (Integer) thirdStepForm.minQtySpinner.getValue();
+            final QuantityMetadata[] qty = thirdStepForm.qtyPanel.rows.getAcquire().stream().map((row) -> {
+                return row.getData();
+            }).toArray(QuantityMetadata[]::new);
+
+            new ConfirmProductAdditionDialog(name, description, chosenBrand, chosenCategories, price, minQty, qty,
+                    fourthStepForm.productImageChooser.chosenImageFile())
+                    .setVisible(true);
+        }
+    }
+
+    private class ConfirmProductAdditionDialog extends JDialog implements ActionListener {
+        JButton confirmBtn;
+        JButton cancelBtn;
+
+        private void beforeDispose() {
+            confirmBtn.removeActionListener(this);
+            cancelBtn.removeActionListener(this);
+        }
+
+        public ConfirmProductAdditionDialog(
+                final String name,
+                final String description,
+                final ItemBrandDto chosenBrand,
+                final String[] chosenCategories,
+                final BigDecimal price,
+                final Integer minQty,
+                final QuantityMetadata[] qty,
+                final File chosenImage) {
+            super(KompeterDesktopApp.getRootFrame(), "Confirm Product Addition", Dialog.ModalityType.APPLICATION_MODAL);
+
+            setLayout(new MigLayout("insets 12, flowx, wrap", "[grow, fill, left]"));
+
+            final JLabel title = new JLabel(HtmlUtils.wrapInHtml("Adding a new item"));
+            final JLabel subtitle = new JLabel(
+                    HtmlUtils.wrapInHtml("<p>Please make sure all information below are correct</p>"));
+
+            title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
+            subtitle.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;");
+
+            final JPanel container = new JPanel(new MigLayout("insets 0, flowx, wrap", "[grow, left]"));
+            final JScrollPane scroller = ScrollerFactory.createScrollPane(container);
+
+            final JLabel n = new JLabel(HtmlUtils.wrapInHtml(String.format("<p><b>Name: </b><br>%s</p>", name)));
+            final JLabel dL = new JLabel(HtmlUtils.wrapInHtml("<b>Description: </b>"));
+            final JTextArea d = new JTextArea();
+
+            d.setWrapStyleWord(true);
+            d.setLineWrap(true);
+            d.setCaret(new DefaultCaret() {
+                @Override
+                public void paint(final Graphics g) {
+                }
+            });
+            d.putClientProperty(FlatClientProperties.STYLE, "background:null;");
+            d.setText(description);
+
+            final JLabel b = new JLabel(
+                    HtmlUtils.wrapInHtml(String.format("<p><b>Brand: </b><br>%s</p>", chosenBrand.getName())));
+            final JLabel cL = new JLabel(HtmlUtils.wrapInHtml("<b>Categories: </b>"));
+            final JTextPane c = new JTextPane();
+            c.setContentType("text/html");
+            c.setText(String.format("""
+                    <html>
+                    <head>
+                        <style>
+                            ul {
+                                margin-left: 4px;
+                                padding: 0;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <ul>%s</ul>
+                    </body>
+                    </html>
+                    """, Arrays.stream(chosenCategories).map((cc) -> String.format("<li>%s</li>", cc))
+                    .collect(Collectors.joining("\n"))));
+            c.putClientProperty(FlatClientProperties.STYLE, "background:null;");
+
+            final JLabel p = new JLabel(
+                    HtmlUtils.wrapInHtml(String.format("<b>Price: </b><br>%s", StringUtils.formatBigDecimal(price))));
+            final JLabel mq = new JLabel(
+                    HtmlUtils.wrapInHtml(String.format("<b>Minimum Quantity: </b><br>%s", minQty)));
+            final JLabel qL = new JLabel(HtmlUtils.wrapInHtml("<b>Quantities: </b>"));
+            final JTextPane q = new JTextPane();
+            q.setContentType("text/html");
+            q.setText(String.format("""
+                    <html>
+                    <head>
+                        <style>
+                            ul {
+                                margin-left: 4px;
+                                padding: 0;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <ul>%s</ul>
+                    </body>
+                    </html>
+                    """,
+                    Arrays.stream(qty)
+                            .map((qq) -> String.format("<li>%s - %s item/s</li>", qq.getStorageLocation().getName(),
+                                    qq.getQty()))
+                            .collect(Collectors.joining("\n"))));
+            q.putClientProperty(FlatClientProperties.STYLE, "background:null;");
+            final JLabel ci = new JLabel(
+                    HtmlUtils.wrapInHtml(String.format("<b>Chosen Image: </b><br>%s",
+                            chosenImage == null ? "No Image" : chosenImage.getAbsolutePath())));
+
+            confirmBtn = new JButton("Add Product",
+                    new SVGIconUIColor("circle-check.svg", 0.75f, "foreground.primary"));
+            cancelBtn = new JButton("Cancel", new SVGIconUIColor("circle-x.svg", 0.75f, "foreground.muted"));
+
+            confirmBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+            cancelBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
+
+            add(title, "growx, wrap");
+            add(subtitle, "growx, wrap");
+            add(scroller, "growx, wrap, gapy 8px");
+
+            container.add(n, "wrap, gapy 8px");
+            container.add(dL, "wrap, gapy 2px");
+            container.add(d, "wrap, gapy 1px");
+            container.add(b, "wrap, gapy 2px");
+            container.add(cL, "wrap, gapy 2px");
+            container.add(c, "wrap, gapy 1px");
+            container.add(p, "wrap, gapy 2px");
+            container.add(mq, "wrap, gapy 2px");
+            container.add(qL, "wrap, gapy 2px");
+            container.add(q, "wrap, gapy 1px");
+            container.add(ci, "wrap, gapy 2px");
+
+            add(cancelBtn, "split 2, gapy 16px");
+            add(confirmBtn, "gapx 4px");
+
+            pack();
+            setLocationRelativeTo(KompeterDesktopApp.getRootFrame());
+
+            confirmBtn.setActionCommand("confirm");
+            cancelBtn.setActionCommand("cancel");
+
+            confirmBtn.addActionListener(this);
+            cancelBtn.addActionListener(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            if (e.getActionCommand().equals("confirm")) {
+
+                beforeDispose();
+                dispose();
+            } else if (e.getActionCommand().equals("cancel")) {
+                beforeDispose();
+                dispose();
+            }
         }
     }
 
@@ -664,18 +1223,46 @@ public class FormInventoryAddProduct extends Form {
     private class StepProgressBar extends JComponent {
         private final int totalSteps;
         private final AtomicInteger currentStep;
+        private final int animationDelay = 10;
+        private final float animationSpeed = 0.1f;
+        private Timer animationTimer;
+        private float displayedStep;
 
         public StepProgressBar(final int totalSteps) {
             this.totalSteps = totalSteps;
             currentStep = new AtomicInteger(1);
+            displayedStep = 1f;
 
             setPreferredSize(new Dimension(getPreferredSize().width, 36));
+
+            setupTimer();
+        }
+
+        private void setupTimer() {
+            animationTimer = new Timer(animationDelay, (final ActionEvent e) -> {
+                final float target = currentStep.getAcquire();
+
+                if (Math.abs(displayedStep - target) < 0.01f) {
+                    displayedStep = (float) target;
+                    animationTimer.stop();
+                } else {
+                    displayedStep += (target - displayedStep) * animationSpeed;
+                }
+
+                repaint();
+            });
         }
 
         public void setCurrentStep(final int step) {
-            currentStep.setRelease(step);
+            if (step < 1 || step > totalSteps) {
+                return;
+            }
 
-            repaint();
+            currentStep.set(step);
+
+            if (!animationTimer.isRunning()) {
+                animationTimer.start();
+            }
         }
 
         public int currentStep() {
@@ -688,13 +1275,16 @@ public class FormInventoryAddProduct extends Form {
             final int w = getWidth();
             final int h = getHeight();
             final int barY = h / 2;
-            final int margin = UIScale.scale(28);
+            final int margin = UIScale.scale(10);
             final int stepSpacing = (w - margin * 2) / (totalSteps - 1);
             final int circleSize = UIScale.scale(18);
             final int stroke = UIScale.scale(6);
-            final Color lineColor = UIManager.getColor("color.lightBlue");
-            final Color progressColor = UIManager.getColor("color.darkBlue");
-            final int filledX = margin + stepSpacing * (currentStep.get() - 1);
+            final Color lineColor = UIManager.getColor("color.stepProgressRemaining");
+            final Color progressColor = UIManager.getColor("color.stepProgressCompleted");
+            final Color progressCircleColor = UIManager.getColor("color.stepProgressCurrentCircle");
+            final Color progressForeground = UIManager.getColor("foreground.stepProgressCurrentCircle");
+            final Color lineForeground = UIManager.getColor("foreground.stepProgressCircle");
+            final int filledX = margin + (int) ((displayedStep - 1) * stepSpacing);
             final Font font = getFont().deriveFont(Font.BOLD, UIScale.scale(12f));
 
             if (progressColor == null) {
@@ -702,6 +1292,7 @@ public class FormInventoryAddProduct extends Form {
 
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setStroke(new BasicStroke(stroke, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.setColor(lineColor);
             g2.drawLine(margin, barY, w - margin, barY);
 
             g2.setColor(progressColor);
@@ -716,16 +1307,16 @@ public class FormInventoryAddProduct extends Form {
                 final int x = cx - circleSize / 2;
                 final int y = barY - circleSize / 2;
 
-                final boolean active = i <= currentStep();
+                final boolean active = i <= displayedStep;
 
-                g2.setColor(active ? progressColor : lineColor);
+                g2.setColor(active ? progressCircleColor : lineColor);
                 g2.fillOval(x, y, circleSize, circleSize);
 
                 final String txt = String.valueOf(i);
                 final int tx = cx - fm.stringWidth(txt) / 2;
                 final int ty = y + (circleSize + fm.getAscent()) / 2 - 3;
 
-                g2.setColor(UIManager.getColor("Label.foreground"));
+                g2.setColor(active ? progressForeground : lineForeground);
                 g2.drawString(txt, tx, ty);
             }
 

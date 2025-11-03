@@ -7,7 +7,9 @@
 */
 package com.github.ragudos.kompeter.inventory;
 
+import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -52,6 +54,11 @@ public final class Inventory {
 
     private Inventory() {
         fuzzySimilarity = new JaroWinklerSimilarity();
+    }
+
+    public void addProduct(final String name, final String description, final ItemBrandDto chosenBrand,
+            final String[] chosenCategories, final BigDecimal price, final Integer minQty, final QuantityMetadata[] qty,
+            final File chosenImage) throws InventoryException {
     }
 
     public ItemBrandDto[] getAllItemBrandDtos() throws InventoryException {

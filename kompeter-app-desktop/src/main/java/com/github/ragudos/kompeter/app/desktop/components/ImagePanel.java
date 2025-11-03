@@ -54,6 +54,14 @@ public class ImagePanel extends JPanel {
     }
 
     public void setImage(final Image image) {
+        if (image == null) {
+            this.image = image;
+            setPreferredSize(null);
+            repaint();
+            revalidate();
+            return;
+        }
+
         this.image = makeTransparent(image);
         updatePreferredSize();
         repaint();

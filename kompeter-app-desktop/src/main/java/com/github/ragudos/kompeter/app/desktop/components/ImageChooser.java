@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TooManyListenersException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,10 +51,14 @@ public class ImageChooser extends JFileChooser {
     private FileNameExtensionFilter fileNameExtensionFilter;
     private ImageChooserDtdeListener imageChooserDtdeListener;
     private ImageChooserMouseListener imageChooserMouseListener;
-
     private JLabel imageLabel;
 
-    public ImageChooser() {
+    private AtomicBoolean initialized;
+
+    private Runnable listener;
+
+    public ImageChooser(final Runnable listener) {
+        this.listener = listener;
         final String imageDirectory = ApplicationConfig.getInstance().getConfig().getProperty("images.directory",
                 String.format("%s%sPictures", SystemInfo.USER_HOME, File.separator));
         final File imageDirectoryFile = new File(imageDirectory);
@@ -74,10 +79,9 @@ public class ImageChooser extends JFileChooser {
         chosenImage = new ImagePanel(null);
         imageLabel = new JLabel(HtmlUtils.wrapInHtml("<p align='center'>Drag & Drop product image"));
 
-        chosenImage.setMinimumSize(new Dimension(100, 100));
-        chosenImage.setScaleMode(ImagePanel.ScaleMode.CONTAIN);
+        chosenImage.setScaleMode(ImagePanel.ScaleMode.COVER);
 
-        imageLabel.setPreferredSize(new Dimension(400, 300));
+        imageLabel.setPreferredSize(new Dimension(200, 100));
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel
                 .setBorder(BorderFactory.createCompoundBorder(
@@ -87,6 +91,7 @@ public class ImageChooser extends JFileChooser {
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel.setVerticalAlignment(SwingConstants.CENTER);
         imageLabel.putClientProperty(FlatClientProperties.STYLE, "font: 11;");
+        initialized = new AtomicBoolean(false);
 
         dropTarget = new DropTarget(imageLabel, null);
     }
@@ -99,9 +104,16 @@ public class ImageChooser extends JFileChooser {
         return chosenImageFile;
     }
 
+    public void clear() {
+        chosenImage.setImage(null);
+        chosenImageFile = null;
+        listener.run();
+    }
+
     public void destroy() {
         dropTarget.removeDropTargetListener(imageChooserDtdeListener);
         imageLabel.removeMouseListener(imageChooserMouseListener);
+        initialized.set(false);
     }
 
     public JLabel imageLabel() {
@@ -113,9 +125,15 @@ public class ImageChooser extends JFileChooser {
 
         try {
             dropTarget.addDropTargetListener(imageChooserDtdeListener);
-        } catch (TooManyListenersException err) {
+        } catch (final TooManyListenersException err) {
             LOGGER.log(Level.SEVERE, err.getMessage(), err);
         }
+
+        initialized.set(true);
+    }
+
+    public boolean initialized() {
+        return initialized.get();
     }
 
     public void setAllowedImageExtensions(final FileNameExtensionFilter fileNameExtensionFilter) {
@@ -127,7 +145,7 @@ public class ImageChooser extends JFileChooser {
 
     private class ImageChooserDtdeListener extends DropTargetAdapter {
         @Override
-        public void drop(DropTargetDropEvent dtde) {
+        public void drop(final DropTargetDropEvent dtde) {
             try {
                 if ((dtde.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) == 0) {
                     dtde.rejectDrop();
@@ -158,6 +176,7 @@ public class ImageChooser extends JFileChooser {
                                 .anyMatch((s) -> file.getName().toLowerCase().endsWith(s))) {
                             chosenImageFile = file;
                             chosenImage.setImage(ImageIO.read(file));
+                            listener.run();
                         } else {
                             JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
                                     "Unsupported images. Only png and jpegs are allowed", "Invalid Extensions",
@@ -185,6 +204,7 @@ public class ImageChooser extends JFileChooser {
                 try {
                     chosenImageFile = sFile;
                     chosenImage.setImage(ImageIO.read(sFile));
+                    listener.run();
                 } catch (final IOException e1) {
                     JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), e1.getMessage(),
                             e1.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
