@@ -94,23 +94,20 @@ CREATE TABLE
     _item_id INTEGER,
     _item_category_id INTEGER,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,
-    FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id) ON DELETE CASCADE,
-    UNIQUE(_item_id, _item_category_id)
+    FOREIGN KEY (_item_id) REFERENCES items (_item_id),
+    FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id)
   );
 
 CREATE TABLE
   item_stocks (
     _item_stock_id INTEGER PRIMARY KEY AUTOINCREMENT,
     _item_id INTEGER NOT NULL,
-    _item_brand_id INTEGER,
+    _item_brand_id INTEGER NOT NULL,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status TEXT CHECK(status IN ('active', 'inactive', 'archived')) DEFAULT 'active',
     unit_price_php REAL NOT NULL,
     minimum_quantity INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY (_item_id) REFERENCES items (_item_id) ON DELETE CASCADE,
-    FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id) ON DELETE CASCADE,
-    UNIQUE(_item_id, _item_brand_id)
+    FOREIGN KEY (_item_id) REFERENCES items (_item_id),
+    FOREIGN KEY (_item_brand_id) REFERENCES item_brands (_item_brand_id)
   );
 
 CREATE TABLE
@@ -120,20 +117,75 @@ CREATE TABLE
         _storage_location_id INTEGER NOT NULL,
         _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         quantity INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE,
-    	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id) ON DELETE CASCADE,
-        UNIQUE(_item_stock_id, _storage_location_id)
+        FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id),
+    	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id)
 	);
     
 CREATE TABLE
   item_restocks (
     _item_restock_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _item_stock_storage_location_id INTEGER NOT NULL,
+    _item_stock_id INTEGER NOT NULL,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     quantity_before INTEGER NOT NULL,
     quantity_after INTEGER NOT NULL,
     quantity_added INTEGER NOT NULL,
-    FOREIGN KEY (_item_stock_storage_location_id) REFERENCES item_stock_storage_locations (_item_stock_storage_location_id) ON DELETE CASCADE
+    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
+  );
+  
+  
+
+CREATE TABLE
+  suppliers (
+    _supplier_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    name TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    street TEXT,
+    city TEXT,
+    state TEXT,
+    postal_code TEXT,
+    country TEXT
+  );
+
+CREATE TABLE
+  purchases (
+    _purchase_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    _supplier_id INTEGER NOT NULL,
+    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    purchase_date TIMESTAMP NOT NULL,
+    purchase_code TEXT NOT NULL UNIQUE,
+    delivery_date TIMESTAMP,
+    vat_percent REAL NOT NULL,
+    discount_value REAL,
+    discount_type TEXT CHECK (discount_type IN ('percentage', 'fixed')),
+    FOREIGN KEY (_supplier_id) REFERENCES suppliers (_supplier_id)
+  );
+
+CREATE TABLE
+  purchase_payments (
+    _purchase_payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    _purchase_id INTEGER NOT NULL,
+    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    payment_date TIMESTAMP NOT NULL,
+    reference_number TEXT,
+    payment_method TEXT NOT NULL CHECK (
+      payment_method IN ('cash', 'gcash', 'bank_transfer')
+    ),
+    amount_php REAL NOT NULL,
+    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id)
+  );
+
+CREATE TABLE
+  purchase_item_stocks (
+    _purchase_item_stock_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    _purchase_id INTEGER NOT NULL,
+    _item_stock_id INTEGER NOT NULL,
+    _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    quantity_ordered INTEGER NOT NULL,
+    quantity_received INTEGER NOT NULL,
+    unit_cost_php REAL NOT NULL,
+    FOREIGN KEY (_purchase_id) REFERENCES purchases (_purchase_id),
+    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
   );
 
 CREATE TABLE
@@ -156,10 +208,10 @@ CREATE TABLE
     payment_date TIMESTAMP NOT NULL,
     reference_number TEXT,
     payment_method TEXT NOT NULL CHECK (
-    payment_method IN ('cash', 'gcash', 'bank_transfer')
+      payment_method IN ('cash', 'gcash', 'bank_transfer')
     ),
     amount_php REAL NOT NULL,
-    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id) ON DELETE CASCADE
+    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id)
   );
 
 CREATE TABLE
@@ -170,8 +222,8 @@ CREATE TABLE
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     quantity INTEGER NOT NULL,
     unit_price_php REAL NOT NULL,
-    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id) ON DELETE CASCADE,
-    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id) ON DELETE CASCADE
+    FOREIGN KEY (_sale_id) REFERENCES sales (_sale_id),
+    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
   );
 
 CREATE TABLE IF NOT EXISTS audit_log (

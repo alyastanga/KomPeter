@@ -50,11 +50,13 @@ public class FormMonitoringSales extends Form {
 
         JPanel top10Panel = createTop10ChartPanel();
         JPanel revenuePanel = createRevenueChartPanel();
+        JPanel expensePanel = createExpenseChartPanel();
 
         JPanel chartsContainerPanel = new JPanel(new MigLayout("wrap 1, fillx, insets 0"));
 
         chartsContainerPanel.add(new CollapsibleChartPanel("Top 10 Selling Items", top10Panel), "growx");
         chartsContainerPanel.add(new CollapsibleChartPanel("Daily Revenue", revenuePanel), "growx");
+        chartsContainerPanel.add(new CollapsibleChartPanel("Daily Expenses", expensePanel), "growx");
 
         JScrollPane scrollPane = new JScrollPane(chartsContainerPanel);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -111,7 +113,32 @@ public class FormMonitoringSales extends Form {
 
         return new ChartPanel(timeChart);
     }
-   
+    
+    private JPanel createExpenseChartPanel() {
+        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
+        
+        List<ExpensesDto> data = salesService.getExpensesReport(from, to);
+
+        TimeSeries series = new TimeSeries("Daily Expenses");
+        
+        if (data.isEmpty()) {
+            series.add(new Day(), 0.0);
+        } else {
+            for (ExpensesDto expense : data) {
+                series.add(new Day(expense.date()), expense.totalExpenses());
+            }
+        }
+        
+        TimeSeriesCollection dataset = new TimeSeriesCollection(series);
+
+        JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
+                "Daily Expenses (Last 30 Days)", "Date", "Expenses (PHP)",
+                dataset, true, true, false
+        );
+
+        return new ChartPanel(timeChart);
+    }
     
     private class CollapsibleChartPanel extends JPanel implements ActionListener {
         private final JPanel contentPanel;
