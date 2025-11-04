@@ -19,13 +19,16 @@ import org.jetbrains.annotations.NotNull;
 
 import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemStockStorageLocationDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
 import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
+import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 
-// TODO: REDUCE INVENTORY STOCK AFTER A SALE
 public class Transaction {
     public static final BigDecimal VAT_RATE = new BigDecimal("0.12");
 
@@ -38,18 +41,44 @@ public class Transaction {
         final SaleDao saleDao = factoryDao.getSaleDao();
         final SalePaymentDao salePaymentDao = factoryDao.getSalePaymentDao();
         final SaleItemStockDao saleItemStockDao = factoryDao.getSaleItemStockDao();
+        final ItemStockStorageLocationDao itemStockStorageLocationDao = factoryDao.getItemStockStorageLocationDao();
+        final ItemStockDao itemStockDao = factoryDao.getItemStockDao();
         final Connection conn = factoryDao.getConnection();
 
         try {
             conn.setAutoCommit(false);
-
             final int _saleId = saleDao.createSale(conn, saleDate, saleCode, VAT_RATE, discountType, discountAmount);
 
             for (final CartItem item : cart.getAllItems()) {
                 saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(), item.price());
+
+                int totalRemaining = item.qty();
+                int totalLocQty = 0;
+                final ItemStockStorageLocationDto[] locations = itemStockStorageLocationDao.getAllData(conn);
+
+                for (final ItemStockStorageLocationDto loc : locations) {
+                    if (totalRemaining <= 0) {
+                        break;
+                    }
+
+                    if (loc.quantity() == 0) {
+                        continue;
+                    }
+
+                    final int available = loc.quantity();
+                    final int toTake = Math.min(totalRemaining, available);
+
+                    totalRemaining -= toTake;
+                    totalLocQty += loc.quantity();
+                    itemStockStorageLocationDao.updateItemStockQuantity(conn, loc.quantity() - toTake,
+                            loc._itemStockStorageLocationId());
+                }
+
+                if (totalLocQty == item.qty()) {
+                    itemStockDao.setItemStocksStatusByName(conn, item.name(), ItemStatus.INACTIVE);
+                }
             }
 
-            // TODO: accept reference number of other payment methods
             salePaymentDao.createPayment(conn, _saleId, paymentMethod,
                     (paymentMethod == PaymentMethod.CASH ? "" : PurchaseCodeGenerator.generateSecureHexToken()),
                     paymentAmount, saleDate);

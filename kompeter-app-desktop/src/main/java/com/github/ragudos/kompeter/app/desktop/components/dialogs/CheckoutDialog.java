@@ -143,7 +143,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         addDiscount.addActionListener(this);
         removeDiscount.addActionListener(this);
 
-        final JLabel customerNameLbl = new JLabel("Customer Name*");
+        final JLabel customerNameLbl = new JLabel("Customer Name");
         final JLabel paymentLabel = new JLabel("Payment Amount*");
 
         customerNameTextField = new JTextField();
@@ -185,7 +185,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
         final BigDecimal totalPrice = cart.totalPrice();
         final BigDecimal vatVal = totalPrice.multiply(Transaction.VAT_RATE);
-        totalVal = totalPrice.subtract(vatVal);
+        totalVal = totalPrice.add(vatVal);
         discountVal = new BigDecimal("0.00");
         discountedTotalVal = totalVal.subtract(discountVal);
         changeVal = new BigDecimal("0.00");
@@ -242,7 +242,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         }
 
         if (e.getActionCommand().equals("confirm")) {
-            if (changeVal.compareTo(BigDecimal.ZERO) < 1) {
+            if (((BigDecimal) paymentSpinner.getValue()).compareTo(discountedTotalVal) == -1) {
                 JOptionPane.showMessageDialog(this, "The provided payment amount is insufficient.",
                         "Insufficient Amount", JOptionPane.ERROR_MESSAGE);
 

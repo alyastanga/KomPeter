@@ -10,7 +10,6 @@ package com.github.ragudos.kompeter.database.dao.inventory;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 
@@ -18,9 +17,12 @@ import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocati
  * @author Peter M. Dela Cruz
  */
 public interface ItemStockStorageLocationDao {
-    List<ItemStockStorageLocationDto> getAllData(Connection conn) throws SQLException, IOException;
+    ItemStockStorageLocationDto[] getAllData(Connection conn) throws SQLException, IOException;
 
     int setItemStockStorageLocation(Connection conn, int itemStockId, int storageLocId, int qty)
+            throws SQLException, IOException;
+
+    int updateItemStockQuantity(Connection conn, int qtyAfter, int _itemStockStorageLocationId)
             throws SQLException, IOException;
 
     int updateItemStockQuantity(Connection conn, int qtyAfter, int itemStockId, int storageLocationId)

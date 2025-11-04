@@ -27,7 +27,7 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
  */
 public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocationDao {
     @Override
-    public List<ItemStockStorageLocationDto> getAllData(final Connection conn) throws SQLException, IOException {
+    public ItemStockStorageLocationDto[] getAllData(final Connection conn) throws SQLException, IOException {
         final List<ItemStockStorageLocationDto> listItemStockStorageLocation = new ArrayList<>();
         try (Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(SqliteQueryLoader.getInstance().get("select_all_issl", "items",
@@ -41,16 +41,15 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
                 listItemStockStorageLocation.add(issl);
             }
         }
-        return listItemStockStorageLocation;
+        return listItemStockStorageLocation.toArray(ItemStockStorageLocationDto[]::new);
     }
 
     @Override
     public int setItemStockStorageLocation(final Connection conn, final int itemStockId, final int storageLocId,
-            final int qty)
-            throws SQLException, IOException {
-        try (var stmt = new NamedPreparedStatement(conn, SqliteQueryLoader.getInstance()
-                .get("insert_item_stock_storage_location", "item_stock_storage_locations",
-                        AbstractSqlQueryLoader.SqlQueryType.INSERT),
+            final int qty) throws SQLException, IOException {
+        try (var stmt = new NamedPreparedStatement(conn,
+                SqliteQueryLoader.getInstance().get("insert_item_stock_storage_location",
+                        "item_stock_storage_locations", AbstractSqlQueryLoader.SqlQueryType.INSERT),
                 Statement.RETURN_GENERATED_KEYS);) {
             stmt.setInt("_item_stock_id", itemStockId);
             stmt.setInt("_storage_location_id", storageLocId);
@@ -63,11 +62,22 @@ public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocati
     }
 
     @Override
-    public int updateItemStockQuantity(final Connection conn, final int qtyAfter, final int itemStockId,
-            final int storageLocationId)
+    public int updateItemStockQuantity(final Connection conn, final int qtyAfter, final int _itemStockStorageLocationId)
             throws SQLException, IOException {
-        try (var stmt = new NamedPreparedStatement(conn,
-                SqliteQueryLoader.getInstance().get("update_item_stock_quantity", "items", SqlQueryType.UPDATE))) {
+        try (var stmt = new NamedPreparedStatement(conn, SqliteQueryLoader.getInstance().get("update_quantity_by_id",
+                "item_stock_storage_locations", SqlQueryType.UPDATE))) {
+            stmt.setInt("quantity", qtyAfter);
+            stmt.setInt("_item_stock_storage_location_id", _itemStockStorageLocationId);
+
+            return stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int updateItemStockQuantity(final Connection conn, final int qtyAfter, final int itemStockId,
+            final int storageLocationId) throws SQLException, IOException {
+        try (var stmt = new NamedPreparedStatement(conn, SqliteQueryLoader.getInstance().get("update_quantity",
+                "item_stock_storage_locations", SqlQueryType.UPDATE))) {
             stmt.setInt("quantity", qtyAfter);
             stmt.setInt("_item_stock_id", itemStockId);
             stmt.setInt("_storage_location_id", storageLocationId);

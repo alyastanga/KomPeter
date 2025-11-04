@@ -15,26 +15,31 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.ToString;
+
 /**
  * @author Peter M. Dela Cruz
  */
+@ToString
 public class ItemStockStorageLocationDto {
     Timestamp _createdAt;
     int _itemStockId;
     int _itemStockStorageLocationId;
     int _storageLocationId;
     String description;
+    boolean isInitialized;
     String name;
     int quantity;
-    boolean isInitialized;
 
     @JsonCreator
-    public ItemStockStorageLocationDto(@JsonProperty("_itemStockStorageLocationId") final int _itemStockStorageLocationId,
-            @JsonProperty("_itemStockId") final int _itemStockId, @JsonProperty("_storageLocationId") final int _storageLocationId,
+    public ItemStockStorageLocationDto(
+            @JsonProperty("_itemStockStorageLocationId") final int _itemStockStorageLocationId,
+            @JsonProperty("_itemStockId") final int _itemStockId,
+            @JsonProperty("_storageLocationId") final int _storageLocationId,
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss") @JsonProperty("_createdAt") @NotNull final Timestamp _createdAt,
-            @JsonProperty("name") @NotNull final String name, @JsonProperty("description") @NotNull final String description,
-            @JsonProperty("quantity") final int quantity,
-            @JsonProperty("isInitialized") final boolean isInitialized) {
+            @JsonProperty("name") @NotNull final String name,
+            @JsonProperty("description") @NotNull final String description,
+            @JsonProperty("quantity") final int quantity, @JsonProperty("isInitialized") final boolean isInitialized) {
         this._createdAt = _createdAt;
         this._itemStockId = _itemStockId;
         this._itemStockStorageLocationId = _itemStockStorageLocationId;
@@ -43,16 +48,6 @@ public class ItemStockStorageLocationDto {
         this.description = description;
         this.quantity = quantity;
         this.isInitialized = isInitialized;
-    }
-
-    /**
-     * 
-     * @return whether the item with _itemStockId already has this specific location
-     *         since we just get all storage locations and default to 0 if it's
-     *         non-existent yet.
-     */
-    public boolean isInitialized() {
-        return isInitialized;
     }
 
     public Timestamp _createdAt() {
@@ -73,6 +68,15 @@ public class ItemStockStorageLocationDto {
 
     public String description() {
         return description;
+    }
+
+    /**
+     * @return whether the item with _itemStockId already has this specific location
+     *         since we just get all storage locations and default to 0 if it's
+     *         non-existent yet.
+     */
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     public String name() {
