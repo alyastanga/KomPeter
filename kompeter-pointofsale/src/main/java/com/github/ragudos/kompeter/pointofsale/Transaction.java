@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,50 +22,49 @@ import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
 import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
+import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 
+// TODO: REDUCE INVENTORY STOCK AFTER A SALE
 public class Transaction {
-    public static final double VAT_RATE = 0.12;
+    public static final BigDecimal VAT_RATE = new BigDecimal("0.12");
 
-    public static void createTransaction(@NotNull ArrayList<CartItem> items, @NotNull PaymentMethod paymentMethod,
-            double cashTendered) throws Exception {
-        createTransaction(items, paymentMethod, cashTendered, Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
-                PurchaseCodeGenerator.generateSecureHexToken());
-    }
-
-    public static void createTransaction(@NotNull ArrayList<CartItem> items, @NotNull PaymentMethod paymentMethod,
-            double cashTendered, @NotNull Timestamp saleDate, @NotNull String saleCode) throws Exception {
-        AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
-
-        SaleDao saleDao = factoryDao.getSaleDao();
-        SalePaymentDao salePaymentDao = factoryDao.getSalePaymentDao();
-        SaleItemStockDao saleItemStockDao = factoryDao.getSaleItemStockDao();
-
-        Connection conn = factoryDao.getConnection();
+    public static int createTransaction(@NotNull final Cart cart, final String customerName,
+            @NotNull final BigDecimal paymentAmount, @NotNull final PaymentMethod paymentMethod,
+            @NotNull final DiscountType discountType, @NotNull final BigDecimal discountAmount) throws Exception {
+        final Timestamp saleDate = Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC));
+        final String saleCode = PurchaseCodeGenerator.generateSecureHexToken();
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final SaleDao saleDao = factoryDao.getSaleDao();
+        final SalePaymentDao salePaymentDao = factoryDao.getSalePaymentDao();
+        final SaleItemStockDao saleItemStockDao = factoryDao.getSaleItemStockDao();
+        final Connection conn = factoryDao.getConnection();
 
         try {
             conn.setAutoCommit(false);
 
-            int _saleId = saleDao.createSale(conn, saleDate, saleCode, new BigDecimal(VAT_RATE));
+            final int _saleId = saleDao.createSale(conn, saleDate, saleCode, VAT_RATE, discountType, discountAmount);
 
-            for (CartItem item : items) {
+            for (final CartItem item : cart.getAllItems()) {
                 saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(), item.price());
             }
 
             // TODO: accept reference number of other payment methods
             salePaymentDao.createPayment(conn, _saleId, paymentMethod,
                     (paymentMethod == PaymentMethod.CASH ? "" : PurchaseCodeGenerator.generateSecureHexToken()),
-                    new BigDecimal(cashTendered), saleDate);
+                    paymentAmount, saleDate);
 
             conn.commit();
+
+            return _saleId;
         } catch (SQLException | IOException err) {
             try {
                 conn.rollback();
-            } catch (SQLException err2) {
+            } catch (final SQLException err2) {
                 err.addSuppressed(err2);
             }
 
-            Exception exception = new Exception("Failed to process transaction!");
+            final Exception exception = new Exception("Failed to process transaction!");
 
             exception.addSuppressed(err);
 

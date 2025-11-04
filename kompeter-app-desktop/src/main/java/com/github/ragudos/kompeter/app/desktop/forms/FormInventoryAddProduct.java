@@ -243,9 +243,9 @@ public class FormInventoryAddProduct extends Form {
             qtyPanel.setToolTipText("Set the initial quantities of the product");
 
             add(priceLabel, "growx, gapy 12px");
-            add(priceSpinner, "growx, gapy 2px");
-            add(minQtyLabel, "growx, gapy 4px");
-            add(minQtySpinner, "growx, gapy 2px");
+            add(priceSpinner, "growx, gapy 4px");
+            add(minQtyLabel, "growx, gapy 6px");
+            add(minQtySpinner, "growx, gapy 4px");
             add(qtyLabel, "growx");
             add(qtyPanel, "growx");
         }
@@ -321,17 +321,17 @@ public class FormInventoryAddProduct extends Form {
                     qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
                     locationComboBox = new JComboBox<>();
 
-                    locationComboBox.putClientProperty(FlatClientProperties.STYLE, "font: 9;");
-                    qtySpinner.putClientProperty(FlatClientProperties.STYLE, "font: 9;");
-                    removeButton.putClientProperty(FlatClientProperties.STYLE, "font: 9;");
+                    locationComboBox.putClientProperty(FlatClientProperties.STYLE, "font: 10;");
+                    qtySpinner.putClientProperty(FlatClientProperties.STYLE, "font: 10;");
+                    removeButton.putClientProperty(FlatClientProperties.STYLE, "font: 10;");
                     removeButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
 
                     locationComboBox.setRenderer(new StorageLocationRenderer());
                     locationComboBox.addItemListener(this);
 
                     add(locationComboBox, "growx, wrap");
-                    add(qtySpinner, "growx, growy, gapy 1px, split 2");
-                    add(removeButton, "growy, gapx 1px");
+                    add(qtySpinner, "growx, growy, split 2");
+                    add(removeButton, "growy");
 
                     removeButton.addActionListener(this);
                 }
