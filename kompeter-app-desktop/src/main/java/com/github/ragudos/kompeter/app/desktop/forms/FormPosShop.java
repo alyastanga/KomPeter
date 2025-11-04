@@ -48,6 +48,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.assets.AssetLoader;
 import com.github.ragudos.kompeter.app.desktop.components.ImagePanel;
+import com.github.ragudos.kompeter.app.desktop.components.dialogs.CheckoutDialog;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
 import com.github.ragudos.kompeter.app.desktop.components.panels.LoadingPanel;
@@ -57,7 +58,6 @@ import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout;
 import com.github.ragudos.kompeter.app.desktop.layout.ResponsiveLayout.JustifyContent;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
-import com.github.ragudos.kompeter.configurations.ApplicationConfig;
 import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.inventory.Inventory;
@@ -74,7 +74,7 @@ import com.github.ragudos.kompeter.utilities.StringUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
 public class FormPosShop extends Form {
     private AtomicReference<Cart> cart;
     private JPanel cartButtonsContainer;
@@ -115,13 +115,13 @@ public class FormPosShop extends Form {
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION:
+            case JOptionPane.CANCEL_OPTION :
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION:
+            case JOptionPane.YES_OPTION :
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION:
+            case JOptionPane.NO_OPTION :
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -422,9 +422,8 @@ public class FormPosShop extends Form {
         cartTotalQuantityContainer.putClientProperty(FlatClientProperties.STYLE, "background: null;");
         cartMetadataContainer.putClientProperty(FlatClientProperties.STYLE, "background: null;");
 
-        cartMetadataContainer.setBorder(
-                BorderFactory.createCompoundBorder(BorderFactory.createDashedBorder(null),
-                        BorderFactory.createEmptyBorder(5, 0, 0, 0)));
+        cartMetadataContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createDashedBorder(null),
+                BorderFactory.createEmptyBorder(5, 0, 0, 0)));
 
         totalPriceTitle.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
         totalQuantityTitle.putClientProperty(FlatClientProperties.STYLE, "font: bold;");
@@ -561,13 +560,13 @@ public class FormPosShop extends Form {
     private void removeActionListeners(final JComponent component) {
         for (final Component c : component.getComponents()) {
             switch (c) {
-                case final JButton button:
+                case final JButton button :
                     Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
                     break;
-                case final JComponent co:
+                case final JComponent co :
                     removeActionListeners(co);
                     break;
-                default:
+                default :
             }
         }
     }
@@ -714,10 +713,10 @@ public class FormPosShop extends Form {
 
             SwingUtilities.invokeLater(() -> {
                 switch (cartEvent.eventType()) {
-                    case INCREASE_ITEM_QTY:
-                    case INCREMENT_ITEM:
-                    case DECREASE_ITEM_QTY:
-                    case DECREMENT_ITEM: {
+                    case INCREASE_ITEM_QTY :
+                    case INCREMENT_ITEM :
+                    case DECREASE_ITEM_QTY :
+                    case DECREMENT_ITEM : {
                         final JComponent parent = (JComponent) getComponent(cartPanel,
                                 String.format("_itemStockId:%s", cartItem._itemStockId()));
                         final JButton decrementButton = (JButton) getComponent(parent, "decrement");
@@ -725,8 +724,8 @@ public class FormPosShop extends Form {
                         final JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
 
                         switch (cartEvent.eventType()) {
-                            case INCREASE_ITEM_QTY:
-                            case INCREMENT_ITEM: {
+                            case INCREASE_ITEM_QTY :
+                            case INCREMENT_ITEM : {
                                 if (previousCartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("minus.svg", 0.5f, "foregorund.background"));
@@ -739,8 +738,8 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            case DECREASE_ITEM_QTY:
-                            case DECREMENT_ITEM: {
+                            case DECREASE_ITEM_QTY :
+                            case DECREMENT_ITEM : {
                                 if (cartItem.qty() <= 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
@@ -753,11 +752,11 @@ public class FormPosShop extends Form {
                                 updateCartTotals();
                             }
                                 break;
-                            default:
+                            default :
                         }
                     }
                         break;
-                    case REMOVE_ITEM: {
+                    case REMOVE_ITEM : {
                         if (acquiredCart.isEmpty()) {
                             buildRightPanelContent();
                         } else {
@@ -770,11 +769,11 @@ public class FormPosShop extends Form {
                         }
                     }
                         break;
-                    case CLEAR: {
+                    case CLEAR : {
                         buildRightPanelContent();
                     }
                         break;
-                    case ADD_ITEM: {
+                    case ADD_ITEM : {
                         if (acquiredCart.getAllItems().size() == 1) {
                             buildRightPanelContent();
                         } else {
@@ -795,23 +794,22 @@ public class FormPosShop extends Form {
 
         @Override
         public void actionPerformed(final ActionEvent e) {
-            if (ApplicationConfig.getInstance().getProperty("guard.checkout").equals("false")) {
-                checkout();
-            } else {
-                final int res = JOptionPane.showConfirmDialog(KompeterDesktopApp.getRootFrame(),
-                        "Are you sure you want to checkout the cart?", "Checkout", JOptionPane.YES_NO_OPTION);
+            final int res = JOptionPane.showConfirmDialog(KompeterDesktopApp.getRootFrame(),
+                    "Are you sure you want to checkout the cart?", "Checkout", JOptionPane.YES_NO_OPTION);
 
-                switch (res) {
-                    case JOptionPane.YES_OPTION:
-                        checkout();
-                        break;
-                }
+            switch (res) {
+                case JOptionPane.YES_OPTION :
+                    checkout();
+                    break;
             }
         }
 
         private void checkout() {
+            new CheckoutDialog(KompeterDesktopApp.getRootFrame(), cart.get(), () -> {
+                cart.get().clearCart();
+                formRefresh();
+            }).setVisible(true);;
         }
-
     }
 
     private class ClearCartActionListener implements ActionListener {
@@ -823,7 +821,7 @@ public class FormPosShop extends Form {
                     "Clear Cart", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION:
+                case JOptionPane.YES_OPTION :
                     cart.getAcquire().clearCart();
                     break;
             }

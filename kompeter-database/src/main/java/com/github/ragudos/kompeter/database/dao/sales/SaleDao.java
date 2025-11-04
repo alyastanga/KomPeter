@@ -7,25 +7,22 @@
 */
 package com.github.ragudos.kompeter.database.dao.sales;
 
-import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface SaleDao {
-    int saveTransaction(SaleDto sale) throws SQLException;
+import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
+import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
 
+public interface SaleDao {
     int createSale(@NotNull Connection conn, @NotNull Timestamp saleDate, @NotNull String saleCode,
-            BigDecimal vatPercent)
+            BigDecimal vatPercent, @NotNull DiscountType discountType, @NotNull BigDecimal discountValue)
             throws SQLException, IOException;
 
-    SaleDto getTransaction(int saleId) throws SQLException;
-
-    List<SaleDto> getAllTransaction() throws SQLException;
+    Optional<SaleDto> getTransaction(@NotNull Connection conn, int saleId) throws SQLException, IOException;
 }
