@@ -60,7 +60,8 @@ public final class Inventory {
         fuzzySimilarity = new JaroWinklerSimilarity();
     }
 
-    public void addProduct(final String name, final String description, final ItemBrandDto chosenBrand,
+    public void addProduct(final String name, final String description, 
+            final ItemBrandDto chosenBrand,
             final String[] chosenCategories, final BigDecimal price, final Integer minQty, final QuantityMetadata[] qty,
             final File chosenImage) throws InventoryException {
         final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
@@ -174,6 +175,7 @@ public final class Inventory {
 
         try (Connection conn = factoryDao.getConnection()) {
             final InventoryMetadataDto[] items = inventoryDao.getAllInventoryItems(conn);
+            
 
             return Arrays.stream(items).filter((item) -> {
                 final double similarity = nameFilter.isEmpty()
@@ -212,7 +214,7 @@ public final class Inventory {
             final InventoryMetadataDto[] itemsWithStockLocations = Arrays.stream(items).filter((item) -> {
                 final double similarity = nameFilter.isEmpty()
                         ? SEARCH_SIMILARITY_THRESHOLD
-                        : fuzzySimilarity.apply(item.itemName(), nameFilter);
+                        : fuzzySimilarity.apply(item.itemName().toLowerCase(), nameFilter.toLowerCase());
                 final boolean isInBrandScope = brandFilters != null
                         ? (brandFilters.length == 0 || item.isBrandOf(brandFilters))
                         : true;

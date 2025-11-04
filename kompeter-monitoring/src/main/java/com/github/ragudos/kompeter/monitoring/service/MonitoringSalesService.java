@@ -25,6 +25,7 @@ import com.github.ragudos.kompeter.database.migrations.Migrator;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteSalesDao;
 import com.github.ragudos.kompeter.database.sqlite.seeder.SqliteSeeder;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import java.util.Collections;
 
 /**
  * @author Hanz Mapua
@@ -32,59 +33,12 @@ import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 public class MonitoringSalesService {
 
     private static final Logger LOGGER = KompeterLogger.getLogger(MonitoringInventoryService.class);
-
-    public static void main(String[] args) throws IOException, SQLException {
-        AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
-
-        // initialize schema
-        Migrator migrator = factory.getMigrator();
-        try {
-            migrator.migrate();
-        } catch (Exception e) {
-
-        }
-
-        // initialize seeder
-        SqliteSeeder seeder = new SqliteSeeder();
-        try {
-            seeder.seed();
-        } catch (Exception e) {
-
-        }
-
-        MonitoringSalesService service = new MonitoringSalesService(new SqliteSalesDao());
-        // sample timestamp values
-        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
-        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-
-        System.out.println("REVENUE - FROM 10/14 TO 10/21");
-        service.printRevenueReport();
-        System.out.println("\n");
-
-        System.out.println("EXPENSES - FROM 10/14 TO 10/21");
-        service.printExpensesReport();
-        System.out.println("\n");
-
-        System.out.println("PROFIT - FROM 10/14 TO 10/21");
-        service.printProfitReport();
-        System.out.println("\n");
-
-        System.out.println("TOP 10 SELLING ITEMS");
-        service.printTop10SellingItemsReport(from, to);
-    }
-
     private final SqliteSalesDao salesDAO;
 
     public MonitoringSalesService(SqliteSalesDao salesDAO) {
         this.salesDAO = salesDAO;
     }
 
-    // 1️⃣ No date filter — calls DAO with both nulls
-    public void printExpensesReport() {
-        printExpensesReport((Timestamp) null, (Timestamp) null);
-    }
-
-    // 2️⃣ Single date + direction (FROM or TO)
     public void printExpensesReport(Timestamp date, FromTo fromTo) {
         try {
             List<ExpensesDto> results = salesDAO.getExpenses(date, fromTo);
@@ -95,30 +49,16 @@ public class MonitoringSalesService {
     }
 
     // 3️⃣ Date range
-    public void printExpensesReport(Timestamp from, Timestamp to) {
+    public List<ExpensesDto> getExpensesReport(Timestamp from, Timestamp to) {
         try {
-            List<ExpensesDto> results = salesDAO.getExpenses(from, to);
-            printResults(results);
+            return salesDAO.getExpenses(from, to);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching expenses sales report (range)", e);
+            // Return an empty list so the UI doesn't crash
+            return Collections.emptyList();
         }
     }
-
-    // 1️⃣ No date filter — calls DAO with both nulls
-    public void printProfitReport() {
-        printProfitReport((Timestamp) null, (Timestamp) null);
-    }
-
-    // 2️⃣ Single date + direction (FROM or TO)
-    public void printProfitReport(Timestamp date, FromTo fromTo) {
-        try {
-            List<ProfitDto> results = salesDAO.getProfit(date, fromTo);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching profit sales report (single-date)", e);
-        }
-    }
-
+    
     // 3️⃣ Date range
     public void printProfitReport(Timestamp from, Timestamp to) {
         try {
@@ -129,55 +69,28 @@ public class MonitoringSalesService {
         }
     }
 
-    // 1️⃣ No date filter — calls DAO with both nulls
-    public void printRevenueReport() {
-        printRevenueReport((Timestamp) null, (Timestamp) null);
-    }
-
-    // 2️⃣ Single date + direction (FROM or TO)
-    public void printRevenueReport(Timestamp date, FromTo fromTo) {
+   public List<RevenueDto> getRevenueReport(Timestamp from, Timestamp to) {
         try {
-            List<RevenueDto> results = salesDAO.getRevenue(date, fromTo);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (single-date)", e);
-        }
-    }
-
-    // 3️⃣ Date range
-    public void printRevenueReport(Timestamp from, Timestamp to) {
-        try {
-            List<RevenueDto> results = salesDAO.getRevenue(from, to);
-            printResults(results);
+            return salesDAO.getRevenue(from, to);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (range)", e);
+            return java.util.Collections.emptyList();
         }
-    }
-
-    // 1️⃣ No date filter — calls DAO with both nulls
-    public void printTop10SellingItemsReport() {
-        printTop10SellingItemsReport((Timestamp) null, (Timestamp) null);
     }
 
     // 2️⃣ Single date + direction (FROM or TO)
-    public void printTop10SellingItemsReport(Timestamp date, FromTo fromTo) {
+    public List<Top10SellingItemsDto> getTop10SellingItemsReport(Timestamp from, Timestamp to) {
         try {
-            List<Top10SellingItemsDto> results = salesDAO.getTop10SellingItems(date, fromTo);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching top 10 selling items sales report (single-date)", e);
-        }
-    }
-
-    // 3️⃣ Date range
-    public void printTop10SellingItemsReport(Timestamp from, Timestamp to) {
-        try {
-            List<Top10SellingItemsDto> results = salesDAO.getTop10SellingItems(from, to);
-            printResults(results);
+            // This is the same call your print method makes
+            return salesDAO.getTop10SellingItems(from, to);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching top 10 selling items sales report (range)", e);
+            // Return an empty list so the UI doesn't crash
+            return java.util.Collections.emptyList(); 
         }
     }
+    
+    
 
     // Shared printer logic
     private <T> void printResults(List<T> results) {

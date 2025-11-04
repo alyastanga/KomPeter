@@ -23,95 +23,38 @@ import com.github.ragudos.kompeter.database.migrations.Migrator;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteInventoryDao;
 import com.github.ragudos.kompeter.database.sqlite.seeder.SqliteSeeder;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
+import java.util.Collections;
 
 public class MonitoringInventoryService {
 
     private static final Logger LOGGER = KompeterLogger.getLogger(MonitoringInventoryService.class);
 
-    public static void main(String[] args) throws IOException, SQLException {
-        AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
-
-        // initialize schema
-        Migrator migrator = factory.getMigrator();
-        try {
-            migrator.migrate();
-        } catch (Exception e) {
-
-        }
-
-        // initialize seeder
-        SqliteSeeder seeder = new SqliteSeeder();
-        try {
-            seeder.seed();
-        } catch (Exception e) {
-
-        }
-        MonitoringInventoryService service = new MonitoringInventoryService(new SqliteInventoryDao());
-
-        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(14));
-        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-
-        service.printInventoryCountReport(from, to);
-        System.out.println("\n");
-        service.printInventoryValueReport(from, to);
-    }
-
+    
     private final SqliteInventoryDao inventoryDAO;
 
     public MonitoringInventoryService(SqliteInventoryDao inventoryDAO) {
         this.inventoryDAO = inventoryDAO;
     }
 
-    // 1️⃣ No date filter — calls DAO with both nulls
-    public void printInventoryCountReport() {
-        printInventoryCountReport((Timestamp) null, (Timestamp) null);
-    }
-
-    // 2️⃣ Single date + direction (FROM or TO)
-    public void printInventoryCountReport(Timestamp date, FromTo fromTo) {
+  public List<InventoryCountDto> getInventoryCountReport(Timestamp from, Timestamp to) {
         try {
-            List<InventoryCountDto> results = inventoryDAO.getInventoryCount(date, fromTo);
-            printResults(results);
+            return inventoryDAO.getInventoryCount(from, to);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching inventory report (single-date)", e);
-        }
-    }
-
-    // 3️⃣ Date range
-    public void printInventoryCountReport(Timestamp from, Timestamp to) {
-        try {
-            List<InventoryCountDto> results = inventoryDAO.getInventoryCount(from, to);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching inventory report (range)", e);
+            LOGGER.log(Level.SEVERE, "Error fetching inventory count report (range)", e);
+            return Collections.emptyList();
         }
     }
 
     // 1️⃣ No date filter — calls DAO with both nulls
-    public void printInventoryValueReport() {
-        printInventoryValueReport((Timestamp) null, (Timestamp) null);
-    }
-
-    // 2️⃣ Single date + direction (FROM or TO)
-    public void printInventoryValueReport(Timestamp date, FromTo fromTo) {
+    public List<InventoryValueDto> getInventoryValueReport(Timestamp from, Timestamp to) {
         try {
-            List<InventoryValueDto> results = inventoryDAO.getInventoryValue(date, fromTo);
-            printResults(results);
+            return inventoryDAO.getInventoryValue(from, to);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching inventory report (single-date)", e);
+            LOGGER.log(Level.SEVERE, "Error fetching inventory value report (range)", e);
+            return Collections.emptyList();
         }
     }
-
-    // 3️⃣ Date range
-    public void printInventoryValueReport(Timestamp from, Timestamp to) {
-        try {
-            List<InventoryValueDto> results = inventoryDAO.getInventoryValue(from, to);
-            printResults(results);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error fetching inventory report (range)", e);
-        }
-    }
-
+    
     // Shared printer logic
     private <T> void printResults(List<T> results) {
         if (results == null || results.isEmpty()) {
