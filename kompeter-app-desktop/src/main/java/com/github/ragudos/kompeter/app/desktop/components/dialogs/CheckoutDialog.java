@@ -27,11 +27,13 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -39,7 +41,9 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.jspinner.CurrencySpinner;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
+import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 import com.github.ragudos.kompeter.pointofsale.Cart;
+import com.github.ragudos.kompeter.pointofsale.Transaction;
 import com.github.ragudos.kompeter.utilities.HtmlUtils;
 import com.github.ragudos.kompeter.utilities.StringUtils;
 
@@ -52,15 +56,26 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
     private final Runnable onCheckout;
 
+    private JLabel discount;
+    private JLabel vat;
+    private JLabel total;
+    private JLabel change;
+    private BigDecimal totalVal;
+    private BigDecimal discountVal;
+    private BigDecimal changeVal;
+    private BigDecimal discountedTotalVal;
+
     private final JPanel topPanel;
     private final JPanel bottomPanel;
     private final JPanel bottomControlPanel;
 
+    private com.github.ragudos.kompeter.app.desktop.components.dialogs.CheckoutDialog.DiscountDialog.DiscountData dData;
     private WindowAdapter windowListener;
 
     CurrencySpinner paymentSpinner;
 
     private final AtomicBoolean isBusy;
+    private JTextField customerNameTextField;
 
     public CheckoutDialog(final Window owner, final Cart cart, final Runnable onCheckout) {
         super(owner, "Checkout", Dialog.ModalityType.APPLICATION_MODAL);
@@ -87,8 +102,8 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         bottomControlPanel = new JPanel(new MigLayout("insets 0, flowx", "[grow, fill ,center]"));
 
         add(topPanel, "grow, wrap");
-        add(bottomPanel, "growx, wrap, gapy 12px");
-        add(bottomControlPanel, "growx, gapy 8px");
+        add(bottomPanel, "growx, wrap, gapy 16px");
+        add(bottomControlPanel, "growx, gapy 10px");
 
         createTopPanel();
         createBottomPanel();
@@ -102,9 +117,11 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
     @Override
     public void stateChanged(final ChangeEvent e) {
-    }
+        final CurrencySpinner spinner = (CurrencySpinner) e.getSource();
 
-    private JTextField customerNameTextField;
+        changeVal = ((BigDecimal) spinner.getValue()).subtract(discountedTotalVal);
+        change.setText(StringUtils.formatBigDecimal(changeVal));
+    }
 
     private void createTopPanel() {
         final JButton addDiscount = new JButton("Add Discount",
@@ -113,15 +130,18 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 new SVGIconUIColor("minus.svg", 0.5f, "foreground.background"));
         final JPanel buttonsPanel = new JPanel(new MigLayout("insets 0, flowx"));
 
-        addDiscount.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+        addDiscount.setToolTipText("Add a Discount (If one already exists, replace the old one)");
+        removeDiscount.setToolTipText("Remove the set discount.");
+
         addDiscount.putClientProperty(FlatClientProperties.STYLE, "font:11;");
         addDiscount.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-        removeDiscount.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
         removeDiscount.putClientProperty(FlatClientProperties.STYLE, "font:11;");
         removeDiscount.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
         addDiscount.setActionCommand("discount");
+        removeDiscount.setActionCommand("remove_discount");
 
         addDiscount.addActionListener(this);
+        removeDiscount.addActionListener(this);
 
         final JLabel customerNameLbl = new JLabel("Customer Name*");
         final JLabel paymentLabel = new JLabel("Payment Amount*");
@@ -133,21 +153,15 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         customerNameTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter customer name...");
 
         buttonsPanel.add(addDiscount);
+        buttonsPanel.add(removeDiscount, "gapx 1px");
 
         topPanel.add(buttonsPanel, "growx, wrap");
+        topPanel.add(new JSeparator(JSeparator.HORIZONTAL), "growx, wrap, gapy 2px");
         topPanel.add(customerNameLbl, "growx, gapy 8px, wrap");
         topPanel.add(customerNameTextField, "growx, gapy 2px, wrap");
         topPanel.add(paymentLabel, "growx, gapy 4px, wrap");
         topPanel.add(paymentSpinner, "growx, gapy 2px, wrap");
     }
-
-    private JLabel discount;
-    private JLabel vat;
-    private JLabel total;
-    private BigDecimal totalVal;
-    private BigDecimal discountVal;
-
-    public static final BigDecimal VAT = new BigDecimal("0.12");
 
     private void createBottomPanel() {
         bottomPanel.setBorder(BorderFactory.createDashedBorder(null));
@@ -160,18 +174,31 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         vat = new JLabel("-.--");
         final JLabel totalLbl = new JLabel("Total Payment: ");
         total = new JLabel("-.--");
+        final JLabel changeLbl = new JLabel("Change: ");
+        change = new JLabel("-.--");
 
         subTotal.setHorizontalAlignment(JLabel.RIGHT);
         discount.setHorizontalAlignment(JLabel.RIGHT);
         vat.setHorizontalAlignment(JLabel.RIGHT);
         total.setHorizontalAlignment(JLabel.RIGHT);
+        change.setHorizontalAlignment(JLabel.RIGHT);
 
         final BigDecimal totalPrice = cart.totalPrice();
-        final BigDecimal vatVal = totalPrice.multiply(VAT);
+        final BigDecimal vatVal = totalPrice.multiply(Transaction.VAT_RATE);
         totalVal = totalPrice.subtract(vatVal);
+        discountVal = new BigDecimal("0.00");
+        discountedTotalVal = totalVal.subtract(discountVal);
+        changeVal = new BigDecimal("0.00");
 
         total.setText(StringUtils.formatBigDecimal(totalVal));
         vat.setText(StringUtils.formatBigDecimal(vatVal));
+
+        subTotalLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        subTotal.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        discountLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        discount.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        vatLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        vat.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
 
         bottomPanel.add(subTotalLbl);
         bottomPanel.add(subTotal, "wrap");
@@ -181,7 +208,9 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         bottomPanel.add(vat, "wrap");
         bottomPanel.add(new JSeparator(JSeparator.HORIZONTAL), "growx, span 2, wrap");
         bottomPanel.add(totalLbl);
-        bottomPanel.add(total);
+        bottomPanel.add(total, "wrap");
+        bottomPanel.add(changeLbl);
+        bottomPanel.add(change);
     }
 
     private void createBottomControlPanel() {
@@ -208,26 +237,73 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
     @Override
     public void actionPerformed(final ActionEvent e) {
+        if (isBusy.get()) {
+            return;
+        }
+
         if (e.getActionCommand().equals("confirm")) {
+            if (changeVal.compareTo(BigDecimal.ZERO) < 1) {
+                JOptionPane.showMessageDialog(this, "The provided payment amount is insufficient.",
+                        "Insufficient Amount", JOptionPane.ERROR_MESSAGE);
+
+                return;
+            }
+
+            try {
+                isBusy.set(true);
+                final int _saleId = Transaction.createTransaction(cart, customerNameTextField.getText(),
+                        (BigDecimal) paymentSpinner.getValue(), PaymentMethod.CASH,
+                        dData == null ? null : dData.getType(),
+                        dData == null ? new BigDecimal("0.00") : dData.getAmt());
+
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null,
+                            String.format("Transaction #%s has been successfully processed. Please proceed to"
+                                    + " transactions to view it.", _saleId),
+                            "Successful Transaction", JOptionPane.INFORMATION_MESSAGE);
+                });
+            } catch (final Exception err) {
+                JOptionPane.showMessageDialog(this, err.getMessage(), "Something Went Wrong",
+                        JOptionPane.ERROR_MESSAGE);
+
+                return;
+            } finally {
+                isBusy.set(false);
+            }
 
             onCheckout.run();
         } else if (e.getActionCommand().equals("discount")) {
             new DiscountDialog(this, (discountData) -> {
                 // dont change totalVal here to maintain integrity from only processing
-                // static values like VAT
+                // static values like Transaction.VAT_RATE
                 switch (discountData.getType()) {
                     case FIXED -> {
                         discountVal = discountData.getAmt();
-                        discount.setText(StringUtils.formatBigDecimal(discountData.getAmt()));
-                        total.setText(StringUtils.formatBigDecimal(totalVal.subtract(discountData.getAmt())));
+                        discountedTotalVal = totalVal.subtract(discountVal);
                     }
                     case PERCENTAGE -> {
                         discountVal = totalVal.multiply(discountData.getAmt());
-                        discount.setText(StringUtils.formatBigDecimal(discountVal));
-                        total.setText(StringUtils.formatBigDecimal(totalVal.subtract(discountData.getAmt())));
+                        discountedTotalVal = totalVal.subtract(discountVal);
                     }
                 }
+
+                dData = discountData;
+                changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(discountedTotalVal);
+
+                discount.setText(StringUtils.formatBigDecimal(discountVal));
+                total.setText(StringUtils.formatBigDecimal(discountedTotalVal));
+                change.setText(StringUtils.formatBigDecimal(changeVal));
             }).setVisible(true);
+
+            return;
+        } else if (e.getActionCommand().equals("remove_discount")) {
+            discountVal = new BigDecimal("0.00");
+            discountedTotalVal = totalVal;
+            changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(discountedTotalVal);
+
+            discount.setText("-.--");
+            total.setText(StringUtils.formatBigDecimal(totalVal));
+            change.setText(StringUtils.formatBigDecimal(changeVal));
 
             return;
         }
