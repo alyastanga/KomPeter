@@ -28,6 +28,7 @@ A product requires:
 ## Fourth Step
 
 -   Choose an image that will be shown when showcasing the product.
+-   Please choose a 1:1 aspect ratio image as this application only supports 1:1 images to for making it look good.
 -   This image is preferred to have a white background as our application naively removes almost white colors in an image, resulting in broken images for grayish backgrounds. An example would be:
 
 <img src='https://github.com/tip-aaron/KomPeter/blob/main/kompeter-app-desktop/src/main/resources/com/github/ragudos/kompeter/app/desktop/assets/images/Acer%20Aspire%205%20Laptop%20(i5).png?raw=true'>

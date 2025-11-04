@@ -7,14 +7,14 @@
 */
 package com.github.ragudos.kompeter.configurations;
 
+import java.util.logging.Logger;
+
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
-import java.util.logging.Logger;
 
 public class ApplicationConfig {
     public class FileSystemApplicationConfig extends AbstractFileSystemConfigProperties {
         public FileSystemApplicationConfig() {
-            super();
         }
 
         @Override
@@ -25,7 +25,6 @@ public class ApplicationConfig {
 
     public class ReadonlyApplicationConfig extends AbstractResourceConfigProperties {
         public ReadonlyApplicationConfig() {
-            super();
         }
 
         @Override
@@ -56,8 +55,6 @@ public class ApplicationConfig {
     private final ReadonlyApplicationConfig defaultConfig;
 
     private ApplicationConfig() {
-        super();
-
         config = new FileSystemApplicationConfig();
         defaultConfig = new ReadonlyApplicationConfig();
     }
@@ -70,13 +67,13 @@ public class ApplicationConfig {
         return defaultConfig;
     }
 
-    public String getProperty(String key) {
+    public String getProperty(final String key) {
         var value = config.getProperty(key);
 
         if (value == null) {
             value = defaultConfig.getProperty(key);
         }
 
-        return value;
+        return value == null ? "" : value;
     }
 }

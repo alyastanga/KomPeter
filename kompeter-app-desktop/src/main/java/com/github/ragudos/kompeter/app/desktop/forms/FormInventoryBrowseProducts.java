@@ -16,6 +16,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -436,18 +438,25 @@ public class FormInventoryBrowseProducts extends Form {
         }
 
         public void addStockToSelectedItem() {
-            new AddStockDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
+            SwingUtilities.invokeLater(() -> {
+                new AddStockDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
+            });
         }
 
         public void deleteSelectedItems() {
-            new DeleteSelectedItemsDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
+            SwingUtilities.invokeLater(() -> {
+                new DeleteSelectedItemsDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
+            });
         }
 
         public void changeStatusOfSelectedItems(final ItemStatus status) {
             new Thread(() -> {
                 try {
                     inventory.setStatusOfItemsByName(getNamesOfSelectedItems(), status);
-                    recreateProductListData();
+
+                    SwingUtilities.invokeLater(() -> {
+                        recreateProductListData();
+                    });
                 } catch (final InventoryException err) {
                     SwingUtilities.invokeLater(() -> {
                         JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this), err.getMessage(),
@@ -462,9 +471,23 @@ public class FormInventoryBrowseProducts extends Form {
             private final JSpinner qtySpinner;
             private final JComboBox<ItemStockStorageLocationDto> comboBox;
             private final JLabel comboBoxError;
+            private AtomicBoolean isLoading;
+            private WindowAdapter windowListener;
 
             public AddStockDialog(final Window owner) {
                 super(owner, "Add stock", Dialog.ModalityType.APPLICATION_MODAL);
+
+                isLoading = new AtomicBoolean(false);
+                windowListener = new WindowAdapter() {
+                    @Override
+                    public void windowClosing(final WindowEvent e) {
+                        if (isLoading.get()) {
+                            return;
+                        }
+
+                        dispose();
+                    }
+                };
 
                 setLayout(new MigLayout("insets 16, flowx", "[grow, center, fill]"));
 
@@ -515,21 +538,33 @@ public class FormInventoryBrowseProducts extends Form {
 
                 confirmButton.addActionListener(this);
                 cancelButton.addActionListener(this);
+
+                addWindowListener(windowListener);
             }
 
             @Override
             public void actionPerformed(final ActionEvent e) {
+                if (isLoading.get()) {
+                    return;
+                }
+
                 if (e.getActionCommand().equals("confirm")) {
                     try {
                         if (comboBox.getSelectedItem() == null) {
                             comboBox.putClientProperty("JComponent.outline", "error");
                             comboBoxError.setText("Please choose a location.");
+                            repaint();
+                            revalidate();
 
                             return;
                         }
 
+                        isLoading.set(true);
+
                         comboBox.putClientProperty("JComponent.outline", null);
                         comboBoxError.setText("");
+                        repaint();
+                        revalidate();
 
                         final int id = getIdOfSelectedItem();
                         final ItemStockQtyPercentageBarData qty = getQuantityOfSelectedItem();
@@ -544,8 +579,7 @@ public class FormInventoryBrowseProducts extends Form {
                             int total = 0;
 
                             for (final ItemStockStorageLocationDto loc : qty.locations()) {
-                                if (loc._itemStockStorageLocationId() == selectedLocation
-                                        ._itemStockStorageLocationId()) {
+                                if (loc.name().equals(selectedLocation.name())) {
                                     loc.updateQuantiy(newVal);
                                 }
 
@@ -563,11 +597,9 @@ public class FormInventoryBrowseProducts extends Form {
                         JOptionPane.showMessageDialog(this, err.getMessage(),
                                 "Failed to add stock :(", JOptionPane.ERROR_MESSAGE);
                     }
-
-                    dispose();
-                } else if (e.getActionCommand().equals("cancel")) {
-                    dispose();
                 }
+
+                dispose();
             }
         }
 
@@ -643,9 +675,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             private void confirmDelete() {
                 productsTable.changeStatusOfSelectedItems(ItemStatus.ARCHIVED);
-                SwingUtilities.invokeLater(() -> {
-                    dispose();
-                });
+                dispose();
             }
         }
 
@@ -761,7 +791,9 @@ public class FormInventoryBrowseProducts extends Form {
             addStockButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             addStockButton.setToolTipText("Add stock to selected item");
             addStockButton.setActionCommand("add_stock");
+            addStockButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
             addStockButton.addActionListener(this);
+            addStockButton.setFocusable(false);
         }
 
         private void createUnDeleteButton() {
@@ -771,8 +803,10 @@ public class FormInventoryBrowseProducts extends Form {
             unDeleteButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
             unDeleteButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             unDeleteButton.setToolTipText("Restore selected item/s");
+            unDeleteButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
             unDeleteButton.setActionCommand("undelete");
             unDeleteButton.addActionListener(this);
+            unDeleteButton.setFocusable(false);
         }
 
         private void createDeleteButton() {
@@ -784,6 +818,8 @@ public class FormInventoryBrowseProducts extends Form {
             deleteButton.setToolTipText("Delete selected item/s");
             deleteButton.setActionCommand("delete");
             deleteButton.addActionListener(this);
+            deleteButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+            deleteButton.setFocusable(false);
         }
 
         private void createMarkActiveButton() {
@@ -795,6 +831,8 @@ public class FormInventoryBrowseProducts extends Form {
             markActiveButton.setToolTipText("Mark selected item/s as active");
             markActiveButton.setActionCommand("mark_active");
             markActiveButton.addActionListener(this);
+            markActiveButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+            markActiveButton.setFocusable(false);
         }
 
         private void createMarkInactiveButton() {
@@ -806,6 +844,8 @@ public class FormInventoryBrowseProducts extends Form {
             markInactiveButton.setToolTipText("Mark selected item/s as inactive");
             markInactiveButton.setActionCommand("mark_inactive");
             markInactiveButton.addActionListener(this);
+            markInactiveButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
+            markInactiveButton.setFocusable(false);
         }
 
         private void toggleMenuForAllUnArchived() {
@@ -904,9 +944,7 @@ public class FormInventoryBrowseProducts extends Form {
 
         @Override
         public void actionPerformed(final ActionEvent e) {
-            SwingUtilities.invokeLater(() -> {
-                setVisible(false);
-            });
+            setVisible(false);
 
             if (e.getActionCommand().equals("delete")) {
                 productsTable.deleteSelectedItems();

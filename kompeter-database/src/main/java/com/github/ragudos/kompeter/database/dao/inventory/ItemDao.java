@@ -10,27 +10,16 @@ package com.github.ragudos.kompeter.database.dao.inventory;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.github.ragudos.kompeter.database.dto.inventory.ItemDto;
-
 public interface ItemDao {
-    // DELETE
-    int deleteItemById(int id) throws SQLException, IOException;
+    String[] getAllItemNames(Connection conn) throws SQLException, IOException;
 
-    // READ
-    List<ItemDto> getAllItems() throws SQLException, IOException;
-
-    Optional<ItemDto> getItemsById(int id) throws SQLException, IOException;
-
-    // CREATE
-    int insertItem(String name, String description) throws SQLException, IOException;
+    int insertItem(@NotNull Connection conn, @NotNull String name, @NotNull String description, String imagePath)
+            throws SQLException, IOException;
 
     boolean itemExists(@NotNull Connection conn, @NotNull String itemName) throws IOException, SQLException;
 
-    // UPDATE
-    int updateItemNameById(String name, int id) throws SQLException, IOException;
+    int updateItemNameById(@NotNull Connection conn, @NotNull String name, int id) throws SQLException, IOException;
 }

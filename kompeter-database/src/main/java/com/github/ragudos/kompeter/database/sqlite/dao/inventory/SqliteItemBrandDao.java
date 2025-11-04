@@ -25,9 +25,10 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 public class SqliteItemBrandDao implements ItemBrandDao {
     @Override
     public ItemBrandDto[] getAllBrands(final Connection conn) throws SQLException, IOException {
-        try (var stmt = conn.createStatement();
-                var rs = stmt.executeQuery(SqliteQueryLoader.getInstance().get("select_all_item_brands", "item_brands",
-                        SqlQueryType.SELECT));) {
+        try (Statement stmt = conn.createStatement();
+                ResultSet rs = stmt
+                        .executeQuery(SqliteQueryLoader.getInstance().get("select_all_item_brands", "item_brands",
+                                SqlQueryType.SELECT));) {
             final ArrayList<ItemBrandDto> brandList = new ArrayList<>();
 
             while (rs.next()) {

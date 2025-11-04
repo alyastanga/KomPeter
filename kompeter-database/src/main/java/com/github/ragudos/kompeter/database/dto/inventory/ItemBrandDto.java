@@ -17,8 +17,10 @@ import lombok.Data;
 @Data
 @Builder
 public class ItemBrandDto {
-    @NotNull Timestamp _createdAt;
+    @NotNull
+    Timestamp _createdAt;
     int _itemBrandId;
     String description;
-    @NotNull String name;
+    @NotNull
+    String name;
 }

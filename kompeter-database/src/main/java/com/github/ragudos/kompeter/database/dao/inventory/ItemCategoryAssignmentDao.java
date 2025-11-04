@@ -8,14 +8,10 @@
 package com.github.ragudos.kompeter.database.dao.inventory;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface ItemCategoryAssignmentDao {
     // CREATE
-    int setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException;
-
-    // READ
-    // UPDATE
-    int updateItemCategoryById(int itemId, int itemCategoryId) throws SQLException, IOException;
-    // DELETE
+    int setItemCategory(Connection conn, int itemId, String categoryName) throws SQLException, IOException;
 }

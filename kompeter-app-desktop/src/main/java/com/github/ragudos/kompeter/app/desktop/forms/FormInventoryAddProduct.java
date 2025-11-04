@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -258,9 +259,13 @@ public class FormInventoryAddProduct extends Form {
             final JLabel emptyLabel;
 
             public void reset() {
-                for (final RowPanel acquire : rows.getAcquire()) {
-                    removeRow(acquire);
+                for (final RowPanel acquire : rows.get()) {
+                    removeListenersRecursively(acquire);
+                    container.remove(acquire);
                 }
+
+                selectedStorageLocations.getAcquire().clear();
+                rows.getAcquire().clear();
             }
 
             private void updateAllComboBoxes() {
@@ -282,6 +287,7 @@ public class FormInventoryAddProduct extends Form {
 
             private void removeRow(final RowPanel row) {
                 rows.getAcquire().remove(row);
+                removeListenersRecursively(row);
                 container.remove(row);
                 updateAllComboBoxes();
 
@@ -794,11 +800,7 @@ public class FormInventoryAddProduct extends Form {
 
         switch (res) {
             case JOptionPane.YES_OPTION: {
-                removeListenersRecursively(this);
-                firstStepForm.reset();
-                secondStepForm.reset();
-                thirdStepForm.reset();
-                fourthStepForm.reset();
+                resetAll();
                 return true;
             }
             case JOptionPane.NO_OPTION: {
@@ -807,6 +809,28 @@ public class FormInventoryAddProduct extends Form {
         }
 
         return true;
+    }
+
+    private void resetAll() {
+        progressBar.setCurrentStep(1);
+        firstStepForm.reset();
+        secondStepForm.reset();
+        thirdStepForm.reset();
+        fourthStepForm.reset();
+
+        slidePane.addSlide(firstStepForm,
+                SlidePaneTransition.create(SlidePaneTransition.Type.BACK),
+                new SliderCallback() {
+
+                    @Override
+                    public void complete() {
+                        leftPanelButtonsContainer.remove(backButton);
+                        nextConfirmButton.setText("Continue");
+                        nextConfirmButton.setIcon(nextIcon);
+                        leftPanelButtonsContainer.repaint();
+                        leftPanelButtonsContainer.revalidate();
+                    }
+                });
     }
 
     private void init() {
@@ -890,6 +914,8 @@ public class FormInventoryAddProduct extends Form {
             isBusy.set(true);
 
             leftPanelButtonsContainer.remove(backButton);
+            leftPanelButtonsContainer.repaint();
+            leftPanelButtonsContainer.revalidate();
             progressBar.setCurrentStep(1);
 
             slidePane.addSlide(firstStepForm,
@@ -907,8 +933,6 @@ public class FormInventoryAddProduct extends Form {
             isBusy.set(true);
 
             progressBar.setCurrentStep(2);
-            secondStepForm.repaint();
-            secondStepForm.revalidate();
 
             slidePane.addSlide(secondStepForm,
                     SlidePaneTransition.create(SlidePaneTransition.Type.BACK),
@@ -1041,6 +1065,8 @@ public class FormInventoryAddProduct extends Form {
             new ConfirmProductAdditionDialog(name, description, chosenBrand, chosenCategories, price, minQty, qty,
                     fourthStepForm.productImageChooser.chosenImageFile())
                     .setVisible(true);
+
+            isBusy.set(false);
         }
     }
 
@@ -1048,10 +1074,18 @@ public class FormInventoryAddProduct extends Form {
         JButton confirmBtn;
         JButton cancelBtn;
 
-        private void beforeDispose() {
-            confirmBtn.removeActionListener(this);
-            cancelBtn.removeActionListener(this);
-        }
+        private final WindowAdapter windowListener;
+
+        String name;
+        String description;
+        ItemBrandDto chosenBrand;
+        String[] chosenCategories;
+        BigDecimal price;
+        Integer minQty;
+        QuantityMetadata[] qty;
+        File chosenImage;
+
+        private AtomicBoolean isLoading;
 
         public ConfirmProductAdditionDialog(
                 final String name,
@@ -1064,6 +1098,17 @@ public class FormInventoryAddProduct extends Form {
                 final File chosenImage) {
             super(KompeterDesktopApp.getRootFrame(), "Confirm Product Addition", Dialog.ModalityType.APPLICATION_MODAL);
 
+            this.name = name;
+            this.description = description;
+            this.chosenBrand = chosenBrand;
+            this.chosenCategories = chosenCategories;
+            this.price = price;
+            this.minQty = minQty;
+            this.qty = qty;
+            this.chosenImage = chosenImage;
+
+            isLoading = new AtomicBoolean(false);
+
             setLayout(new MigLayout("insets 12, flowx, wrap", "[grow, fill, left]"));
 
             final JLabel title = new JLabel(HtmlUtils.wrapInHtml("Adding a new item"));
@@ -1073,10 +1118,7 @@ public class FormInventoryAddProduct extends Form {
             title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
             subtitle.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;");
 
-            final JPanel container = new JPanel(new MigLayout("insets 0, flowx, wrap", "[grow, left]"));
-            final JScrollPane scroller = ScrollerFactory.createScrollPane(container);
-
-            final JLabel n = new JLabel(HtmlUtils.wrapInHtml(String.format("<p><b>Name: </b><br>%s</p>", name)));
+            final JLabel n = new JLabel(HtmlUtils.wrapInHtml(String.format("<p><b>Name: </b>%s</p>", name)));
             final JLabel dL = new JLabel(HtmlUtils.wrapInHtml("<b>Description: </b>"));
             final JTextArea d = new JTextArea();
 
@@ -1087,11 +1129,11 @@ public class FormInventoryAddProduct extends Form {
                 public void paint(final Graphics g) {
                 }
             });
-            d.putClientProperty(FlatClientProperties.STYLE, "background:null;");
+            d.putClientProperty(FlatClientProperties.STYLE, "background:null;margin:1,1,1,1;");
             d.setText(description);
 
             final JLabel b = new JLabel(
-                    HtmlUtils.wrapInHtml(String.format("<p><b>Brand: </b><br>%s</p>", chosenBrand.getName())));
+                    HtmlUtils.wrapInHtml(String.format("<p><b>Brand: </b>%s</p>", chosenBrand.getName())));
             final JLabel cL = new JLabel(HtmlUtils.wrapInHtml("<b>Categories: </b>"));
             final JTextPane c = new JTextPane();
             c.setContentType("text/html");
@@ -1100,8 +1142,9 @@ public class FormInventoryAddProduct extends Form {
                     <head>
                         <style>
                             ul {
-                                margin-left: 4px;
+                                margin-left: 8px;
                                 padding: 0;
+                                padding-left: 4px;
                             }
                         </style>
                     </head>
@@ -1111,12 +1154,12 @@ public class FormInventoryAddProduct extends Form {
                     </html>
                     """, Arrays.stream(chosenCategories).map((cc) -> String.format("<li>%s</li>", cc))
                     .collect(Collectors.joining("\n"))));
-            c.putClientProperty(FlatClientProperties.STYLE, "background:null;");
+            c.putClientProperty(FlatClientProperties.STYLE, "background:null;margin:1,1,1,1;");
 
             final JLabel p = new JLabel(
-                    HtmlUtils.wrapInHtml(String.format("<b>Price: </b><br>%s", StringUtils.formatBigDecimal(price))));
+                    HtmlUtils.wrapInHtml(String.format("<b>Price: </b>%s", StringUtils.formatBigDecimal(price))));
             final JLabel mq = new JLabel(
-                    HtmlUtils.wrapInHtml(String.format("<b>Minimum Quantity: </b><br>%s", minQty)));
+                    HtmlUtils.wrapInHtml(String.format("<b>Minimum Quantity: </b>%s", minQty)));
             final JLabel qL = new JLabel(HtmlUtils.wrapInHtml("<b>Quantities: </b>"));
             final JTextPane q = new JTextPane();
             q.setContentType("text/html");
@@ -1125,8 +1168,9 @@ public class FormInventoryAddProduct extends Form {
                     <head>
                         <style>
                             ul {
-                                margin-left: 4px;
+                                margin-left: 8px;
                                 padding: 0;
+                                padding-left: 4px;
                             }
                         </style>
                     </head>
@@ -1139,7 +1183,7 @@ public class FormInventoryAddProduct extends Form {
                             .map((qq) -> String.format("<li>%s - %s item/s</li>", qq.getStorageLocation().getName(),
                                     qq.getQty()))
                             .collect(Collectors.joining("\n"))));
-            q.putClientProperty(FlatClientProperties.STYLE, "background:null;");
+            q.putClientProperty(FlatClientProperties.STYLE, "background:null;margin:1,1,1,1;");
             final JLabel ci = new JLabel(
                     HtmlUtils.wrapInHtml(String.format("<b>Chosen Image: </b><br>%s",
                             chosenImage == null ? "No Image" : chosenImage.getAbsolutePath())));
@@ -1147,13 +1191,11 @@ public class FormInventoryAddProduct extends Form {
             confirmBtn = new JButton("Add Product",
                     new SVGIconUIColor("circle-check.svg", 0.75f, "foreground.primary"));
             cancelBtn = new JButton("Cancel", new SVGIconUIColor("circle-x.svg", 0.75f, "foreground.muted"));
+            final JPanel container = new JPanel(new MigLayout("insets 0, flowx, wrap", "[grow, left]"));
+            final JScrollPane scroller = ScrollerFactory.createScrollPane(container);
 
             confirmBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
             cancelBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-
-            add(title, "growx, wrap");
-            add(subtitle, "growx, wrap");
-            add(scroller, "growx, wrap, gapy 8px");
 
             container.add(n, "wrap, gapy 8px");
             container.add(dL, "wrap, gapy 2px");
@@ -1167,7 +1209,10 @@ public class FormInventoryAddProduct extends Form {
             container.add(q, "wrap, gapy 1px");
             container.add(ci, "wrap, gapy 2px");
 
-            add(cancelBtn, "split 2, gapy 16px");
+            add(title, "growx, wrap");
+            add(subtitle, "growx, wrap");
+            add(scroller, "growx, wrap, gapy 8px");
+            add(cancelBtn, "split 2, gapy 12px");
             add(confirmBtn, "gapx 4px");
 
             pack();
@@ -1178,18 +1223,58 @@ public class FormInventoryAddProduct extends Form {
 
             confirmBtn.addActionListener(this);
             cancelBtn.addActionListener(this);
+
+            windowListener = new WindowAdapter() {
+                public void windowClosing(final java.awt.event.WindowEvent e) {
+                    if (isLoading.get()) {
+                        return;
+                    }
+
+                    dispose();
+                };
+            };
+
+            setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            addWindowListener(windowListener);
         }
 
         @Override
         public void actionPerformed(final ActionEvent e) {
-            if (e.getActionCommand().equals("confirm")) {
-
-                beforeDispose();
-                dispose();
-            } else if (e.getActionCommand().equals("cancel")) {
-                beforeDispose();
-                dispose();
+            if (isLoading.get()) {
+                return;
             }
+
+            if (e.getActionCommand().equals("confirm")) {
+                try {
+                    isLoading.set(true);
+                    confirmBtn.setText("Loading...");
+                    confirmBtn.setEnabled(false);
+                    cancelBtn.setEnabled(false);
+
+                    Inventory.getInstance().addProduct(name, description, chosenBrand, chosenCategories, price, minQty,
+                            qty,
+                            chosenImage);
+
+                    SwingUtilities.invokeLater(() -> {
+                        SwingUtilities.invokeLater(() -> {
+                            resetAll();
+                        });
+
+                        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                                "Product has been successfully added.", "Operation Success",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    });
+                } catch (final InventoryException e1) {
+                    JOptionPane.showMessageDialog(this, e1.getMessage(), "Failed to Add Product",
+                            JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    confirmBtn.setEnabled(true);
+                    cancelBtn.setEnabled(true);
+                    confirmBtn.setText("Add Product");
+                }
+            }
+
+            dispose();
         }
     }
 

@@ -13,16 +13,16 @@ import java.util.List;
 /**
  * @author Hanz Mapua
  */
-public class LinearRegressionImpl implements LinearRegression {
+public class LinearRegressionImpl implements ILinearRegression {
 
-    public static void main(String[] args) {
-        LinearRegressionImpl LR = new LinearRegressionImpl();
-        List<Double> numberX = new ArrayList<>();
+    public static void main(final String[] args) {
+        final LinearRegressionImpl LR = new LinearRegressionImpl();
+        final List<Double> numberX = new ArrayList<>();
         numberX.add(1.00);
         numberX.add(2.00);
         numberX.add(3.00);
 
-        List<Double> numberY = new ArrayList<>();
+        final List<Double> numberY = new ArrayList<>();
         numberY.add(10.00);
         numberY.add(20.00);
         numberY.add(30.00);
@@ -47,7 +47,7 @@ public class LinearRegressionImpl implements LinearRegression {
     }
 
     @Override
-    public Double AllXMinXMeanSquared(List<Double> XValues) {
+    public Double AllXMinXMeanSquared(final List<Double> XValues) {
         Double result = 0.00;
         for (int i = 0; i < XValues.size(); i++) {
             result += XMinXMeanSquared(XValues, XValues.get(i));
@@ -57,7 +57,7 @@ public class LinearRegressionImpl implements LinearRegression {
     }
 
     @Override
-    public Double AllXXMeanYYMean(List<Double> XValues, List<Double> YValues) {
+    public Double AllXXMeanYYMean(final List<Double> XValues, final List<Double> YValues) {
         Double result = 0.00;
         for (int i = 0; i < XValues.size() && i < YValues.size(); i++) {
             result += XXMeanYYMean(XValues, YValues, XValues.get(i), YValues.get(i));
@@ -67,7 +67,7 @@ public class LinearRegressionImpl implements LinearRegression {
     }
 
     @Override
-    public Double AllYMinYMeanSquared(List<Double> YValues) {
+    public Double AllYMinYMeanSquared(final List<Double> YValues) {
         Double result = 0.00;
         for (int i = 0; i < YValues.size(); i++) {
             result += YMinYMeanSquared(YValues, YValues.get(i));
@@ -77,90 +77,91 @@ public class LinearRegressionImpl implements LinearRegression {
     }
 
     @Override
-    public Double LinearRegression(List<Double> XValues, List<Double> YValues, Double XValue) {
+    public Double LinearRegression(final List<Double> XValues, final List<Double> YValues, final Double XValue) {
         return YIntercept(XValues, YValues) + (Slope(XValues, YValues) * XValue);
     }
 
     @Override
-    public Double Pearson(List<Double> XValues, List<Double> YValues) {
-        Double allXXMeanYYMean = AllXXMeanYYMean(XValues, YValues);
-        Double allXXMeanSquared = AllXMinXMeanSquared(XValues);
-        Double allYYMeanSquared = AllYMinYMeanSquared(YValues);
-        Double multipliedAllXXAllYYSquared = (allXXMeanSquared * allYYMeanSquared);
-        Double sqrtXXSquaredYYSquared = Math.sqrt(multipliedAllXXAllYYSquared);
-        Double finalResult = (allXXMeanYYMean / sqrtXXSquaredYYSquared);
+    public Double Pearson(final List<Double> XValues, final List<Double> YValues) {
+        final Double allXXMeanYYMean = AllXXMeanYYMean(XValues, YValues);
+        final Double allXXMeanSquared = AllXMinXMeanSquared(XValues);
+        final Double allYYMeanSquared = AllYMinYMeanSquared(YValues);
+        final Double multipliedAllXXAllYYSquared = (allXXMeanSquared * allYYMeanSquared);
+        final Double sqrtXXSquaredYYSquared = Math.sqrt(multipliedAllXXAllYYSquared);
+        final Double finalResult = (allXXMeanYYMean / sqrtXXSquaredYYSquared);
         return finalResult;
     }
 
     @Override
-    public Double Slope(List<Double> XValues, List<Double> YValues) {
-        Double pearson = Pearson(XValues, YValues);
-        Double SdYDivSdX = StandardDeviationY(YValues) / StandardDeviationX(XValues);
+    public Double Slope(final List<Double> XValues, final List<Double> YValues) {
+        final Double pearson = Pearson(XValues, YValues);
+        final Double SdYDivSdX = StandardDeviationY(YValues) / StandardDeviationX(XValues);
 
         return pearson * SdYDivSdX;
     }
 
     // @Override
-    public Double StandardDeviationX(List<Double> XValues) {
-        Double sumDivNMin1 = AllXMinXMeanSquared(XValues) / (XValues.size() - 1);
+    public Double StandardDeviationX(final List<Double> XValues) {
+        final Double sumDivNMin1 = AllXMinXMeanSquared(XValues) / (XValues.size() - 1);
 
         return Math.sqrt(sumDivNMin1);
     }
 
     @Override
-    public Double StandardDeviationY(List<Double> YValues) {
-        Double sumDivNMin1 = AllYMinYMeanSquared(YValues) / (YValues.size() - 1);
+    public Double StandardDeviationY(final List<Double> YValues) {
+        final Double sumDivNMin1 = AllYMinYMeanSquared(YValues) / (YValues.size() - 1);
 
         return Math.sqrt(sumDivNMin1);
     }
 
     @Override
-    public Double XMean(List<Double> XValues) {
+    public Double XMean(final List<Double> XValues) {
         Double sumOfX = 0.00;
         for (int i = 0; i < XValues.size(); i++) {
             sumOfX += XValues.get(i);
         }
-        Double XMean = sumOfX / XValues.size();
+        final Double XMean = sumOfX / XValues.size();
         return XMean;
     }
 
     @Override
-    public Double XMinXMean(List<Double> XValues, Double XValue) {
+    public Double XMinXMean(final List<Double> XValues, final Double XValue) {
         return XValue - XMean(XValues);
     }
 
     @Override
-    public Double XMinXMeanSquared(List<Double> XValues, Double XValue) {
+    public Double XMinXMeanSquared(final List<Double> XValues, final Double XValue) {
         return XMinXMean(XValues, XValue) * XMinXMean(XValues, XValue);
     }
 
     @Override
-    public Double XXMeanYYMean(List<Double> XValues, List<Double> YValues, Double XValue, Double YValue) {
+    public Double XXMeanYYMean(final List<Double> XValues, final List<Double> YValues, final Double XValue,
+            final Double YValue) {
         return XMinXMean(XValues, XValue) * YMinYMean(YValues, YValue);
     }
 
     @Override
-    public Double YIntercept(List<Double> XValues, List<Double> YValues) {
+    public Double YIntercept(final List<Double> XValues, final List<Double> YValues) {
         return YMean(YValues) - (Slope(XValues, YValues) * XMean(XValues));
     }
 
     @Override
-    public Double YMean(List<Double> YValues) {
+    public Double YMean(final List<Double> YValues) {
         Double sumOfY = 0.00;
         for (int i = 0; i < YValues.size(); i++) {
             sumOfY += YValues.get(i);
         }
-        Double YMean = (double) sumOfY / YValues.size();
+        final Double YMean = (double) sumOfY / YValues.size();
         return YMean;
     }
 
     @Override
-    public Double YMinYMean(List<Double> YValues, Double YValue) {
+    public Double YMinYMean(final List<Double> YValues, final Double YValue) {
         return YValue - YMean(YValues);
     }
 
     @Override
-    public Double YMinYMeanSquared(List<Double> YValues, Double YValue) {
+    public Double YMinYMeanSquared(final List<Double> YValues, final Double YValue) {
         return YMinYMean(YValues, YValue) * YMinYMean(YValues, YValue);
     }
 }

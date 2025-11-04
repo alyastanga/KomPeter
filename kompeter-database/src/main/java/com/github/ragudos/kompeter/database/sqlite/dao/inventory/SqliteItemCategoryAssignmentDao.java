@@ -8,41 +8,29 @@
 package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
-import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 
 public class SqliteItemCategoryAssignmentDao implements ItemCategoryAssignmentDao {
-
     @Override
-    public int setItemCategory(int itemId, int itemCategoryId) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("insert_item_category_assignment", "items",
-                AbstractSqlQueryLoader.SqlQueryType.INSERT);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query,
+    public int setItemCategory(Connection conn, int itemId, String categoryName) throws SQLException, IOException {
+        try (var stmt = new NamedPreparedStatement(conn,
+                SqliteQueryLoader.getInstance().get("insert_item_category", "item_category_assignments",
+                        AbstractSqlQueryLoader.SqlQueryType.INSERT),
                 Statement.RETURN_GENERATED_KEYS);) {
             stmt.setInt("_item_id", itemId);
-            stmt.setInt("_item_category_id", itemCategoryId);
+            stmt.setString("category_name", categoryName);
             stmt.executeUpdate();
 
             var rs = stmt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;
-        }
-    }
-
-    @Override
-    public int updateItemCategoryById(int itemId, int itemCategoryId) throws SQLException, IOException {
-        var query = SqliteQueryLoader.getInstance().get("update_item_category", "items",
-                AbstractSqlQueryLoader.SqlQueryType.UPDATE);
-        try (var stmt = new NamedPreparedStatement(SqliteFactoryDao.getInstance().getConnection(), query)) {
-            stmt.setInt("_item_category_id", itemCategoryId);
-            stmt.setInt("_item_id", itemId);
-            return stmt.executeUpdate();
         }
     }
 }

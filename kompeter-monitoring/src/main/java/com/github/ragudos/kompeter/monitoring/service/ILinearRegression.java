@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author Hanz Mapua
  */
-public interface LinearRegression {
+public interface ILinearRegression {
     Double AllXMinXMeanSquared(List<Double> XValues);
 
     Double AllXXMeanYYMean(List<Double> XValues, List<Double> YValues);

@@ -1,1 +1,0 @@
-DELETE FROM storage_locations WHERE _storage_location_id = ?;

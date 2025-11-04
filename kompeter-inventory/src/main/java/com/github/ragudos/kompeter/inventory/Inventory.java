@@ -10,6 +10,7 @@ package com.github.ragudos.kompeter.inventory;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.InventoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemBrandDao;
+import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryAssignmentDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemCategoryDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemDao;
 import com.github.ragudos.kompeter.database.dao.inventory.ItemStockDao;
@@ -31,6 +33,8 @@ import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.StorageLocationDto;
+import com.github.ragudos.kompeter.utilities.ImageUtils;
+import com.github.ragudos.kompeter.utilities.constants.Directories;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public final class Inventory {
@@ -59,6 +63,53 @@ public final class Inventory {
     public void addProduct(final String name, final String description, final ItemBrandDto chosenBrand,
             final String[] chosenCategories, final BigDecimal price, final Integer minQty, final QuantityMetadata[] qty,
             final File chosenImage) throws InventoryException {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final ItemDao itemDao = factoryDao.getItemDao();
+        final ItemStockStorageLocationDao itemStockStorageLocationDao = factoryDao.getItemStockStorageLocationDao();
+        final ItemStockDao itemStockDao = factoryDao.getItemStockDao();
+        final ItemCategoryAssignmentDao itemCategoryAssignmentDao = factoryDao.getItemCategoryAssignmentDao();
+
+        Path imagePath = null;
+
+        if (chosenImage != null) {
+            try {
+                imagePath = ImageUtils.copyMove(chosenImage.getAbsolutePath(), Directories.IMAGES_DIRECTORY);
+            } catch (final IOException err) {
+                throw new InventoryException("System IO Exception. Cannot add a product.", err);
+            }
+        }
+
+        try (Connection conn = factoryDao.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try {
+                final int _itemId = itemDao.insertItem(conn, name, description,
+                        imagePath == null ? null : imagePath.toString());
+                final int _itemStockId = itemStockDao.insertItemStock(conn, _itemId,
+                        chosenBrand.get_itemBrandId(), price, minQty);
+
+                for (final String category : chosenCategories) {
+                    itemCategoryAssignmentDao.setItemCategory(conn, _itemId, category);
+                }
+
+                for (final QuantityMetadata quantityMetadata : qty) {
+                    itemStockStorageLocationDao.setItemStockStorageLocation(conn, _itemStockId,
+                            quantityMetadata.getStorageLocation().get_storageLocationId(), quantityMetadata.getQty());
+                }
+
+                conn.commit();
+            } catch (SQLException | IOException err) {
+                try {
+                    conn.rollback();
+                } catch (final SQLException err2) {
+                    err.addSuppressed(err2);
+                }
+
+                throw err;
+            }
+
+        } catch (SQLException | IOException err) {
+        }
     }
 
     public ItemBrandDto[] getAllItemBrandDtos() throws InventoryException {
@@ -88,8 +139,8 @@ public final class Inventory {
         final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
         final ItemCategoryDao categoryDao = factoryDao.getItemCategoryDao();
 
-        try {
-            return categoryDao.getAllCategories().stream().map((item) -> item.name()).toArray(String[]::new);
+        try (Connection conn = factoryDao.getConnection()) {
+            return categoryDao.getAllCategories(conn).stream().map((item) -> item.name()).toArray(String[]::new);
         } catch (SQLException | IOException err) {
             throw new InventoryException("Failed to get brands", err);
         }
