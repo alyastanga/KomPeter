@@ -144,6 +144,27 @@ INSERT INTO item_stock_storage_locations (_item_stock_id, _storage_location_id, 
 (64, 1, 75), (64, 2, 25), (65, 1, 20), (65, 2, 30), (66, 1, 15), (66, 2, 25), (67, 1, 40), (67, 2, 20), 
 (68, 1, 50), (68, 2, 20), (69, 1, 60), (69, 2, 30), (70, 1, 25), (70, 3, 25);
 
+
+INSERT INTO purchases (_supplier_id, purchase_date, purchase_code, delivery_date, vat_percent, discount_value, discount_type) VALUES
+(1, DATETIME('now', '-3 days'), 'PO-CDI-2025-001', DATETIME('now', '-2 days'), 0.12, 500.00, 'fixed'),
+(2, DATETIME('now', '-4 days'), 'PO-PW-2025-002', DATETIME('now', '-3 days'), 0.12, 0.05, 'percentage'),
+(3, DATETIME('now', '-2 days'), 'PO-APP-2025-003', NULL, 0.12, NULL, NULL),
+(4, DATETIME('now', '-1 day'), 'PO-SS-2025-004', DATETIME('now'), 0.12, 0, 'fixed');
+
+INSERT INTO purchase_payments (_purchase_id, payment_date, reference_number, payment_method, amount_php) VALUES
+(1, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-98765', 'bank_transfer', 77840.00),
+(2, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-65432', 'cash', 106400.00),
+(3, DATETIME('now', '-2 days', '+3 hours'), 'REF-PP-32109', 'gcash', 44800.00),
+(4, DATETIME('now'), 'REF-PP-09876', 'bank_transfer', 140000.00);
+
+INSERT INTO purchase_item_stocks (_purchase_id, _item_stock_id, quantity_ordered, quantity_received, unit_cost_php) VALUES
+(1, 2, 5, 5, 10000.00),
+(1, 5, 20, 20, 1000.00),
+(2, 21, 10, 10, 8000.00),
+(2, 23, 10, 10, 2000.00),
+(3, 37, 1, 1, 40000.00),
+(4, 7, 10, 10, 12500.00);
+
 -- SALES and TRANSACTIONS
 INSERT INTO sales (sale_date, sale_code, customer_name, vat_percent, discount_value, discount_type) VALUES
 (DATETIME('now', '-14 days', '10:00:00'), 'SALE-2025-0001', 'Client A', 0.12, 0, 'fixed'),
