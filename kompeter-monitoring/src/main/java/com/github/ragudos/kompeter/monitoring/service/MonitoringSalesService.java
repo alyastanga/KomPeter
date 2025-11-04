@@ -62,7 +62,7 @@ public class MonitoringSalesService {
             LOGGER.log(Level.SEVERE, "Error fetching expenses sales report (range)", e);
             return Collections.emptyList();
         }
-    }s
+    }
 
     public List<ProfitDto> getProfitReport(Timestamp from, Timestamp to) {
         try {
