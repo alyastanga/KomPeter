@@ -21,7 +21,6 @@ import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryAddProduct;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryBrowseProducts;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringInventory;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSales;
-import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSummary;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosShop;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosTransactions;
 import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
@@ -69,7 +68,6 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                         .subMenu(new Item("Browse Products", "package.svg", FormInventoryBrowseProducts.class))
                         .subMenu(new Item("Add Product", "plus.svg", FormInventoryAddProduct.class)),
                 new Item("Monitoring", "chart-no-axes-combined.svg")
-                        .subMenu(new Item("Summary", "notepad-text.svg", FormMonitoringSummary.class))
                         .subMenu(new Item("Sales", "badge-dollar-sign.svg", FormMonitoringSales.class))
                         .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
                         .subMenu(new Item("Audits", "notepad-text.svg")),
