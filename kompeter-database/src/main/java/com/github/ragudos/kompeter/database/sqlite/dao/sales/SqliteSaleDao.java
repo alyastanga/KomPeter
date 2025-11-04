@@ -15,16 +15,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader;
 import com.github.ragudos.kompeter.database.AbstractSqlQueryLoader.SqlQueryType;
 import com.github.ragudos.kompeter.database.NamedPreparedStatement;
 import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
+import com.github.ragudos.kompeter.database.dto.sales.SaleMetadataDto;
+import com.github.ragudos.kompeter.database.dto.sales.SaleMetadataDto.SaleItemStocks;
+import com.github.ragudos.kompeter.database.dto.sales.SaleMetadataDto.SaleMetadataPayments;
 import com.github.ragudos.kompeter.database.sqlite.SqliteFactoryDao;
 import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 
@@ -47,6 +52,31 @@ public class SqliteSaleDao implements SaleDao {
             final ResultSet rs = stmnt.getPreparedStatement().getGeneratedKeys();
 
             return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
+
+    @Override
+    public SaleMetadataDto[] getAllSales(@NotNull final Connection conn) throws SQLException, IOException {
+        try (final Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(SqliteQueryLoader.getInstance().get("select_all_sales_metadata",
+                        "sales", SqlQueryType.SELECT))) {
+            final ArrayList<SaleMetadataDto> sales = new ArrayList<>();
+
+            while (rs.next()) {
+                final ObjectMapper om = new ObjectMapper();
+                final SaleMetadataPayments[] payments = om.readValue(rs.getString("payments"),
+                        SaleMetadataPayments[].class);
+                final SaleItemStocks[] items = om.readValue(rs.getString("items"), SaleItemStocks[].class);
+
+                sales.add(SaleMetadataDto.builder().createdAt(rs.getTimestamp("_created_at"))
+                        .saleDate(rs.getTimestamp("sale_date")).customerName(rs.getString("customer_name"))
+                        .saleCode(rs.getString("sale_code")).saleId(rs.getInt("_sale_id")).payments(payments)
+                        .saleItemStocks(items).vatPercent(rs.getBigDecimal("vat_percent"))
+                        .discountType(rs.getString("discount_type")).discountValue(rs.getBigDecimal("discount_value"))
+                        .build());
+            }
+
+            return sales.toArray(new SaleMetadataDto[sales.size()]);
         }
     }
 

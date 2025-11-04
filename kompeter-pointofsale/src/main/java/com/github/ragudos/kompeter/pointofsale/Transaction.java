@@ -14,6 +14,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +30,13 @@ import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
 import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStatus;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
+import com.github.ragudos.kompeter.database.dto.sales.SaleMetadataDto;
+import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public class Transaction {
     public static final BigDecimal VAT_RATE = new BigDecimal("0.12");
+
+    private static final Logger LOGGER = KompeterLogger.getLogger(Transaction.class);
 
     public static int createTransaction(@NotNull final Cart cart, final String customerName,
             @NotNull final BigDecimal paymentAmount, @NotNull final PaymentMethod paymentMethod,
@@ -98,6 +104,19 @@ public class Transaction {
             exception.addSuppressed(err);
 
             throw exception;
+        }
+    }
+
+    public static SaleMetadataDto[] getAllTransactions() throws Exception {
+        final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
+        final SaleDao saleDao = factoryDao.getSaleDao();
+
+        try (Connection conn = factoryDao.getConnection()) {
+            return saleDao.getAllSales(conn);
+        } catch (SQLException | IOException err) {
+            LOGGER.log(Level.SEVERE, "", err);
+
+            throw new Exception("Failed to get transactions");
         }
     }
 }

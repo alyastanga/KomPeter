@@ -26,22 +26,22 @@ public class KompeterMenuValidation extends MenuValidation {
         }
 
         if (user.isAuditor()) {
-            return index[0] == 0 || (index[0] == 4 && index[1] == 3) || index[0] == 5 || index[0] == 6;
+            return index[0] == 0 || (index[0] == 3 && index[1] == 3) || index[0] == 4 || index[0] == 5;
         }
 
         if (user.isCashier()) {
-            return index[0] == 0 || index[0] == 2 || index[0] == 4 || index[0] == 6;
+            return index[0] == 0 || index[0] == 1 || index[0] == 3 || index[0] == 5;
         }
 
         if (user.isInventoryClerk()) {
-            return index[0] == 0 || index[0] == 3 || index[0] == 5 || index[0] == 6;
+            return index[0] == 0 || index[0] == 2 || index[0] == 4 || index[0] == 5;
         }
 
         if (user.isManager()) {
-            return index[0] == 0 || index[0] == 3 || index[0] == 4 || index[0] == 5 || index[0] == 6;
+            return index[0] == 0 || index[0] == 2 || index[0] == 3 || index[0] == 4 || index[0] == 5;
         }
 
-        return index[0] == 0 || index[0] == 6;
+        return index[0] == 0 || index[0] == 5;
     }
 
     @Override

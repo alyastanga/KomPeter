@@ -17,7 +17,6 @@ import javax.swing.SwingUtilities;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
-import com.github.ragudos.kompeter.app.desktop.forms.FormDashboard;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryAddProduct;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryBrowseProducts;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringInventory;
@@ -63,8 +62,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     private static MenuOption createSimpleMenuOption() {
         final MenuOption menuOption = new MenuOption();
 
-        final MenuItem[] items = new MenuItem[]{new Item("Profile", "user.svg", FormProfile.class),
-                new Item("Dashboard", "circle-gauge.svg", FormDashboard.class),
+        final MenuItem[] items = new MenuItem[] { new Item("Profile", "user.svg", FormProfile.class),
                 new Item("Point of Sale", "store.svg").subMenu(new Item("Shop", "shopping-cart.svg", FormPosShop.class))
                         .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormPosTransactions.class)),
                 new Item("Inventory", "boxes.svg")
@@ -75,7 +73,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                         .subMenu(new Item("Sales", "badge-dollar-sign.svg", FormMonitoringSales.class))
                         .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
                         .subMenu(new Item("Audits", "notepad-text.svg")),
-                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg")};
+                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg") };
 
         menuOption.setMenuStyle(new MenuStyle() {
             @Override
@@ -101,7 +99,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
 
                 final int i = index[0];
 
-                if (i == 6) {
+                if (i == 5) {
                     action.consume();
 
                     final Optional<Form> currentForm = FormManager.FORMS.current();
