@@ -6,51 +6,48 @@
 *
 */
 
-// [File: com/github/ragudos/kompeter/app/desktop/forms/FormMonitoringSales.java]
-
 package com.github.ragudos.kompeter.app.desktop.forms;
 
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 
-// --- Imports for the Service and Data ---
 import com.github.ragudos.kompeter.monitoring.service.MonitoringSalesService;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteSalesDao;
 import com.github.ragudos.kompeter.database.dto.monitoring.Top10SellingItemsDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.RevenueDto;
 import com.github.ragudos.kompeter.database.dto.monitoring.ExpensesDto;
-// --- ADDED NEW IMPORTS ---
+import com.github.ragudos.kompeter.database.dto.monitoring.ProfitDto; 
 import com.github.ragudos.kompeter.monitoring.service.MonitoringSalesService.PredictionPoint;
 import com.github.ragudos.kompeter.monitoring.service.MonitoringSalesService.RevenuePredictionReport;
+import com.github.ragudos.kompeter.monitoring.service.MonitoringSalesService.ExpensePredictionReport;
+import com.github.ragudos.kompeter.monitoring.service.MonitoringSalesService.ProfitPredictionReport; 
 
-// --- Imports for JFreeChart ---
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot; // <-- ADDED
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer; // <-- ADDED
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
-// --- Imports for MigLayout and Swing ---
 import net.miginfocom.swing.MigLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import java.awt.BasicStroke; // <-- ADDED
-import java.awt.Color; // <-- ADDED
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.SQLException; // <-- ADDED
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.logging.Level; // <-- ADDED
-import java.util.logging.Logger; // <-- ADDED
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @SystemForm(name = "Monitoring Sales", description = "Shows all possible information about the sales.", tags = {
         "monitoring", "sales"})
@@ -63,30 +60,31 @@ public class FormMonitoringSales extends Form {
         
         setLayout(new MigLayout("fill, insets 0"));
 
-        // --- Create all four chart panels ---
+        JPanel revenuePredictionPanel = createRevenuePredictionChart();
+        JPanel expensePredictionPanel = createExpensePredictionChart();
+        JPanel profitPredictionPanel = createProfitPredictionChart();
         JPanel top10Panel = createTop10ChartPanel();
         JPanel revenuePanel = createRevenueChartPanel();
         JPanel expensePanel = createExpenseChartPanel();
-        JPanel predictionPanel = createRevenuePredictionChart(); // <-- UPDATED
+        JPanel profitPanel = createProfitChartPanel(); 
 
         JPanel chartsContainerPanel = new JPanel(new MigLayout("wrap 1, fillx, insets 0"));
 
-        // --- Add all four panels to the container ---
-        chartsContainerPanel.add(new CollapsibleChartPanel("Revenue Prediction", predictionPanel), "growx"); // <-- MOVED TO TOP
+        chartsContainerPanel.add(new CollapsibleChartPanel("Revenue Prediction", revenuePredictionPanel), "growx");
+        chartsContainerPanel.add(new CollapsibleChartPanel("Expense Prediction", expensePredictionPanel), "growx");
+        chartsContainerPanel.add(new CollapsibleChartPanel("Profit Prediction", profitPredictionPanel), "growx");
         chartsContainerPanel.add(new CollapsibleChartPanel("Top 10 Selling Items", top10Panel), "growx");
         chartsContainerPanel.add(new CollapsibleChartPanel("Daily Revenue", revenuePanel), "growx");
         chartsContainerPanel.add(new CollapsibleChartPanel("Daily Expenses", expensePanel), "growx");
+        chartsContainerPanel.add(new CollapsibleChartPanel("Daily Profit", profitPanel), "growx"); 
 
         JScrollPane scrollPane = new JScrollPane(chartsContainerPanel);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16); 
-        scrollPane.setBorder(null); 
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(null);
 
         add(scrollPane, "grow");
     }
-
-    /**
-     * Creates a Bar Chart Panel for the Top 10 Selling Items.
-     */
+    
     private JPanel createTop10ChartPanel() {
         Timestamp to = Timestamp.valueOf(LocalDateTime.now());
         Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
@@ -110,9 +108,6 @@ public class FormMonitoringSales extends Form {
         return new ChartPanel(barChart);
     }
 
-    /**
-     * Creates a Time Series Line Chart for Daily Revenue.
-     */
     private JPanel createRevenueChartPanel() {
         Timestamp to = Timestamp.valueOf(LocalDateTime.now());
         Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
@@ -139,9 +134,6 @@ public class FormMonitoringSales extends Form {
         return new ChartPanel(timeChart);
     }
     
-    /**
-     * Creates a Time Series Line Chart for Daily Expenses.
-     */
     private JPanel createExpenseChartPanel() {
         Timestamp to = Timestamp.valueOf(LocalDateTime.now());
         Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
@@ -168,24 +160,42 @@ public class FormMonitoringSales extends Form {
         return new ChartPanel(timeChart);
     }
 
-    // --- UPDATED METHOD ---
-    /**
-     * Creates a Time Series chart with actual revenue and predicted revenue.
-     */
+    private JPanel createProfitChartPanel() {
+        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
+        
+        List<ProfitDto> data = salesService.getProfitReport(from, to);
+
+        TimeSeries series = new TimeSeries("Daily Profit");
+        
+        if (data.isEmpty()) {
+            series.add(new Day(), 0.0);
+        } else {
+            for (ProfitDto profit : data) {
+                series.add(new Day(profit.date()), profit.totalProfit());
+            }
+        }
+        
+        TimeSeriesCollection dataset = new TimeSeriesCollection(series);
+
+        JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
+                "Daily Profit (Last 30 Days)", "Date", "Profit (PHP)",
+                dataset, true, true, false
+        );
+
+        return new ChartPanel(timeChart);
+    }
+
     private JPanel createRevenuePredictionChart() {
         TimeSeriesCollection dataset = new TimeSeriesCollection();
         TimeSeries actualSeries = new TimeSeries("Actual Revenue");
         TimeSeries predictedSeries = new TimeSeries("Predicted Trend");
 
         try {
-            // 1. Define date range for historical data
             Timestamp to = Timestamp.valueOf(LocalDateTime.now());
             Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
-            
-            // 2. Get BOTH actual and predicted data from the service
             RevenuePredictionReport report = salesService.getRevenuePredictionReport(from, to, 7);
 
-            // 3. Populate Actual Series
             if (report.actualData().isEmpty()) {
                 actualSeries.add(new Day(), 0.0);
             } else {
@@ -194,7 +204,6 @@ public class FormMonitoringSales extends Form {
                 }
             }
 
-            // 4. Populate Predicted Series
             if (report.predictedData().isEmpty()) {
                 predictedSeries.add(new Day(), 0.0);
             } else {
@@ -204,48 +213,130 @@ public class FormMonitoringSales extends Form {
             }
             
         } catch (SQLException e) {
-            Logger.getLogger(FormMonitoringSales.class.getName()).log(Level.SEVERE, "Failed to load prediction chart", e);
+            Logger.getLogger(FormMonitoringSales.class.getName()).log(Level.SEVERE, "Failed to load revenue prediction chart", e);
             actualSeries.add(new Day(), 0.0);
             predictedSeries.add(new Day(), 0.0);
         }
 
-        // 5. Add both series to the dataset
         dataset.addSeries(actualSeries);
         dataset.addSeries(predictedSeries);
 
-        // 6. Create the chart
         JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
-                "Revenue Prediction (Last 30 Days + 7 Day Forecast)", // Title
-                "Date",                         // X-Axis
-                "Revenue (PHP)",                // Y-Axis
-                dataset,                        // Data
-                true, true, false
+                "Revenue Prediction (Last 30 Days + 7 Day Forecast)", "Date", "Revenue (PHP)",
+                dataset, true, true, false
         );
         
-        // --- 7. Customize Renderer ---
+        stylePredictionChart(timeChart, new Color(0, 102, 204), Color.RED);
+        return new ChartPanel(timeChart);
+    }
+    
+    private JPanel createExpensePredictionChart() {
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+        TimeSeries actualSeries = new TimeSeries("Actual Expenses");
+        TimeSeries predictedSeries = new TimeSeries("Predicted Trend");
+
+        try {
+            Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+            Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
+            ExpensePredictionReport report = salesService.getExpensePredictionReport(from, to, 7);
+
+            if (report.actualData().isEmpty()) {
+                actualSeries.add(new Day(), 0.0);
+            } else {
+                for (ExpensesDto expense : report.actualData()) {
+                    actualSeries.add(new Day(expense.date()), expense.totalExpenses());
+                }
+            }
+
+            if (report.predictedData().isEmpty()) {
+                predictedSeries.add(new Day(), 0.0);
+            } else {
+                for (PredictionPoint pv : report.predictedData()) {
+                    predictedSeries.add(new Day(pv.date()), pv.value());
+                }
+            }
+            
+        } catch (SQLException e) {
+            Logger.getLogger(FormMonitoringSales.class.getName()).log(Level.SEVERE, "Failed to load expense prediction chart", e);
+            actualSeries.add(new Day(), 0.0);
+            predictedSeries.add(new Day(), 0.0);
+        }
+
+        dataset.addSeries(actualSeries);
+        dataset.addSeries(predictedSeries);
+
+        JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
+                "Expense Prediction (Last 30 Days + 7 Day Forecast)", "Date", "Expenses (PHP)",
+                dataset, true, true, false
+        );
+        
+        stylePredictionChart(timeChart, new Color(204, 102, 0), Color.RED);
+        return new ChartPanel(timeChart);
+    }
+    
+    private JPanel createProfitPredictionChart() {
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+        TimeSeries actualSeries = new TimeSeries("Actual Profit");
+        TimeSeries predictedSeries = new TimeSeries("Predicted Trend");
+
+        try {
+            Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+            Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
+            ProfitPredictionReport report = salesService.getProfitPredictionReport(from, to, 7);
+
+            if (report.actualData().isEmpty()) {
+                actualSeries.add(new Day(), 0.0);
+            } else {
+                for (ProfitDto profit : report.actualData()) {
+                    actualSeries.add(new Day(profit.date()), profit.totalProfit());
+                }
+            }
+
+            if (report.predictedData().isEmpty()) {
+                predictedSeries.add(new Day(), 0.0);
+            } else {
+                for (PredictionPoint pv : report.predictedData()) {
+                    predictedSeries.add(new Day(pv.date()), pv.value());
+                }
+            }
+            
+        } catch (SQLException e) {
+            Logger.getLogger(FormMonitoringSales.class.getName()).log(Level.SEVERE, "Failed to load profit prediction chart", e);
+            actualSeries.add(new Day(), 0.0);
+            predictedSeries.add(new Day(), 0.0);
+        }
+
+        dataset.addSeries(actualSeries);
+        dataset.addSeries(predictedSeries);
+
+        JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
+                "Profit Prediction (Last 30 Days + 7 Day Forecast)", "Date", "Profit (PHP)",
+                dataset, true, true, false
+        );
+        
+        stylePredictionChart(timeChart, new Color(0, 153, 51), Color.RED);
+        return new ChartPanel(timeChart);
+    }
+    
+    private void stylePredictionChart(JFreeChart timeChart, Color actualColor, Color predictedColor) {
         XYPlot plot = (XYPlot) timeChart.getPlot();
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         
-        // Series 0 (Actual): Blue line with shapes
-        renderer.setSeriesPaint(0, new Color(0, 102, 204));
+        renderer.setSeriesPaint(0, actualColor);
         renderer.setSeriesStroke(0, new BasicStroke(2.0f));
         renderer.setSeriesLinesVisible(0, true);
         renderer.setSeriesShapesVisible(0, true);
 
-        // Series 1 (Predicted): Red dashed line, no shapes
-        renderer.setSeriesPaint(1, Color.RED);
+        renderer.setSeriesPaint(1, predictedColor);
         renderer.setSeriesStroke(1, new BasicStroke(2.0f, BasicStroke.CAP_ROUND, 
                 BasicStroke.JOIN_ROUND, 1.0f, new float[]{6.0f, 6.0f}, 0.0f));
         renderer.setSeriesLinesVisible(1, true);
         renderer.setSeriesShapesVisible(1, false);
         
         plot.setRenderer(renderer);
-
-        return new ChartPanel(timeChart);
     }
     
     
-    // --- Collapsible Panel Inner Class (Unchanged) ---
     private class CollapsibleChartPanel extends JPanel implements ActionListener {
         private final JPanel contentPanel;
         private final JButton toggleButton;

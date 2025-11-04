@@ -50,15 +50,15 @@ public class KompeterDesktopApp extends JFrame {
 
         Thread.setDefaultUncaughtExceptionHandler(new GlobalUncaughtExceptionHandler());
 
-//        try {
-//            Authentication.signInFromStoredSessionToken();
-//        } catch (final AuthenticationException e) {
-//            JOptionPane.showMessageDialog(null,
-//                    "Application cannot be started safely. Please contact the developers.\nReason:\n\n"
-//                            + e.getMessage(),
-//                    "Failed to start up", JOptionPane.ERROR_MESSAGE);
-//            return;
-//        }
+        try {
+            Authentication.signInFromStoredSessionToken();
+        } catch (final AuthenticationException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Application cannot be started safely. Please contact the developers.\nReason:\n\n"
+                            + e.getMessage(),
+                    "Failed to start up", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         SwingUtilities.invokeLater(() -> {
             new KompeterDesktopApp().setVisible(true);
