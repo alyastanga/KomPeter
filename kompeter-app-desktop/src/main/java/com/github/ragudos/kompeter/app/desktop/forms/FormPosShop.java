@@ -307,7 +307,7 @@ public class FormPosShop extends Form {
 
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
 
-        containerSplitPane.setResizeWeight(0.65);
+        containerSplitPane.setResizeWeight(0.7);
         containerSplitPane.setContinuousLayout(true);
         containerSplitPane.setOneTouchExpandable(true);
 
