@@ -3,6 +3,10 @@ module kompeter.database {
     requires transitive kompeter.utilities;
     requires org.xerial.sqlitejdbc;
     requires io.github.classgraph;
+    requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.annotation;
+    requires lombok;
     requires static org.jetbrains.annotations;
 
     exports com.github.ragudos.kompeter.database;

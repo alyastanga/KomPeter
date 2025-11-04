@@ -9,18 +9,32 @@ package com.github.ragudos.kompeter.app.desktop.components;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
+
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
 
 public class MemoryBar extends JProgressBar {
 
-    private Timer timer;
-    private int refreshRate = 1_000;
     private String format = "%s / %s";
+    private int refreshRate = 2000;
+    private Timer timer;
     private String value = "";
 
     public MemoryBar() {
         setStringPainted(true);
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public int getRefreshRate() {
+        return refreshRate;
+    }
+
+    @Override
+    public String getString() {
+        return value;
     }
 
     public void installMemoryBar() {
@@ -32,10 +46,17 @@ public class MemoryBar extends JProgressBar {
         timer.start();
     }
 
-    public void uninstallMemoryBar() {
-        if (timer != null) {
-            timer.stop();
-            timer = null;
+    public void setFormat(final String format) {
+        if (this.format != format) {
+            this.format = format;
+            updateMemoryUsage();
+        }
+    }
+
+    public void setRefreshRate(final int refreshRate) {
+        if (this.refreshRate != refreshRate) {
+            this.refreshRate = refreshRate;
+            timer.setDelay(refreshRate);
         }
     }
 
@@ -51,56 +72,36 @@ public class MemoryBar extends JProgressBar {
         }
     }
 
-    private void updateMemoryUsage() {
-        MemoryUsage mUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-
-        setMaximum((int) mUsage.getCommitted());
-        setValue((int) mUsage.getUsed());
-
-        String max = formatSize(mUsage.getCommitted());
-        String used = formatSize(mUsage.getUsed());
-
-        value = String.format(format, used, max);
+    public void uninstallMemoryBar() {
+        if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
     }
 
-    @Override
-    public String getString() {
-        return value;
-    }
-
-    protected String formatSize(long bytes) {
-        int unit = 1024;
+    protected String formatSize(final long bytes) {
+        final int unit = 1024;
 
         if (bytes < unit) {
             return bytes + " B";
         }
 
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        final int exp = (int) (Math.log(bytes) / Math.log(unit));
 
-        String pre = "KMGTPE".charAt(exp - 1) + "";
+        final String pre = "KMGTPE".charAt(exp - 1) + "";
 
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
-    public int getRefreshRate() {
-        return refreshRate;
-    }
+    private void updateMemoryUsage() {
+        final MemoryUsage mUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
 
-    public void setRefreshRate(int refreshRate) {
-        if (this.refreshRate != refreshRate) {
-            this.refreshRate = refreshRate;
-            timer.setDelay(refreshRate);
-        }
-    }
+        setMaximum((int) mUsage.getCommitted());
+        setValue((int) mUsage.getUsed());
 
-    public String getFormat() {
-        return format;
-    }
+        final String max = formatSize(mUsage.getCommitted());
+        final String used = formatSize(mUsage.getUsed());
 
-    public void setFormat(String format) {
-        if (this.format != format) {
-            this.format = format;
-            updateMemoryUsage();
-        }
+        value = String.format(format, used, max);
     }
 }

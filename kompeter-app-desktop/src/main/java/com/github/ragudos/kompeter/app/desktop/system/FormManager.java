@@ -8,11 +8,13 @@
 package com.github.ragudos.kompeter.app.desktop.system;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
 import com.github.ragudos.kompeter.app.desktop.forms.auth.FormAuthWelcome;
 import com.github.ragudos.kompeter.app.desktop.menu.KompeterDrawerBuilder;
 import com.github.ragudos.kompeter.app.desktop.utilities.UndoRedo;
+import com.github.ragudos.kompeter.app.desktop.utilities.UndoRedo.RecentAction;
 import com.github.ragudos.kompeter.auth.SessionManager;
 
 import raven.modal.Drawer;
@@ -29,7 +31,7 @@ public class FormManager {
         return frame;
     }
 
-    public static void install(JFrame f) {
+    public static void install(final JFrame f) {
         frame = f;
         install();
 
@@ -60,11 +62,12 @@ public class FormManager {
         MainForm.getMemoryBar().uninstallMemoryBar();
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainAuthForm());
-        frame.getContentPane().add(getMainAuthForm());
 
+        getMainForm().setForm(AllForms.getForm(FormProfile.class));
         getMainAuthForm().setForm(getWelcome());
 
         FORMS.clear();
+        AllForms.clear();
 
         frame.repaint();
         frame.revalidate();
@@ -72,22 +75,23 @@ public class FormManager {
 
     public static void redo() {
         if (FORMS.isRedoAble()) {
-            Form form = FORMS.redo().get();
-            form.formCheck();
-            form.formOpen();
-            mainForm.setForm(form);
+            final Form form = FORMS.redoDry().get();
+
             Drawer.setSelectedItemClass(form.getClass());
         }
     }
 
     public static void refresh() {
         if (!FORMS.current().isEmpty()) {
-            FORMS.current().get().formRefresh();
+            SwingUtilities.invokeLater(() -> {
+                FORMS.current().get().formRefresh();
+            });
+
             mainForm.refresh();
         }
     }
 
-    public static void showAuthForm(Form form) {
+    public static void showAuthForm(final Form form) {
         if (AUTH_FORMS.current().isEmpty() || form != AUTH_FORMS.current().get()) {
             AUTH_FORMS.add(form);
             form.formCheck();
@@ -97,7 +101,22 @@ public class FormManager {
         }
     }
 
-    public static void showForm(Form form) {
+    public static void showForm(final Form form) {
+        if (FORMS.recentAction() == RecentAction.REDO || FORMS.recentAction() == RecentAction.UNDO) {
+            if (FORMS.recentAction() == RecentAction.REDO) {
+                FORMS.redo();
+            } else if (FORMS.recentAction() == RecentAction.UNDO) {
+                FORMS.undo();
+            }
+
+            FORMS.setRecentAction(null);
+            form.formCheck();
+            form.formOpen();
+            mainForm.setForm(form);
+
+            return;
+        }
+
         if (FORMS.current().isEmpty() || form != FORMS.current().get()) {
             FORMS.add(form);
             form.formCheck();
@@ -110,10 +129,8 @@ public class FormManager {
 
     public static void undo() {
         if (FORMS.isUndoAble()) {
-            Form form = FORMS.undo().get();
-            form.formCheck();
-            form.formOpen();
-            mainForm.setForm(form);
+            final Form form = FORMS.undoDry().get();
+
             Drawer.setSelectedItemClass(form.getClass());
         }
     }
@@ -145,7 +162,7 @@ public class FormManager {
     private static void install() {
     }
 
-    private boolean isLoggedOut = true;
+    private final boolean isLoggedOut = true;
 
     public boolean isLoggedOut() {
         return isLoggedOut;

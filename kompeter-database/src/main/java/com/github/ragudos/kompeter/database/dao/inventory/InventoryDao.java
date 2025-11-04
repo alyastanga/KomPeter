@@ -7,13 +7,14 @@
 */
 package com.github.ragudos.kompeter.database.dao.inventory;
 
-import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.github.ragudos.kompeter.database.dto.inventory.InventoryMetadataDto;
 
 public interface InventoryDao {
-    List<InventoryMetadataDto> getAllData() throws SQLException, IOException;
-
-    List<InventoryMetadataDto> getAllData(String search) throws SQLException, IOException;
+    InventoryMetadataDto[] getAllInventoryItems(@NotNull Connection conn) throws SQLException, IOException;
 }

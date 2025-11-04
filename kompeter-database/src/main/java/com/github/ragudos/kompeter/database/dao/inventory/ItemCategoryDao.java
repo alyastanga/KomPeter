@@ -8,6 +8,7 @@
 package com.github.ragudos.kompeter.database.dao.inventory;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -15,14 +16,9 @@ import java.util.Optional;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemCategoryDto;
 
 public interface ItemCategoryDao {
-    // READ
-    List<ItemCategoryDto> getAllCategories() throws SQLException, IOException;
+    List<ItemCategoryDto> getAllCategories(Connection conn) throws SQLException, IOException;
 
-    Optional<ItemCategoryDto> getCategoryById(int id) throws SQLException, IOException;
+    Optional<ItemCategoryDto> getCategoryById(Connection conn, int id) throws SQLException, IOException;
 
-    // UPDATE
-    // DELETE
-
-    // CREATE
-    int insertItemCategory(String name, String description) throws SQLException, IOException;
+    int insertItemCategory(Connection conn, String name, String description) throws SQLException, IOException;
 }

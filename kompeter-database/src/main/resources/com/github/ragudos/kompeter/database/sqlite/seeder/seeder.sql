@@ -7,12 +7,12 @@ INSERT INTO roles (role_name, description) VALUES
 ('auditor', 'Performs financial and stock audits.'),
 ('supplier', 'External role for supplier data, not a direct system user.');
 
-INSERT INTO users (display_name, first_name, last_name) VALUES
-('Peter', 'Peter', 'Parker'),
-('Hanz', 'Hanz', 'Zimmer'),
-('Jerick', 'Jerick', 'Serrano'),
-('Aaron', 'Aaron', 'Cruz'),
-('Kurt', 'Kurt', 'Cobain');
+INSERT INTO users (display_name, first_name, last_name, display_image) VALUES
+('Peter', 'Peter', 'Parker', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Hanz', 'Hanz', 'Zimmer', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Jerick', 'Jerick', 'Serrano', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Aaron', 'Aaron', 'Cruz', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png'),
+('Kurt', 'Kurt', 'Cobain', '/com/github/ragudos/kompeter/app/desktop/assets/images/peter.png');
 
 INSERT INTO accounts (_user_id, password_hash, password_salt, email) VALUES
 (1, 'kHsoVp4WrbrC/mg/a7cqhGKb9u2VBNOE/VLmuIuYFe8=', 'LGwkiq+nsgf+R7iRlpS3kQ==', 'peter.admin@example.com'),
@@ -144,40 +144,6 @@ INSERT INTO item_stock_storage_locations (_item_stock_id, _storage_location_id, 
 (64, 1, 75), (64, 2, 25), (65, 1, 20), (65, 2, 30), (66, 1, 15), (66, 2, 25), (67, 1, 40), (67, 2, 20), 
 (68, 1, 50), (68, 2, 20), (69, 1, 60), (69, 2, 30), (70, 1, 25), (70, 3, 25);
 
-
-INSERT INTO item_restocks (_item_stock_id, quantity_before, quantity_after, quantity_added) VALUES
-(5, 0, 100, 100), 
-(2, 0, 50, 50),   
-(21, 0, 75, 75),  
-(37, 0, 20, 20);  
-
--- PURCHASES and SUPPLIERS
-INSERT INTO suppliers (name, email, street, city, state, postal_code, country) VALUES
-('Component Distributors Inc.', 'contact@compdist.com', '123 Tech St', 'Makati', 'Metro Manila', '1209', 'Philippines'),
-('Peripheral World', 'sales@periworld.net', '456 Gadget Ave', 'Quezon City', 'Metro Manila', '1103', 'Philippines'),
-('ASUS PH Partner', 'orders@asusph.com', '789 Laptop Blvd', 'Manila', 'Metro Manila', '1008', 'Philippines'),
-('Storage Solutions', 'support@storage.com', '101 Drive Rd', 'Cebu City', 'Cebu', '6000', 'Philippines');
-
-INSERT INTO purchases (_supplier_id, purchase_date, purchase_code, delivery_date, vat_percent, discount_value, discount_type) VALUES
-(1, DATETIME('now', '-3 days'), 'PO-CDI-2025-001', DATETIME('now', '-2 days'), 0.12, 500.00, 'fixed'),
-(2, DATETIME('now', '-4 days'), 'PO-PW-2025-002', DATETIME('now', '-3 days'), 0.12, 0.05, 'percentage'),
-(3, DATETIME('now', '-2 days'), 'PO-APP-2025-003', NULL, 0.12, NULL, NULL), 
-(4, DATETIME('now', '-1 day'), 'PO-SS-2025-004', DATETIME('now'), 0.12, 0, 'fixed');
-
-INSERT INTO purchase_payments (_purchase_id, payment_date, reference_number, payment_method, amount_php) VALUES
-(1, DATETIME('now', '-2 days', '+1 hour'), 'REF-PP-98765', 'bank_transfer', 77840.00),
-(2, DATETIME('now', '-3 days', '+2 hours'), 'REF-PP-65432', 'cash', 106400.00),
-(3, DATETIME('now', '-2 days', '+3 hours'), 'REF-PP-32109', 'gcash', 44800.00),
-(4, DATETIME('now'), 'REF-PP-09876', 'bank_transfer', 140000.00);
-
-INSERT INTO purchase_item_stocks (_purchase_id, _item_stock_id, quantity_ordered, quantity_received, unit_cost_php) VALUES
-(1, 2, 5, 5, 10000.00), 
-(1, 5, 20, 20, 1000.00), 
-(2, 21, 10, 10, 8000.00), 
-(2, 23, 10, 10, 2000.00),
-(3, 37, 1, 1, 40000.00), 
-(4, 7, 10, 10, 12500.00); 
-
 -- SALES and TRANSACTIONS
 INSERT INTO sales (sale_date, sale_code, customer_name, vat_percent, discount_value, discount_type) VALUES
 (DATETIME('now', '-14 days', '10:00:00'), 'SALE-2025-0001', 'Client A', 0.12, 0, 'fixed'),
@@ -194,8 +160,12 @@ INSERT INTO sales (sale_date, sale_code, customer_name, vat_percent, discount_va
 (DATETIME('now', '-5 days', '09:40:00'), 'SALE-2025-0012', 'Quick Fix IT', 0.12, 1000.00, 'fixed'),
 (DATETIME('now', '-4 days', '18:00:00'), 'SALE-2025-0013', 'Sarah Connor', 0.12, 0, 'fixed'),
 (DATETIME('now', '-3 days', '11:55:00'), 'SALE-2025-0014', 'Tech Enthusiast', 0.12, 0.05, 'percentage'),
-(DATETIME('now', '-2 days', '16:30:00'), 'SALE-2025-0015', 'Mark Johnson', 0.12, 0, 'fixed');
-
+(DATETIME('now', '-2 days', '16:30:00'), 'SALE-2025-0015', 'Mark Johnson', 0.12, 0, 'fixed'),
+(DATETIME('now', '-1 day', '10:45:00'), 'SALE-2025-0016', 'Corporate Client X', 0.12, 0.05, 'percentage'),
+(DATETIME('now', '-1 day', '15:10:00'), 'SALE-2025-0017', 'Walk-in', 0.12, 0, 'fixed'),
+(DATETIME('now', '02:30:00'), 'SALE-2025-0018', 'Tech Solutions Inc.', 0.12, 1500.00, 'fixed'),
+(DATETIME('now', '03:45:00'), 'SALE-2025-0019', 'Client Y', 0.12, 0.10, 'percentage'),
+(DATETIME('now', '07:20:00'), 'SALE-2025-0020', 'Walk-in', 0.12, NULL, NULL);
 
 INSERT INTO sale_item_stocks (_sale_id, _item_stock_id, quantity, unit_price_php) VALUES
 (1, 5, 2, 3500.00), (1, 21, 1, 8500.00),
@@ -212,7 +182,12 @@ INSERT INTO sale_item_stocks (_sale_id, _item_stock_id, quantity, unit_price_php
 (12, 56, 5, 500.00), (12, 63, 5, 450.00),
 (13, 51, 1, 65000.00), (13, 70, 1, 2000.00),
 (14, 33, 1, 7000.00), (14, 59, 1, 500.00),
-(15, 3, 1, 35000.00), (15, 66, 1, 10000.00);
+(15, 3, 1, 35000.00), (15, 66, 1, 10000.00),
+(16, 24, 2, 3200.00), (16, 28, 1, 7500.00),
+(17, 13, 1, 4500.00), (17, 56, 2, 600.00),
+(18, 38, 1, 90000.00), (18, 7, 1, 13000.00),
+(19, 54, 1, 125000.00), (19, 61, 1, 4500.00),
+(20, 25, 1, 20000.00), (20, 65, 2, 8000.00);
 
 
 INSERT INTO sale_payments (_sale_id, payment_date, reference_number, payment_method, amount_php) VALUES
@@ -230,4 +205,80 @@ INSERT INTO sale_payments (_sale_id, payment_date, reference_number, payment_met
 (12, DATETIME('now', '-5 days', '09:45:00'), NULL, 'cash', 4480.00),
 (13, DATETIME('now', '-4 days', '18:05:00'), 'BTRANS-0904', 'bank_transfer', 75040.00),
 (14, DATETIME('now', '-3 days', '12:00:00'), 'GCASH-0903', 'gcash', 7980.00),
-(15, DATETIME('now', '-2 days', '16:35:00'), NULL, 'cash', 50400.00); 
+(15, DATETIME('now', '-2 days', '16:35:00'), NULL, 'cash', 50400.00),
+(16, DATETIME('now', '-1 day', '10:50:00'), 'BTRANS-0902', 'bank_transfer', 11232.00),
+(17, DATETIME('now', '-1 day', '15:15:00'), NULL, 'cash', 6160.00),
+(18, DATETIME('now', '02:35:00'), 'BTRANS-0901', 'bank_transfer', 14240.00),
+(19, DATETIME('now', '03:50:00'), 'GCASH-0901', 'gcash', 25136.00),
+(20, DATETIME('now', '07:25:00'), NULL, 'cash', 11360.00);
+
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Ryzen 9 7950X3D CPU.png' WHERE name = 'Ryzen 9 7950X3D CPU';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Ryzen 5 7600X CPU.png' WHERE name = 'Ryzen 5 7600X CPU';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/GeForce RTX 4070 GPU.png' WHERE name = 'GeForce RTX 4070 GPU';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/GeForce RTX 4090 GPU.png' WHERE name = 'GeForce RTX 4090 GPU';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/HyperX Fury 16GB RAM.png' WHERE name = 'HyperX Fury 16GB RAM';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Corsair Vengeance 32GB RAM.png' WHERE name = 'Corsair Vengeance 32GB RAM';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Samsung 990 Pro 2TB SSD.png' WHERE name = 'Samsung 990 Pro 2TB SSD';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Crucial P5 Plus 1TB SSD.png' WHERE name = 'Crucial P5 Plus 1TB SSD';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/WD Blue 4TB HDD.png' WHERE name = 'WD Blue 4TB HDD';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Seagate Barracuda 1TB HDD.png' WHERE name = 'Seagate Barracuda 1TB HDD';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/ROG STRIX B650 Motherboard.png' WHERE name = 'ROG STRIX B650 Motherboard';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/MSI MAG B760 Motherboard.png' WHERE name = 'MSI MAG B760 Motherboard';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Corsair 750W Power Supply.png' WHERE name = 'Corsair 750W Power Supply';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/EVGA 1000W Power Supply.png' WHERE name = 'EVGA 1000W Power Supply';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Lian Li Lancool 205 Case.png' WHERE name = 'Lian Li Lancool 205 Case';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/NZXT H7 Flow Case.png' WHERE name = 'NZXT H7 Flow Case';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Noctua NH-U12S CPU Cooler.png' WHERE name = 'Noctua NH-U12S CPU Cooler';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Corsair iCUE H150i AIO Cooler.png' WHERE name = 'Corsair iCUE H150i AIO Cooler';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Arctic P12 PWM Fan 5-Pack.png' WHERE name = 'Arctic P12 PWM Fan 5-Pack';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/PCIe Wi-Fi 6 Adapter.png' WHERE name = 'PCIe Wi-Fi 6 Adapter';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/G Pro X Mechanical Keyboard.png' WHERE name = 'G Pro X Mechanical Keyboard';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Razer BlackWidow V3 Keyboard.png' WHERE name = 'Razer BlackWidow V3 Keyboard';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Razer Viper Mini Mouse.png' WHERE name = 'Razer Viper Mini Mouse';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Logitech G502 Hero Mouse.png' WHERE name = 'Logitech G502 Hero Mouse';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/LG UltraGear 27 Monitor.png' WHERE name = 'LG UltraGear 27 Monitor';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Samsung Odyssey G9 Monitor.png' WHERE name = 'Samsung Odyssey G9 Monitor';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Logitech C920 Webcam.png' WHERE name = 'Logitech C920 Webcam';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Elgato Facecam.png' WHERE name = 'Elgato Facecam';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/HyperX Cloud II Headset.png' WHERE name = 'HyperX Cloud II Headset';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/SteelSeries Arctis Nova Pro.png' WHERE name = 'SteelSeries Arctis Nova Pro';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Logitech Z623 Speakers.png' WHERE name = 'Logitech Z623 Speakers';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Creative Pebble Speakers.png' WHERE name = 'Creative Pebble Speakers';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Blue Yeti Microphone.png' WHERE name = 'Blue Yeti Microphone';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/FIFINE K669B Microphone.png' WHERE name = 'FIFINE K669B Microphone';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Wacom Intuos S Tablet.png' WHERE name = 'Wacom Intuos S Tablet';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/ZenBook 14 Laptop (i7).png' WHERE name = 'ZenBook 14 Laptop (i7)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/ZenBook 14 Laptop (i5).png' WHERE name = 'ZenBook 14 Laptop (i5)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/ROG Zephyrus G14 Laptop (4070).png' WHERE name = 'ROG Zephyrus G14 Laptop (4070)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/ROG Zephyrus G14 Laptop (4060).png' WHERE name = 'ROG Zephyrus G14 Laptop (4060)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/TUF Gaming A15 Laptop.png' WHERE name = 'TUF Gaming A15 Laptop';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Acer Aspire 5 Laptop (i5).png' WHERE name = 'Acer Aspire 5 Laptop (i5)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Acer Nitro 5 Laptop.png' WHERE name = 'Acer Nitro 5 Laptop';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Dell XPS 13 (2024).png' WHERE name = 'Dell XPS 13 (2024)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Dell Inspiron 15.png' WHERE name = 'Dell Inspiron 15';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/HP Spectre x360 14.png' WHERE name = 'HP Spectre x360 14';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/HP Pavilion Aero 13.png' WHERE name = 'HP Pavilion Aero 13';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Lenovo Legion 5 Pro.png' WHERE name = 'Lenovo Legion 5 Pro';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Lenovo IdeaPad Gaming 3.png' WHERE name = 'Lenovo IdeaPad Gaming 3';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/MacBook Air M3 13-inch (8GB).png' WHERE name = 'MacBook Air M3 13-inch (8GB)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/MacBook Pro M3 Pro 14-inch (18GB).png' WHERE name = 'MacBook Pro M3 Pro 14-inch (18GB)';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Microsoft Surface Laptop 5 13.5.png' WHERE name = 'Microsoft Surface Laptop 5 13.5';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/MSI Stealth 16 Studio.png' WHERE name = 'MSI Stealth 16 Studio';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Gigabyte Aero 16 OLED.png' WHERE name = 'Gigabyte Aero 16 OLED';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Alienware m18 Gaming Laptop.png' WHERE name = 'Alienware m18 Gaming Laptop';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Chromebook Duet 5.png' WHERE name = 'Chromebook Duet 5';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/USB-C to HDMI Adapter.png' WHERE name = 'USB-C to HDMI Adapter';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Arctic MX-4 Thermal Paste.png' WHERE name = 'Arctic MX-4 Thermal Paste';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/SteelSeries Mousepad XXL.png' WHERE name = 'SteelSeries Mousepad XXL';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Logitech G240 Mousepad.png' WHERE name = 'Logitech G240 Mousepad';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/HDMI 2.1 Cable 2m.png' WHERE name = 'HDMI 2.1 Cable 2m';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/DisplayPort 1.4 Cable 3m.png' WHERE name = 'DisplayPort 1.4 Cable 3m';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Velcro Cable Ties 50-pack.png' WHERE name = 'Velcro Cable Ties 50-pack';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Compressed Air Canister.png' WHERE name = 'Compressed Air Canister';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Screen Cleaning Kit.png' WHERE name = 'Screen Cleaning Kit';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Windows 11 Home License.png' WHERE name = 'Windows 11 Home License';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Microsoft Office 365 License.png' WHERE name = 'Microsoft Office 365 License';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Surge Protector 8-Outlet.png' WHERE name = 'Surge Protector 8-Outlet';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/External Webcam Tripod.png' WHERE name = 'External Webcam Tripod';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/USB-A to USB-C Hub 4-port.png' WHERE name = 'USB-A to USB-C Hub 4-port';
+UPDATE items SET display_image = '/com/github/ragudos/kompeter/app/desktop/assets/images/Laptop Backpack 15-inch.png' WHERE name = 'Laptop Backpack 15-inch';

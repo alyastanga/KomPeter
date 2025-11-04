@@ -10,7 +10,6 @@ package com.github.ragudos.kompeter.monitoring.service;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,29 +33,25 @@ public class MonitoringStockService {
 
     private static final Logger LOGGER = KompeterLogger.getLogger(MonitoringInventoryService.class);
 
-    public static void main(String[] args) throws IOException, SQLException {
-        AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
+    public static void main(final String[] args) throws IOException, SQLException {
+        final AbstractMigratorFactory factory = AbstractMigratorFactory.getMigrator(AbstractMigratorFactory.SQLITE);
 
         // initialize schema
-        Migrator migrator = factory.getMigrator();
+        final Migrator migrator = factory.getMigrator();
         try {
             migrator.migrate();
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
         }
 
         // initialize seeder
-        SqliteSeeder seeder = new SqliteSeeder();
+        final SqliteSeeder seeder = new SqliteSeeder();
         try {
             seeder.seed();
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
         }
-        MonitoringStockService service = new MonitoringStockService(new SqliteStockDao());
-
-        // sample timestamp values
-        Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(7));
-        Timestamp to = Timestamp.valueOf(LocalDateTime.now());
+        final MonitoringStockService service = new MonitoringStockService(new SqliteStockDao());
 
         System.out.println("PURCHASE UNIT - FROM 10/14 TO 10/21");
         service.printPurchaseUnitReport();
@@ -80,7 +75,7 @@ public class MonitoringStockService {
 
     private final SqliteStockDao stockDAO;
 
-    public MonitoringStockService(SqliteStockDao stockDAO) {
+    public MonitoringStockService(final SqliteStockDao stockDAO) {
         this.stockDAO = stockDAO;
     }
 
@@ -90,21 +85,21 @@ public class MonitoringStockService {
     }
 
     // 2️⃣ Single date + direction (FROM or TO)
-    public void printOnhandUnitReport(Timestamp date, FromTo fromTo) {
+    public void printOnhandUnitReport(final Timestamp date, final FromTo fromTo) {
         try {
-            List<OnHandUnitDto> results = stockDAO.getOnHandUnit(date, fromTo);
+            final List<OnHandUnitDto> results = stockDAO.getOnHandUnit(date, fromTo);
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching profit sales report (single-date)", e);
         }
     }
 
     // 3️⃣ Date range
-    public void printOnhandUnitReport(Timestamp from, Timestamp to) {
+    public void printOnhandUnitReport(final Timestamp from, final Timestamp to) {
         try {
-            List<OnHandUnitDto> results = stockDAO.getOnHandUnit(from, to);
+            final List<OnHandUnitDto> results = stockDAO.getOnHandUnit(from, to);
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching profit sales report (range)", e);
         }
     }
@@ -115,21 +110,21 @@ public class MonitoringStockService {
     }
 
     // 2️⃣ Single date + direction (FROM or TO)
-    public void printPurchaseUnitReport(Timestamp date, FromTo fromTo) {
+    public void printPurchaseUnitReport(final Timestamp date, final FromTo fromTo) {
         try {
-            List<PurchaseUnitDto> results = stockDAO.getPurchaseUnit(date, fromTo);
+            final List<PurchaseUnitDto> results = stockDAO.getPurchaseUnit(date, fromTo);
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (single-date)", e);
         }
     }
 
     // 3️⃣ Date range
-    public void printPurchaseUnitReport(Timestamp from, Timestamp to) {
+    public void printPurchaseUnitReport(final Timestamp from, final Timestamp to) {
         try {
-            List<PurchaseUnitDto> results = stockDAO.getPurchaseUnit(from, to);
+            final List<PurchaseUnitDto> results = stockDAO.getPurchaseUnit(from, to);
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching revenue sales report (range)", e);
         }
     }
@@ -140,21 +135,21 @@ public class MonitoringStockService {
     }
 
     // 2️⃣ Single date + direction (FROM or TO)
-    public void printSalesUnitReport(Timestamp date, FromTo fromTo) {
+    public void printSalesUnitReport(final Timestamp date, final FromTo fromTo) {
         try {
-            List<SalesUnitDto> results = stockDAO.getSalesUnit(date, fromTo);
+            final List<SalesUnitDto> results = stockDAO.getSalesUnit(date, fromTo);
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching expenses sales report (single-date)", e);
         }
     }
 
     // 3️⃣ Date range
-    public void printSalesUnitReport(Timestamp from, Timestamp to) {
+    public void printSalesUnitReport(final Timestamp from, final Timestamp to) {
         try {
-            List<SalesUnitDto> results = stockDAO.getSalesUnit(from, to);
+            final List<SalesUnitDto> results = stockDAO.getSalesUnit(from, to);
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching expenses sales report (range)", e);
         }
     }
@@ -162,9 +157,9 @@ public class MonitoringStockService {
     // 1️⃣ No date filter — calls DAO with both nulls
     public void printTop10LowStockItems() {
         try {
-            List<Top10LowStockItemsDto> results = stockDAO.getTop10LowStockItems();
+            final List<Top10LowStockItemsDto> results = stockDAO.getTop10LowStockItems();
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching top 10 low stock items stock report", e);
         }
     }
@@ -172,21 +167,21 @@ public class MonitoringStockService {
     // 2️⃣ Single date + direction (FROM or TO)
     public void printTop10OldItemsReport() {
         try {
-            List<Top10OldItemsDto> results = stockDAO.getTop10OldItems();
+            final List<Top10OldItemsDto> results = stockDAO.getTop10OldItems();
             printResults(results);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching top 10 old items stock report", e);
         }
     }
 
     // Shared printer logic
-    private <T> void printResults(List<T> results) {
+    private <T> void printResults(final List<T> results) {
         if (results == null || results.isEmpty()) {
             LOGGER.log(Level.WARNING, "No inventory records found.");
             return;
         }
 
-        for (T dto : results) {
+        for (final T dto : results) {
             System.out.println(dto);
         }
     }

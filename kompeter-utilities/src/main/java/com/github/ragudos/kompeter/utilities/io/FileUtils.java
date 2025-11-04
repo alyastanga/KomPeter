@@ -19,6 +19,7 @@ public final class FileUtils {
     private static final Logger LOGGER = KompeterLogger.getLogger(FileUtils.class);
 
     public static final void setupConfig() {
+        createDirectoryIfNotExists(Directories.IMAGES_DIRECTORY);
         createDirectoryIfNotExists(Directories.LOGS_DIRECTORY);
         createDirectoryIfNotExists(Directories.CONFIG_DIRECTORY);
     }

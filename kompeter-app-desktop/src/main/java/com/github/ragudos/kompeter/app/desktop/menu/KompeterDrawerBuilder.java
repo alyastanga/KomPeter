@@ -7,23 +7,25 @@
 */
 package com.github.ragudos.kompeter.app.desktop.menu;
 
+import java.util.Optional;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.forms.FormDashboard;
+import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryAddProduct;
 import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryBrowseProducts;
-import com.github.ragudos.kompeter.app.desktop.forms.FormInventoryTransactions;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringInventory;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSales;
 import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSummary;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosShop;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosTransactions;
 import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
-import com.github.ragudos.kompeter.app.desktop.forms.FormSettings;
 import com.github.ragudos.kompeter.app.desktop.forms.FormUsers;
 import com.github.ragudos.kompeter.app.desktop.system.AllForms;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
@@ -32,8 +34,6 @@ import com.github.ragudos.kompeter.auth.Authentication;
 import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 
-import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
 import raven.modal.drawer.DrawerPanel;
 import raven.modal.drawer.item.Item;
 import raven.modal.drawer.item.MenuItem;
@@ -61,32 +61,32 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     }
 
     private static MenuOption createSimpleMenuOption() {
-        MenuOption menuOption = new MenuOption();
+        final MenuOption menuOption = new MenuOption();
 
-        MenuItem[] items = new MenuItem[] { new Item("Profile", "user.svg", FormProfile.class),
+        final MenuItem[] items = new MenuItem[]{new Item("Profile", "user.svg", FormProfile.class),
                 new Item("Dashboard", "circle-gauge.svg", FormDashboard.class),
                 new Item("Point of Sale", "store.svg").subMenu(new Item("Shop", "shopping-cart.svg", FormPosShop.class))
                         .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormPosTransactions.class)),
                 new Item("Inventory", "boxes.svg")
                         .subMenu(new Item("Browse Products", "package.svg", FormInventoryBrowseProducts.class))
-                        .subMenu(new Item("Transactions", "circle-dollar-sign.svg", FormInventoryTransactions.class)),
+                        .subMenu(new Item("Add Product", "plus.svg", FormInventoryAddProduct.class)),
                 new Item("Monitoring", "chart-no-axes-combined.svg")
                         .subMenu(new Item("Summary", "notepad-text.svg", FormMonitoringSummary.class))
                         .subMenu(new Item("Sales", "badge-dollar-sign.svg", FormMonitoringSales.class))
                         .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
                         .subMenu(new Item("Audits", "notepad-text.svg")),
-                new Item("Users", "users.svg", FormUsers.class),
-                new Item("Settings", "settings.svg", FormSettings.class), new Item("Logout", "logout.svg") };
+                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg")};
 
         menuOption.setMenuStyle(new MenuStyle() {
             @Override
-            public void styleMenu(JComponent component) {
+            public void styleMenu(final JComponent component) {
                 component.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
             }
 
             @Override
-            public void styleMenuItem(JButton menu, int[] index, boolean isMainItem) {
+            public void styleMenuItem(final JButton menu, final int[] index, final boolean isMainItem) {
                 menu.putClientProperty(FlatClientProperties.STYLE, "margin: -1, 0, -1, 0;");
+                menu.setToolTipText("Navigate to " + menu.getText());
             }
         });
 
@@ -96,24 +96,34 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
 
         menuOption.addMenuEvent(new MenuEvent() {
             @Override
-            public void selected(MenuAction action, int[] index) {
-                Class<?> itemClass = action.getItem().getItemClass();
+            public void selected(final MenuAction action, final int[] index) {
+                final Class<?> itemClass = action.getItem().getItemClass();
 
-                int i = index[0];
+                final int i = index[0];
 
-                if (i == 7) {
+                if (i == 6) {
+                    action.consume();
+
+                    final Optional<Form> currentForm = FormManager.FORMS.current();
+
+                    if (currentForm.isPresent() && !currentForm.get().formBeforeLogout()) {
+                        return;
+                    }
+
                     try {
                         Authentication.signOut();
-                    } catch (AuthenticationException err) {
-                        ModalDialog.showModal(KompeterDesktopApp.getRootFrame(),
-                                new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                                        "Sign Out Failure :(", SimpleModalBorder.CLOSE_OPTION, null));
+                    } catch (final AuthenticationException err) {
+                        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(), err.getMessage(),
+                                "Sign Out Failure :(", JOptionPane.ERROR_MESSAGE);
 
                         return;
                     }
 
-                    action.consume();
-                    FormManager.logout();
+                    SwingUtilities.invokeLater(() -> {
+                        FormManager.logout();
+                    });
+
+                    return;
                 }
 
                 if (itemClass == null || !Form.class.isAssignableFrom(itemClass)) {
@@ -122,11 +132,21 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                     return;
                 }
 
-                System.out.println(action);
-
                 @SuppressWarnings("unchecked") // already has been checked above if it is a clazz that extends Form
-                Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
-                FormManager.showForm(AllForms.getForm(formClass));
+                final Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
+                final Form form = AllForms.getForm(formClass);
+
+                final Optional<Form> currentForm = FormManager.FORMS.current();
+
+                if (currentForm.isPresent() && !currentForm.get().formBeforeClose()) {
+                    action.consume();
+
+                    return;
+                }
+
+                SwingUtilities.invokeLater(() -> {
+                    FormManager.showForm(form);
+                });
             }
         });
 
@@ -146,7 +166,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
     }
 
     @Override
-    public void build(DrawerPanel drawerPanel) {
+    public void build(final DrawerPanel drawerPanel) {
         drawerPanel.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
     }
 

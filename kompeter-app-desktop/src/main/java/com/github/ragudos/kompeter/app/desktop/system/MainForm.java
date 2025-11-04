@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -57,17 +58,19 @@ public class MainForm extends JPanel {
     }
 
     public void setForm(Form form) {
-        mainPanel.removeAll();
-        mainPanel.add(form);
-        mainPanel.repaint();
-        mainPanel.revalidate();
-
         buttonUndo.setEnabled(FormManager.FORMS.isUndoAble());
         buttonRedo.setEnabled(FormManager.FORMS.isRedoAble());
 
         if (mainPanel.getComponentOrientation().isLeftToRight() != form.getComponentOrientation().isLeftToRight()) {
             applyComponentOrientation(mainPanel.getComponentOrientation());
         }
+
+        SwingUtilities.invokeLater(() -> {
+            mainPanel.removeAll();
+            mainPanel.add(form);
+            mainPanel.repaint();
+            mainPanel.revalidate();
+        });
     }
 
     private JPanel createFooter() {

@@ -7,13 +7,6 @@
 */
 package com.github.ragudos.kompeter.pointofsale;
 
-import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
-import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
-import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
-import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
-import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
-import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -25,6 +18,13 @@ import java.util.ArrayList;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.github.ragudos.kompeter.cryptography.PurchaseCodeGenerator;
+import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleDao;
+import com.github.ragudos.kompeter.database.dao.sales.SaleItemStockDao;
+import com.github.ragudos.kompeter.database.dao.sales.SalePaymentDao;
+import com.github.ragudos.kompeter.database.dto.enums.PaymentMethod;
+
 public class Transaction {
     public static final double VAT_RATE = 0.12;
 
@@ -35,8 +35,7 @@ public class Transaction {
     }
 
     public static void createTransaction(@NotNull ArrayList<CartItem> items, @NotNull PaymentMethod paymentMethod,
-            double cashTendered,
-            @NotNull Timestamp saleDate, @NotNull String saleCode) throws Exception {
+            double cashTendered, @NotNull Timestamp saleDate, @NotNull String saleCode) throws Exception {
         AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
 
         SaleDao saleDao = factoryDao.getSaleDao();
@@ -51,8 +50,7 @@ public class Transaction {
             int _saleId = saleDao.createSale(conn, saleDate, saleCode, new BigDecimal(VAT_RATE));
 
             for (CartItem item : items) {
-                saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(),
-                        new BigDecimal(item.price()));
+                saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(), item.price());
             }
 
             // TODO: accept reference number of other payment methods

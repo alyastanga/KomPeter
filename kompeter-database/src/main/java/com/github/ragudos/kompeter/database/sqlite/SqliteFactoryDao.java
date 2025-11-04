@@ -11,8 +11,6 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -64,14 +62,12 @@ import com.github.ragudos.kompeter.database.sqlite.dao.user.SqliteUserRoleDao;
 import com.github.ragudos.kompeter.utilities.constants.Directories;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.io.FileUtils;
-import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
 public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     public static final String DB_URL;
     public static final String MAIN_DB_FILE_NAME;
 
     public static final int POOL_CONNECTION_COUNT = 1;
-    private static final Logger LOGGER = KompeterLogger.getLogger(SqliteFactoryDao.class);
 
     private static SqliteFactoryDao instance = null;
 
@@ -93,19 +89,6 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
 
         FileUtils.createDirectoryIfNotExists(Directories.SQLITE_DIRECTORY);
         FileUtils.createFileIfNotExists(MAIN_DB_FILE_NAME);
-
-        writeLock.lock();
-
-        try {
-            for (int i = 0; i < POOL_CONNECTION_COUNT; ++i) {
-                pooledConnections.add(createProxy(createConnection()));
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Failed to create connections", e);
-            throw new RuntimeException("Failed to initialize FactoryDao");
-        } finally {
-            writeLock.unlock();
-        }
     }
 
     @Override
@@ -216,19 +199,6 @@ public final class SqliteFactoryDao extends AbstractSqlFactoryDao {
     @Override
     public @NotNull UserRoleDao getUserRoleDao() {
         return new SqliteUserRoleDao();
-    }
-
-    @Override
-    public void shutdown() throws SQLException {
-        super.shutdown();
-
-        writeLock.lock();
-
-        try {
-            instance = null;
-        } finally {
-            writeLock.unlock();
-        }
     }
 
     @Override

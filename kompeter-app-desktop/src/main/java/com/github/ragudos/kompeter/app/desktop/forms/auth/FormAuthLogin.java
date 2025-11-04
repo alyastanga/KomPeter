@@ -17,13 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.system.FormManager;
 import com.github.ragudos.kompeter.auth.Authentication;
@@ -33,14 +33,12 @@ import com.github.ragudos.kompeter.utilities.validator.EmailValidator;
 import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
 
 import net.miginfocom.swing.MigLayout;
-import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
-import raven.modal.component.SimpleModalBorder;
 
 public class FormAuthLogin extends Form {
     private JLabel emailError;
     private JTextField emailTextField;
-    private AtomicBoolean isBusy;
+    private final AtomicBoolean isBusy;
     private JButton loginButton;
     private JLabel passwordError;
     private JPasswordField passwordTextField;
@@ -57,7 +55,7 @@ public class FormAuthLogin extends Form {
         emailTextField.requestFocusInWindow();
     }
 
-    private void applyShadowBorder(JPanel panel) {
+    private void applyShadowBorder(final JPanel panel) {
         if (panel != null) {
             panel.setBorder(new DropShadowBorder(new Insets(4, 8, 12, 8), 1, 25));
         }
@@ -69,7 +67,7 @@ public class FormAuthLogin extends Form {
     }
 
     private void createLogin() {
-        JPanel container = new JPanel(new BorderLayout()) {
+        final JPanel container = new JPanel(new BorderLayout()) {
             @Override
             public void updateUI() {
                 super.updateUI();
@@ -80,13 +78,13 @@ public class FormAuthLogin extends Form {
         container.setOpaque(false);
         applyShadowBorder(container);
 
-        JPanel contentContainer = new JPanel(new MigLayout("fillx, wrap, insets 35 35 25 35", "[fill, 300]"));
+        final JPanel contentContainer = new JPanel(new MigLayout("fillx, wrap, insets 35 35 25 35", "[fill, 300]"));
 
-        JLabel title = new JLabel("Welcome back!");
-        JLabel description = new JLabel("Please sign in to access your account.");
+        final JLabel title = new JLabel("Welcome back!");
+        final JLabel description = new JLabel("Please sign in to access your account.");
 
-        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1 primary");
-        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2 muted");
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2 primary");
+        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 muted");
 
         contentContainer.add(title);
         contentContainer.add(description);
@@ -100,9 +98,13 @@ public class FormAuthLogin extends Form {
 
         emailTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your email");
         passwordTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your password");
+        passwordTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+        passwordTextField.putClientProperty("PasswordField.showCapsLock", true);
 
         emailError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
         passwordError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+        emailError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        passwordError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
 
         registerButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "link");
         loginButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
@@ -110,11 +112,11 @@ public class FormAuthLogin extends Form {
         container.putClientProperty(FlatClientProperties.STYLE, "[dark]:tint($Panel.background, 1%);");
         contentContainer.putClientProperty(FlatClientProperties.STYLE, "background:null;");
 
-        contentContainer.add(new JLabel("Email"), "gapy 25");
+        contentContainer.add(new JLabel("Email*"), "gapy 25");
         contentContainer.add(emailTextField);
         contentContainer.add(emailError, "gapy 2");
 
-        contentContainer.add(new JLabel("Password"), "gapy 10");
+        contentContainer.add(new JLabel("Password*"), "gapy 10");
         contentContainer.add(passwordTextField);
         contentContainer.add(passwordError, "gapy 2");
 
@@ -165,7 +167,7 @@ public class FormAuthLogin extends Form {
 
     private class EnterKeyListener extends KeyAdapter {
         @Override
-        public void keyPressed(KeyEvent e) {
+        public void keyPressed(final KeyEvent e) {
             if (e.getKeyCode() != KeyEvent.VK_ENTER) {
                 return;
             }
@@ -193,14 +195,14 @@ public class FormAuthLogin extends Form {
     }
 
     private class LoginButtonActionListener implements ActionListener {
-        private JPanel owner;
+        private final JPanel owner;
 
-        public LoginButtonActionListener(JPanel owner) {
+        public LoginButtonActionListener(final JPanel owner) {
             this.owner = owner;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             if (isBusy.get()) {
                 return;
             }
@@ -219,9 +221,8 @@ public class FormAuthLogin extends Form {
                 SwingUtilities.invokeLater(() -> {
                     FormManager.login();
                 });
-            } catch (AuthenticationException err) {
-                ModalDialog.showModal(owner, new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                        "Sign In Failure :(", SimpleModalBorder.CLOSE_OPTION, null), TOOL_TIP_TEXT_KEY);
+            } catch (final AuthenticationException err) {
+                JOptionPane.showMessageDialog(owner, err.getMessage(), "Sign In Failure :(", JOptionPane.ERROR_MESSAGE);
             } finally {
                 isBusy.set(false);
             }
@@ -230,7 +231,7 @@ public class FormAuthLogin extends Form {
 
     private class RegisterButtonActionListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             FormManager.showAuthForm(new FormAuthRegister());
         }
     }

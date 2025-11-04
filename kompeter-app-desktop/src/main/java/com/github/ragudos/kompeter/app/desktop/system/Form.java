@@ -18,6 +18,14 @@ public class Form extends JPanel {
     public void formAfterOpen() {
     }
 
+    public boolean formBeforeClose() {
+        return true;
+    }
+
+    public boolean formBeforeLogout() {
+        return true;
+    }
+
     public final void formCheck() {
         if (oldTheme != UIManager.getLookAndFeel()) {
             oldTheme = UIManager.getLookAndFeel();
@@ -32,5 +40,10 @@ public class Form extends JPanel {
     }
 
     public void formRefresh() {
+    }
+
+    @FunctionalInterface
+    public interface FormBeforeCloseCallback {
+        void beforeClose(boolean predicate);
     }
 }

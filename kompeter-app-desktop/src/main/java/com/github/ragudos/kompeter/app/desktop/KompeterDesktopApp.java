@@ -10,7 +10,6 @@ package com.github.ragudos.kompeter.app.desktop;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +24,6 @@ import com.github.ragudos.kompeter.app.desktop.system.MainForm;
 import com.github.ragudos.kompeter.auth.Authentication;
 import com.github.ragudos.kompeter.auth.Authentication.AuthenticationException;
 import com.github.ragudos.kompeter.database.AbstractMigratorFactory;
-import com.github.ragudos.kompeter.database.AbstractSqlFactoryDao;
 import com.github.ragudos.kompeter.utilities.constants.Metadata;
 import com.github.ragudos.kompeter.utilities.io.FileUtils;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
@@ -40,7 +38,7 @@ public class KompeterDesktopApp extends JFrame {
         return ROOT_FRAME;
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         FileUtils.setupConfig();
         AbstractMigratorFactory.setupSqlite();
         FontSetup.setup();
@@ -54,7 +52,7 @@ public class KompeterDesktopApp extends JFrame {
 
         try {
             Authentication.signInFromStoredSessionToken();
-        } catch (AuthenticationException e) {
+        } catch (final AuthenticationException e) {
             JOptionPane.showMessageDialog(null,
                     "Application cannot be started safely. Please contact the developers.\nReason:\n\n"
                             + e.getMessage(),
@@ -86,17 +84,12 @@ public class KompeterDesktopApp extends JFrame {
 
     private class MainFrameWindowListener extends WindowAdapter {
         @Override
-        public void windowClosing(WindowEvent e) {
-            try {
-                AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE).shutdown();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
-
+        public void windowClosing(final WindowEvent e) {
             MainForm.getMemoryBar().uninstallMemoryBar();
             removeWindowListener(windowListener);
 
             dispose();
+            System.exit(0);
         }
     }
 }

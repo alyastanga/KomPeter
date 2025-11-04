@@ -14,38 +14,38 @@ import raven.modal.drawer.menu.MenuValidation;
 
 public class KompeterMenuValidation extends MenuValidation {
 
-    public static boolean validate(int[] index) {
+    public static boolean validate(final int[] index) {
         if (SessionManager.getInstance().session() == null) {
             return false;
         }
 
-        UserMetadataDto user = SessionManager.getInstance().session().user();
+        final UserMetadataDto user = SessionManager.getInstance().session().user();
 
         if (user.isAdmin()) {
             return true;
         }
 
         if (user.isAuditor()) {
-            return index[0] == 0 || (index[0] == 4 && index[1] == 3) || index[0] == 6 || index[0] == 7;
+            return index[0] == 0 || (index[0] == 4 && index[1] == 3) || index[0] == 5 || index[0] == 6;
         }
 
         if (user.isCashier()) {
-            return index[0] == 0 || index[0] == 2 || index[0] == 6 || index[0] == 7;
+            return index[0] == 0 || index[0] == 2 || index[0] == 4 || index[0] == 6;
         }
 
         if (user.isInventoryClerk()) {
-            return index[0] == 0 || index[0] == 3 || index[0] == 6 || index[0] == 7;
+            return index[0] == 0 || index[0] == 3 || index[0] == 5 || index[0] == 6;
         }
 
         if (user.isManager()) {
-            return index[0] == 0 || index[0] == 4 || index[0] == 5 || index[0] == 6 || index[0] == 7;
+            return index[0] == 0 || index[0] == 3 || index[0] == 4 || index[0] == 5 || index[0] == 6;
         }
 
-        return index[0] == 0 || index[0] == 6 || index[0] == 7;
+        return index[0] == 0 || index[0] == 6;
     }
 
     @Override
-    public boolean menuValidation(int[] index) {
+    public boolean menuValidation(final int[] index) {
         return validate(index);
     }
 }

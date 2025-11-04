@@ -7,9 +7,27 @@
 */
 package com.github.ragudos.kompeter.utilities;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import org.jetbrains.annotations.NotNull;
 
 public final class StringUtils {
+    public static @NotNull String formatBigDecimal(BigDecimal amount) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.of("tl", "ph"));
+        String display = currencyFormat.format(amount);
+
+        return display;
+    }
+
+    public static @NotNull String formatDouble(double amount) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.of("tl", "ph"));
+        String formatted = formatter.format(amount);
+
+        return formatted;
+    }
+
     public static @NotNull String[] splitTrim(@NotNull String input, @NotNull String delimiter) {
         return input.split("\\s*" + delimiter + "\\s*");
     }

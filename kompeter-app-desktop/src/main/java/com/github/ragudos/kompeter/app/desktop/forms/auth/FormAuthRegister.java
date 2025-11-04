@@ -28,7 +28,6 @@ import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
-import com.github.ragudos.kompeter.app.desktop.components.modal.SimpleMessageModal;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.system.FormManager;
 import com.github.ragudos.kompeter.auth.Authentication;
@@ -41,16 +40,14 @@ import com.github.ragudos.kompeter.utilities.validator.PasswordValidator;
 import net.miginfocom.swing.MigLayout;
 import raven.extras.SlidePane;
 import raven.extras.SlidePaneTransition;
-import raven.modal.ModalDialog;
 import raven.modal.component.DropShadowBorder;
-import raven.modal.component.SimpleModalBorder;
 import raven.modal.slider.PanelSlider.SliderCallback;
 
 public class FormAuthRegister extends Form {
     private Icon cachedRegisterButtonIcon;
     private JPanel contentContainer;
 
-    private AtomicInteger currentStep;
+    private final AtomicInteger currentStep;
 
     private JLabel displayNameError;
     private JLabel displayNameLabel;
@@ -61,7 +58,7 @@ public class FormAuthRegister extends Form {
     private JLabel firstNameError;
     private JLabel firstNameLabel;
     private JTextField firstNameTextField;
-    private AtomicBoolean isBusy;
+    private final AtomicBoolean isBusy;
     private JLabel lastNameError;
     private JLabel lastNameLabel;
     private JTextField lastNameTextField;
@@ -89,7 +86,7 @@ public class FormAuthRegister extends Form {
         firstNameTextField.requestFocusInWindow();
     }
 
-    private void applyShadowBorder(JPanel panel) {
+    private void applyShadowBorder(final JPanel panel) {
         if (panel != null) {
             panel.setBorder(new DropShadowBorder(new Insets(4, 8, 12, 8), 1, 25));
         }
@@ -117,7 +114,7 @@ public class FormAuthRegister extends Form {
     private void createRegister() {
         paneSlider = new SlidePane();
 
-        JPanel container = new JPanel(new BorderLayout()) {
+        final JPanel container = new JPanel(new BorderLayout()) {
             @Override
             public void updateUI() {
                 super.updateUI();
@@ -130,11 +127,11 @@ public class FormAuthRegister extends Form {
 
         contentContainer = new JPanel(new MigLayout("fillx, wrap, insets 35 35 25 35", "[fill, 300]"));
 
-        JLabel title = new JLabel("Welcome!");
-        JLabel description = new JLabel("Sign up to create an account.");
+        final JLabel title = new JLabel("Welcome!");
+        final JLabel description = new JLabel("Sign up to create an account.");
 
-        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1 primary");
-        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2 muted");
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h2 primary");
+        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 muted");
 
         contentContainer.add(title);
         contentContainer.add(description);
@@ -145,26 +142,26 @@ public class FormAuthRegister extends Form {
         step2Panel = new JPanel(new MigLayout("fillx, wrap, insets 0", "[fill, 300]"));
         step3Panel = new JPanel(new MigLayout("fillx, wrap, insets 0", "[fill, 300]"));
 
-        firstNameLabel = new JLabel("First Name");
+        firstNameLabel = new JLabel("First Name*");
         firstNameTextField = new JTextField();
         firstNameError = new JLabel();
-        lastNameLabel = new JLabel("Last Name");
+        lastNameLabel = new JLabel("Last Name*");
         lastNameTextField = new JTextField();
         lastNameError = new JLabel();
-        displayNameLabel = new JLabel("Display Name");
+        displayNameLabel = new JLabel("Display Name*");
         displayNameTextField = new JTextField();
         displayNameError = new JLabel();
-        emailLabel = new JLabel("Email");
+        emailLabel = new JLabel("Email*");
         emailTextField = new JTextField();
         emailError = new JLabel();
-        passwordLabel = new JLabel("Password");
+        passwordLabel = new JLabel("Password*");
         passwordTextField = new JPasswordField();
         passwordError = new JLabel();
         previousStepButton = new JButton("Back", new SVGIconUIColor("move-left.svg", 0.75f, "foreground.muted"));
         registerButton = new JButton("Continue", new SVGIconUIColor("move-right.svg", 0.75f, "foreground.primary"));
         loginButton = new JButton("I already have an account");
 
-        stepLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3");
+        stepLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold;");
 
         firstNameTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your first name");
         lastNameTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Enter your last name");
@@ -177,6 +174,12 @@ public class FormAuthRegister extends Form {
         displayNameError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
         emailError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
         passwordError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
+
+        firstNameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        lastNameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        displayNameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        emailError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        passwordError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
 
         previousStepButton.setIconTextGap(16);
         previousStepButton.setHorizontalTextPosition(SwingConstants.RIGHT);
@@ -311,7 +314,7 @@ public class FormAuthRegister extends Form {
 
     private class EnterKeyListener extends KeyAdapter {
         @Override
-        public void keyPressed(KeyEvent e) {
+        public void keyPressed(final KeyEvent e) {
             if (e.getKeyCode() != KeyEvent.VK_ENTER) {
                 return;
             }
@@ -365,7 +368,7 @@ public class FormAuthRegister extends Form {
 
     private class LoginButtonActionListener implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             FormManager.showAuthForm(new FormAuthLogin());
         }
     }
@@ -373,12 +376,12 @@ public class FormAuthRegister extends Form {
     private class PreviousStepButtonListener implements ActionListener {
         private final JPanel owner;
 
-        public PreviousStepButtonListener(JPanel owner) {
+        public PreviousStepButtonListener(final JPanel owner) {
             this.owner = owner;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             if (isBusy.get()) {
                 return;
             }
@@ -444,12 +447,12 @@ public class FormAuthRegister extends Form {
     private class RegisterButtonActionListener implements ActionListener {
         private final JPanel owner;
 
-        public RegisterButtonActionListener(JPanel owner) {
+        public RegisterButtonActionListener(final JPanel owner) {
             this.owner = owner;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             if (isBusy.get()) {
                 return;
             }
@@ -509,18 +512,14 @@ public class FormAuthRegister extends Form {
                 Authentication.signUp(displayNameTextField.getText(), firstNameTextField.getText(),
                         lastNameTextField.getText(), emailTextField.getText(), passwordTextField.getPassword());
 
-                ModalDialog.showModal(owner,
-                        new SimpleMessageModal(SimpleMessageModal.Type.SUCCESS,
-                                "Your account has been registered. Please sign in.", "Registration Success :)",
-                                SimpleModalBorder.CLOSE_OPTION, null),
-                        TOOL_TIP_TEXT_KEY);
+                JOptionPane.showMessageDialog(owner, "Your account has been registered. Please sign in.",
+                        "Registration Success :)", JOptionPane.INFORMATION_MESSAGE);
 
                 SwingUtilities.invokeLater(() -> {
                     FormManager.showAuthForm(new FormAuthLogin());
                 });
-            } catch (AuthenticationException err) {
-                ModalDialog.showModal(owner, new SimpleMessageModal(SimpleMessageModal.Type.ERROR, err.getMessage(),
-                        "Sign Up Failure :(", SimpleModalBorder.CLOSE_OPTION, null), TOOL_TIP_TEXT_KEY);
+            } catch (final AuthenticationException err) {
+                JOptionPane.showMessageDialog(owner, err.getMessage(), "Sign Up Failure :(", JOptionPane.ERROR_MESSAGE);
             } finally {
                 isBusy.set(false);
             }

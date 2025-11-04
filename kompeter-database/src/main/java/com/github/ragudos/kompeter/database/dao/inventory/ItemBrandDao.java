@@ -8,21 +8,16 @@
 package com.github.ragudos.kompeter.database.dao.inventory;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
 
 import com.github.ragudos.kompeter.database.dto.inventory.ItemBrandDto;
 
 public interface ItemBrandDao {
-    // READ
-    List<ItemBrandDto> getAllBrands() throws SQLException, IOException;
+    ItemBrandDto[] getAllBrands(Connection conn) throws SQLException, IOException;
 
-    Optional<ItemBrandDto> getBrandById(int id) throws SQLException, IOException;
+    Optional<ItemBrandDto> getBrandById(Connection conn, int _itemBrandId) throws SQLException, IOException;
 
-    // UPDATE
-    // DELETE
-
-    // CREATE
-    int insertItemBrand(String name, String description) throws SQLException, IOException;
+    int insertItemBrand(Connection conn, String name, String description) throws SQLException, IOException;
 }
