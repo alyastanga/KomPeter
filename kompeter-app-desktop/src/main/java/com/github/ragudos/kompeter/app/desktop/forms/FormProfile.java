@@ -28,6 +28,10 @@ public final class FormProfile extends Form {
     public void formInit() {
         setLayout(new MigLayout("insets 12, flowx"));
 
+        if (SessionManager.getInstance().session() == null) {
+            return;
+        }
+
         final UserMetadataDto user = SessionManager.getInstance().session().user();
 
         final JLabel fullName = new JLabel(
