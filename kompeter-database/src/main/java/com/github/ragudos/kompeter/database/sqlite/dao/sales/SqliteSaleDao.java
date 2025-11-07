@@ -35,12 +35,13 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
 
 public class SqliteSaleDao implements SaleDao {
     @Override
-    public int createSale(@NotNull final Connection conn, @NotNull final Timestamp saleDate,
+    public int createSale(@NotNull final Connection conn, final String customerName, @NotNull final Timestamp saleDate,
             @NotNull final String saleCode, final BigDecimal vatPercent, @NotNull final DiscountType discountType,
             @NotNull final BigDecimal discountValue) throws SQLException, IOException {
         try (NamedPreparedStatement stmnt = new NamedPreparedStatement(conn,
                 SqliteQueryLoader.getInstance().get("create_sale", "sales", SqlQueryType.INSERT),
                 Statement.RETURN_GENERATED_KEYS)) {
+            stmnt.setString("customer_name", customerName);
             stmnt.setTimestamp("sale_date", saleDate);
             stmnt.setString("sale_code", saleCode);
             stmnt.setBigDecimal("vat_percent", vatPercent);

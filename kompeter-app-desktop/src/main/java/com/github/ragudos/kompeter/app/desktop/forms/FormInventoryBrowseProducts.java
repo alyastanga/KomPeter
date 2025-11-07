@@ -437,6 +437,20 @@ public class FormInventoryBrowseProducts extends Form {
                     COL_STOCK_QTY));
         }
 
+        public ItemStockQtyPercentageBarData[] getQuantitiesOfSelectedItems() {
+            final int[] selectedRows = getModelSelectedRows();
+            final ItemStockQtyPercentageBarData[] qtys = new ItemStockQtyPercentageBarData[selectedRows.length];
+
+            for (int i = 0; i < selectedRows.length; ++i) {
+                final ItemStockQtyPercentageBarData data = (ItemStockQtyPercentageBarData) getModel()
+                        .getValueAt(selectedRows[i], COL_STOCK_QTY);
+
+                qtys[i] = data;
+            }
+
+            return qtys;
+        }
+
         public void addStockToSelectedItem() {
             SwingUtilities.invokeLater(() -> {
                 new AddStockDialog(SwingUtilities.getWindowAncestor(bodyPanel)).setVisible(true);
@@ -452,6 +466,25 @@ public class FormInventoryBrowseProducts extends Form {
         public void changeStatusOfSelectedItems(final ItemStatus status) {
             new Thread(() -> {
                 try {
+                    final String[] names = getNamesOfSelectedItems();
+                    final ItemStockQtyPercentageBarData[] qtys = getQuantitiesOfSelectedItems();
+
+                    if (status == ItemStatus.ACTIVE) {
+                        for (int j = 0; j < qtys.length; ++j) {
+                            if (qtys[j].currentValue() == 0) {
+                                final String name = names[j];
+
+                                SwingUtilities.invokeLater(() -> {
+                                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this),
+                                            String.format("Cannot make %s active because it has not stock.", name,
+                                                    "Invalid Request", JOptionPane.ERROR_MESSAGE));
+                                });
+
+                                return;
+                            }
+                        }
+                    }
+
                     inventory.setStatusOfItemsByName(getNamesOfSelectedItems(), status);
 
                     SwingUtilities.invokeLater(() -> {

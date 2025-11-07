@@ -60,7 +60,7 @@ public final class Inventory {
         fuzzySimilarity = new JaroWinklerSimilarity();
     }
 
-    public void addProduct(final String name, final String description, 
+    public void addProduct(final String name, final String description,
             final ItemBrandDto chosenBrand,
             final String[] chosenCategories, final BigDecimal price, final Integer minQty, final QuantityMetadata[] qty,
             final File chosenImage) throws InventoryException {
@@ -175,7 +175,6 @@ public final class Inventory {
 
         try (Connection conn = factoryDao.getConnection()) {
             final InventoryMetadataDto[] items = inventoryDao.getAllInventoryItems(conn);
-            
 
             return Arrays.stream(items).filter((item) -> {
                 final double similarity = nameFilter.isEmpty()

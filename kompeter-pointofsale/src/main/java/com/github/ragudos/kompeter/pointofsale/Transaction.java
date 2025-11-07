@@ -53,14 +53,15 @@ public class Transaction {
 
         try {
             conn.setAutoCommit(false);
-            final int _saleId = saleDao.createSale(conn, saleDate, saleCode, VAT_RATE, discountType, discountAmount);
+            final int _saleId = saleDao.createSale(conn, customerName, saleDate, saleCode, VAT_RATE, discountType,
+                    discountAmount);
 
             for (final CartItem item : cart.getAllItems()) {
                 saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(), item.price());
 
                 int totalRemaining = item.qty();
-                int totalLocQty = 0;
                 final ItemStockStorageLocationDto[] locations = itemStockStorageLocationDao.getAllData(conn);
+                int newQuantity = 0;
 
                 for (final ItemStockStorageLocationDto loc : locations) {
                     if (totalRemaining <= 0) {
@@ -74,13 +75,14 @@ public class Transaction {
                     final int available = loc.quantity();
                     final int toTake = Math.min(totalRemaining, available);
 
+                    newQuantity += loc.quantity() - toTake;
+
                     totalRemaining -= toTake;
-                    totalLocQty += loc.quantity();
                     itemStockStorageLocationDao.updateItemStockQuantity(conn, loc.quantity() - toTake,
                             loc._itemStockStorageLocationId());
                 }
 
-                if (totalLocQty == item.qty()) {
+                if (newQuantity == 0) {
                     itemStockDao.setItemStocksStatusByName(conn, item.name(), ItemStatus.INACTIVE);
                 }
             }

@@ -58,7 +58,7 @@ public class FormPosTransactions extends Form {
     }
 
     private void init() {
-        setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, fill, left]"));
+        setLayout(new MigLayout("insets 0, flowx, wrap", "[grow, fill, left]", "[top][top][top,grow]"));
 
         final JLabel title = new JLabel("Point of Sale Transactions");
         final JLabel subtitle = new JLabel("A history of all sales made");

@@ -21,7 +21,7 @@ import com.github.ragudos.kompeter.database.dto.sales.SaleDto;
 import com.github.ragudos.kompeter.database.dto.sales.SaleMetadataDto;
 
 public interface SaleDao {
-    int createSale(@NotNull Connection conn, @NotNull Timestamp saleDate, @NotNull String saleCode,
+    int createSale(@NotNull Connection conn, String customerName, @NotNull Timestamp saleDate, @NotNull String saleCode,
             BigDecimal vatPercent, @NotNull DiscountType discountType, @NotNull BigDecimal discountValue)
             throws SQLException, IOException;
 

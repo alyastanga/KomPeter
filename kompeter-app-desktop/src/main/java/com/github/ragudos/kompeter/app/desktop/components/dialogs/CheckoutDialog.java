@@ -126,7 +126,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
         final BigDecimal val = ((BigDecimal) spinner.getValue()).subtract(totalVal);
 
-        if (val.compareTo(BigDecimal.ZERO) <= 0) {
+        if (val.compareTo(BigDecimal.ZERO) < 0) {
             return;
         }
 
@@ -317,7 +317,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 discountedNetTotal.setText(StringUtils.formatBigDecimal(discountedNetTotalVal));
                 total.setText(StringUtils.formatBigDecimal(totalVal));
 
-                if (changeVal.compareTo(BigDecimal.ZERO) > 0) {
+                if (changeVal.compareTo(BigDecimal.ZERO) >= 0) {
                     change.setText(StringUtils.formatBigDecimal(changeVal));
                 } else {
                     change.setText("-.--");
@@ -337,7 +337,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
             discountedNetTotal.setText(StringUtils.formatBigDecimal(discountedNetTotalVal));
             vat.setText(StringUtils.formatBigDecimal(vatVal));
 
-            if (changeVal.compareTo(BigDecimal.ZERO) > 0) {
+            if (changeVal.compareTo(BigDecimal.ZERO) >= 0) {
                 change.setText(StringUtils.formatBigDecimal(changeVal));
             } else {
                 change.setText("-.--");

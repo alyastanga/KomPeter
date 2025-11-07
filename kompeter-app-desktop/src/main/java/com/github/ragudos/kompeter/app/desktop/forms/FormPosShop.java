@@ -218,7 +218,7 @@ public class FormPosShop extends Form {
                             : item.displayImage();
                     final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
 
-                    imagePanel.setMinimumSize(new Dimension(180, getPreferredSize().height));
+                    imagePanel.setMinimumSize(new Dimension(180, 180));
                     imagePanel.setMaximumSize(new Dimension(180, 180));
                     imagePanel.setScaleMode(ImagePanel.ScaleMode.CONTAIN);
 
@@ -312,7 +312,7 @@ public class FormPosShop extends Form {
 
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
 
-        containerSplitPane.setResizeWeight(0.7);
+        containerSplitPane.setResizeWeight(0.65);
         containerSplitPane.setContinuousLayout(true);
         containerSplitPane.setOneTouchExpandable(true);
 
