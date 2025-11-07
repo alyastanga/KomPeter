@@ -302,7 +302,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                         discountedNetTotalVal = netTotalVal.subtract(discountVal);
                     }
                     case PERCENTAGE -> {
-                        discountVal = totalVal.multiply(discountData.getAmt());
+                        discountVal = netTotalVal.multiply(discountData.getAmt());
                         discountedNetTotalVal = netTotalVal.subtract(discountVal);
                     }
                 }
