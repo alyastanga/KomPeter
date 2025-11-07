@@ -18,6 +18,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -55,6 +56,8 @@ import net.miginfocom.swing.MigLayout;
 public class CheckoutDialog extends JDialog implements ActionListener, ChangeListener {
     private final Cart cart;
 
+    AtomicReference<DiscountData> dData;
+
     private final Runnable onCheckout;
 
     private JLabel discount;
@@ -74,7 +77,6 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
     private final JPanel bottomPanel;
     private final JPanel bottomControlPanel;
 
-    private com.github.ragudos.kompeter.app.desktop.components.dialogs.CheckoutDialog.DiscountDialog.DiscountData dData;
     private WindowAdapter windowListener;
 
     CurrencySpinner paymentSpinner;
@@ -85,6 +87,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
     public CheckoutDialog(final Window owner, final Cart cart, final Runnable onCheckout) {
         super(owner, "Checkout", Dialog.ModalityType.APPLICATION_MODAL);
 
+        dData = new AtomicReference<>();
         this.cart = cart;
         this.onCheckout = onCheckout;
         this.isBusy = new AtomicBoolean(false);
@@ -125,10 +128,6 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         final CurrencySpinner spinner = (CurrencySpinner) e.getSource();
 
         final BigDecimal val = ((BigDecimal) spinner.getValue()).subtract(totalVal);
-
-        if (val.compareTo(BigDecimal.ZERO) < 0) {
-            return;
-        }
 
         changeVal = val;
         change.setText(StringUtils.formatBigDecimal(changeVal));
@@ -271,6 +270,8 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
             try {
                 isBusy.set(true);
+                final DiscountData dData = this.dData.getAcquire();
+
                 final int _saleId = Transaction.createTransaction(cart, customerNameTextField.getText(),
                         (BigDecimal) paymentSpinner.getValue(), PaymentMethod.CASH,
                         dData == null ? null : dData.getType(),
@@ -307,7 +308,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                     }
                 }
 
-                dData = discountData;
+                dData.set(discountData);
                 vatVal = discountedNetTotalVal.multiply(Transaction.VAT_RATE);
                 totalVal = discountedNetTotalVal.add(vatVal);
                 changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(totalVal);
@@ -481,12 +482,12 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
             revalidate();
             pack();
         }
+    }
 
-        @Data
-        @Builder
-        public static class DiscountData {
-            BigDecimal amt;
-            DiscountType type;
-        }
+    @Data
+    @Builder
+    public static class DiscountData {
+        BigDecimal amt;
+        DiscountType type;
     }
 }

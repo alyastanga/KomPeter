@@ -15,9 +15,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
+import lombok.ToString;
 import lombok.Value;
 
 @Value
+@ToString
 public class SaleMetadataDto {
 
     Timestamp createdAt;

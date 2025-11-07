@@ -88,13 +88,14 @@ public class FormPosTransactions extends Form {
 
     private class TransactionsTable extends JTable {
 
-        public static final int COL_CUSTOMER_NAME = 1;
-        public static final int COL_DISCOUNT = 6;
+        public static final int COL_CUSTOMER_NAME = 2;
+        public static final int COL_DISCOUNT = 7;
         public static final int COL_ID = 0;
-        public static final int COL_PAYMENT = 2;
-        public static final int COL_RAW_PRICE = 3;
+        public static final int COL_CODE = 1;
+        public static final int COL_PAYMENT = 3;
+        public static final int COL_RAW_PRICE = 4;
         public static final int COL_REAL_PRICE = 5;
-        public static final int COL_VAT_PRICE = 4;
+        public static final int COL_VAT_PRICE = 6;
 
         public TransactionsTable() {
             getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:+2 semibold;");
@@ -104,7 +105,7 @@ public class FormPosTransactions extends Form {
             final TransactionsModel tableModel = new TransactionsModel();
 
             tableModel.setColumnIdentifiers(
-                    new String[] { "Id", "Customer Name", "Amount Paid", "Net Revenue", "Revenue", "Vat",
+                    new String[] { "Id", "Code", "Customer Name", "Amount Paid", "Net Revenue", "Revenue", "Vat",
                             "Discount" });
 
             setModel(tableModel);
@@ -118,8 +119,6 @@ public class FormPosTransactions extends Form {
             columnModel.getColumn(COL_DISCOUNT).setCellRenderer(new Currency());
 
             columnModel.getColumn(COL_ID).setPreferredWidth(76);
-
-            columnModel.removeColumn(columnModel.getColumn(COL_ID));
 
             setRowSorter(new TransactionsRowSorter(tableModel));
 
@@ -142,24 +141,31 @@ public class FormPosTransactions extends Form {
                 }
 
                 for (final SaleItemStocks p : sale.getSaleItemStocks()) {
-                    revenue = revenue.add(p.getUnitPricePhp());
+                    revenue = revenue.add(p.getUnitPricePhp().multiply(new BigDecimal(p.getQuantity())));
                 }
 
                 BigDecimal discount = new BigDecimal("0.00");
+
+                System.out.println(sale);
 
                 if (sale.getDiscountType() == null || sale.getDiscountType().isEmpty()) {
                 } else if (sale.getDiscountType().equals(DiscountType.FIXED.toString())) {
                     discount = sale.getDiscountValue();
                 } else if (sale.getDiscountType().equals(DiscountType.PERCENTAGE.toString())) {
-                    discount = revenue.multiply(discount);
+                    discount = revenue.multiply(sale.getDiscountValue());
                 }
+
+                System.out.println(discount);
 
                 revenue = revenue.subtract(discount);
                 final BigDecimal vatPrice = revenue.multiply(sale.getVatPercent());
 
                 model.addRow(new Object[] { sale.getSaleId(),
-                        sale.getCustomerName() == null ? "No entry provided" : sale.getCustomerName(), payment, revenue,
-                        revenue.add(vatPrice), vatPrice, discount, });
+                        sale.getSaleCode(),
+                        sale.getCustomerName() == null || sale.getCustomerName().isEmpty() ? "No entry provided"
+                                : sale.getCustomerName(),
+                        payment, revenue,
+                        revenue.add(vatPrice), vatPrice, discount });
             }
 
             repaint();
@@ -176,6 +182,7 @@ public class FormPosTransactions extends Form {
             public Class<?> getColumnClass(final int columnIndex) {
                 return switch (columnIndex) {
                     case COL_ID -> Integer.class;
+                    case COL_CODE -> String.class;
                     case COL_PAYMENT -> BigDecimal.class;
                     case COL_RAW_PRICE -> BigDecimal.class;
                     case COL_VAT_PRICE -> BigDecimal.class;
