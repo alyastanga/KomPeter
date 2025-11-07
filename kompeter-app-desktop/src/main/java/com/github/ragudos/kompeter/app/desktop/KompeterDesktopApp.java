@@ -39,14 +39,14 @@ public class KompeterDesktopApp extends JFrame {
     }
 
     public static void main(final String[] args) {
-        FileUtils.setupConfig();
-        AbstractMigratorFactory.setupSqlite();
-        FontSetup.setup();
-
         if (!KompeterLightFlatLaf.setup()) {
             LOGGER.log(Level.SEVERE, "Failed to setup custom L&F");
             LOGGER.log(Level.SEVERE, "Using default L&F");
         }
+
+        FileUtils.setupConfig();
+        AbstractMigratorFactory.setupSqlite();
+        FontSetup.setup();
 
         Thread.setDefaultUncaughtExceptionHandler(new GlobalUncaughtExceptionHandler());
 
