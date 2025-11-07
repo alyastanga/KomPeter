@@ -218,8 +218,8 @@ public class FormPosShop extends Form {
                             : item.displayImage();
                     final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
 
-                    imagePanel.setMinimumSize(new Dimension(150, getPreferredSize().height));
-                    imagePanel.setMaximumSize(new Dimension(150, 150));
+                    imagePanel.setMinimumSize(new Dimension(180, getPreferredSize().height));
+                    imagePanel.setMaximumSize(new Dimension(180, 180));
                     imagePanel.setScaleMode(ImagePanel.ScaleMode.CONTAIN);
 
                     final JLabel itemName = new JLabel(
@@ -302,7 +302,7 @@ public class FormPosShop extends Form {
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
         leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
-                new ResponsiveLayout(JustifyContent.START, new Dimension(190, -1), 1, 1));
+                new ResponsiveLayout(JustifyContent.START, new Dimension(200, -1), 1, 1));
         final JLabel title = new JLabel("Products");
         final JLabel subtitle = new JLabel("Click a product card to add them to cart.");
         final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelContentContainer);
