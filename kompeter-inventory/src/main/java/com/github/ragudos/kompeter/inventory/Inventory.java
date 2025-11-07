@@ -60,8 +60,7 @@ public final class Inventory {
         fuzzySimilarity = new JaroWinklerSimilarity();
     }
 
-    public void addProduct(final String name, final String description,
-            final ItemBrandDto chosenBrand,
+    public void addProduct(final String name, final String description, final ItemBrandDto chosenBrand,
             final String[] chosenCategories, final BigDecimal price, final Integer minQty, final QuantityMetadata[] qty,
             final File chosenImage) throws InventoryException {
         final AbstractSqlFactoryDao factoryDao = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE);
@@ -86,8 +85,8 @@ public final class Inventory {
             try {
                 final int _itemId = itemDao.insertItem(conn, name, description,
                         imagePath == null ? null : imagePath.toString());
-                final int _itemStockId = itemStockDao.insertItemStock(conn, _itemId,
-                        chosenBrand.get_itemBrandId(), price, minQty);
+                final int _itemStockId = itemStockDao.insertItemStock(conn, _itemId, chosenBrand.get_itemBrandId(),
+                        price, minQty);
 
                 for (final String category : chosenCategories) {
                     itemCategoryAssignmentDao.setItemCategory(conn, _itemId, category);
@@ -342,6 +341,10 @@ public final class Inventory {
 
         public int getRowsPerPage() {
             return rowsPerPage;
+        }
+
+        public int getTotalItems() {
+            return flatItems.length;
         }
 
         public int getTotalPages() {

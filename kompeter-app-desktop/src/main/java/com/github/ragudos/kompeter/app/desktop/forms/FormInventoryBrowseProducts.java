@@ -899,7 +899,9 @@ public class FormInventoryBrowseProducts extends Form {
                 }
 
                 add(markInactiveButton, "growx");
-            } else if (productsTable.allSelectedRowsAreOfStatus(ItemStatus.INACTIVE)) {
+            }
+
+            if (productsTable.allSelectedRowsAreOfStatus(ItemStatus.INACTIVE)) {
                 if (markActiveButton == null) {
                     createMarkActiveButton();
                 }
@@ -1057,10 +1059,10 @@ public class FormInventoryBrowseProducts extends Form {
             final int currentPage = pld.getCurrentPage();
             final int rowsPerPage = pld.getRowsPerPage();
             final int totalPages = pld.getTotalPages();
-            final int totalItems = totalPages * rowsPerPage;
+            final int totalItems = pld.getTotalItems();
 
             rowsPerPageSpinner.setModel(new SpinnerNumberModel(rowsPerPage, 1,
-                    pld.getTotalPages() * rowsPerPage, 1));
+                    totalItems, 1));
 
             // Adjust displayed range
             final int startItem = (currentPage - 1) * rowsPerPage + 1;

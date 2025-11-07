@@ -31,6 +31,7 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
     private static final Logger LOGGER = KompeterLogger.getLogger(PercentageBar.class);
 
     final JProgressBar bar;
+
     final JLabel label;
 
     public PercentageBar() {
@@ -78,16 +79,19 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         }
 
         final PercentageBarData percentageBarData = (PercentageBarData) value;
-        final float percentage = percentageBarData.currentValue / percentageBarData.minimumThreshold;
+        final float c = (float) percentageBarData.currentValue;
+        final float m = (float) percentageBarData.minimumThreshold;
+
+        final float percentage = (c - m) / (m * 10f - m);
         String text = percentageBarData.currentValue + " " + percentageBarData.measure;
 
-        if (percentage <= 1f) {
+        if (percentage <= 0.1f) {
             text += " (Critically Low)";
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.error;");
-        } else if (percentage <= 2f) {
+        } else if (percentage <= 0.49f) {
             text += " (Low)";
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.warning;");
-        } else if (percentage <= 3f) {
+        } else if (percentage <= 0.89f) {
             text += " (Mid)";
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.info;");
         } else {
@@ -95,9 +99,14 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.success;");
         }
 
+        LOGGER.info(percentageBarData.toString());
+
         label.setText(text);
-        bar.setValue(Math.round(percentage * 100f));
-        bar.setMaximum(Math.round(percentage * 300f));
+        bar.setValue(percentageBarData.currentValue);
+        bar.setMaximum(percentageBarData.minimumThreshold * 10);
+
+        repaint();
+        revalidate();
 
         return this;
     }
@@ -105,8 +114,7 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
     public static class ItemStockQtyPercentageBar extends PercentageBar {
         @Override
         public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-                final boolean hasFocus,
-                final int row, final int column) {
+                final boolean hasFocus, final int row, final int column) {
             final Component res = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             return res;
         }
