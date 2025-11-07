@@ -302,7 +302,7 @@ public class FormPosShop extends Form {
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
         leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
-                new ResponsiveLayout(JustifyContent.START, new Dimension(180, -1), 1, 1));
+                new ResponsiveLayout(JustifyContent.START, new Dimension(190, -1), 1, 1));
         final JLabel title = new JLabel("Products");
         final JLabel subtitle = new JLabel("Click a product card to add them to cart.");
         final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelContentContainer);
@@ -312,7 +312,7 @@ public class FormPosShop extends Form {
 
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
 
-        containerSplitPane.setResizeWeight(0.6);
+        containerSplitPane.setResizeWeight(0.7);
         containerSplitPane.setContinuousLayout(true);
         containerSplitPane.setOneTouchExpandable(true);
 
@@ -338,7 +338,7 @@ public class FormPosShop extends Form {
 
         final JLabel productName = new JLabel(item.name());
         final JLabel productNetPrice = new JLabel(String.format("Net Price: %s", StringUtils
-                .formatBigDecimal(item.netPrice())));
+                .formatBigDecimal(item.price())));
         final JLabel productQty = new JLabel(String.format("x%s", item.qty()));
 
         final String decIcon = item.qty() == 1 ? "trash.svg" : "minus.svg";
@@ -727,7 +727,7 @@ public class FormPosShop extends Form {
 
                                 netPriceLabel.setText(
                                         String.format("Net Price: %s",
-                                                StringUtils.formatBigDecimal(cartItem.netPrice())));
+                                                StringUtils.formatBigDecimal(cartItem.price())));
                                 qtyLabel.setText(String.format("x%s", cartItem.qty()));
 
                                 updateCartTotals();
@@ -742,7 +742,7 @@ public class FormPosShop extends Form {
 
                                 netPriceLabel.setText(
                                         String.format("Net Price: %s",
-                                                StringUtils.formatBigDecimal(cartItem.netPrice())));
+                                                StringUtils.formatBigDecimal(cartItem.price())));
                                 qtyLabel.setText(String.format("x%s", cartItem.qty()));
 
                                 updateCartTotals();

@@ -24,7 +24,6 @@ import com.github.ragudos.kompeter.app.desktop.forms.FormMonitoringSales;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosShop;
 import com.github.ragudos.kompeter.app.desktop.forms.FormPosTransactions;
 import com.github.ragudos.kompeter.app.desktop.forms.FormProfile;
-import com.github.ragudos.kompeter.app.desktop.forms.FormUsers;
 import com.github.ragudos.kompeter.app.desktop.system.AllForms;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.system.FormManager;
@@ -69,9 +68,8 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
                         .subMenu(new Item("Add Product", "plus.svg", FormInventoryAddProduct.class)),
                 new Item("Monitoring", "chart-no-axes-combined.svg")
                         .subMenu(new Item("Sales", "badge-dollar-sign.svg", FormMonitoringSales.class))
-                        .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class))
-                        .subMenu(new Item("Audits", "notepad-text.svg")),
-                new Item("Users", "users.svg", FormUsers.class), new Item("Logout", "logout.svg") };
+                        .subMenu(new Item("Inventory", "boxes.svg", FormMonitoringInventory.class)),
+                new Item("Logout", "logout.svg") };
 
         menuOption.setMenuStyle(new MenuStyle() {
             @Override
@@ -97,7 +95,7 @@ public class KompeterDrawerBuilder extends SimpleDrawerBuilder {
 
                 final int i = index[0];
 
-                if (i == 5) {
+                if (i == 4) {
                     action.consume();
 
                     final Optional<Form> currentForm = FormManager.FORMS.current();

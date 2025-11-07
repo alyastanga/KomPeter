@@ -65,12 +65,12 @@ public class FormPosTransactions extends Form {
 
         final JScrollPane scroller = ScrollerFactory.createScrollPane(table);
 
-        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
-        subtitle.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;font:-1;");
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
+        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
         add(title, "wrap");
         add(subtitle, "wrap");
-        add(scroller, "gapy 8px");
+        add(scroller, "gapy 8px, grow");
     }
 
     private void loadData() {
@@ -97,14 +97,15 @@ public class FormPosTransactions extends Form {
         public static final int COL_VAT_PRICE = 4;
 
         public TransactionsTable() {
-            getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:14 semibold;");
+            getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:+2 semibold;");
             ((DefaultTableCellRenderer) getTableHeader().getDefaultRenderer())
                     .setHorizontalAlignment(SwingConstants.CENTER);
 
             final TransactionsModel tableModel = new TransactionsModel();
 
-            tableModel.setColumnIdentifiers(new String[] { "Id", "Amount Paid", "Raw Price (Php)", "Price with Vat",
-                    "Real Price", "Discount", "Customer Name" });
+            tableModel.setColumnIdentifiers(
+                    new String[] { "Id", "Customer Name", "Amount Paid", "Net Revenue", "Revenue", "Vat",
+                            "Discount" });
 
             setModel(tableModel);
 
@@ -144,19 +145,21 @@ public class FormPosTransactions extends Form {
                     revenue = revenue.add(p.getUnitPricePhp());
                 }
 
-                final BigDecimal vatPrice = revenue.add(revenue.multiply(sale.getVatPercent()));
                 BigDecimal discount = new BigDecimal("0.00");
 
                 if (sale.getDiscountType() == null || sale.getDiscountType().isEmpty()) {
                 } else if (sale.getDiscountType().equals(DiscountType.FIXED.toString())) {
                     discount = sale.getDiscountValue();
                 } else if (sale.getDiscountType().equals(DiscountType.PERCENTAGE.toString())) {
-                    discount = vatPrice.multiply(sale.getDiscountValue());
+                    discount = revenue.multiply(discount);
                 }
+
+                revenue = revenue.subtract(discount);
+                final BigDecimal vatPrice = revenue.multiply(sale.getVatPercent());
 
                 model.addRow(new Object[] { sale.getSaleId(),
                         sale.getCustomerName() == null ? "No entry provided" : sale.getCustomerName(), payment, revenue,
-                        vatPrice, vatPrice.subtract(discount), discount, });
+                        revenue.add(vatPrice), vatPrice, discount, });
             }
 
             repaint();

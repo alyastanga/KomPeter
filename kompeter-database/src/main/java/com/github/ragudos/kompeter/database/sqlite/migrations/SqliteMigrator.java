@@ -53,7 +53,7 @@ public class SqliteMigrator implements Migrator {
 
     @Override
     public void migrate() throws SQLException {
-        List<ParsedSqlMigration> migrations = SqliteMigratorFactory.getMigrationQueries();
+        final List<ParsedSqlMigration> migrations = SqliteMigratorFactory.getMigrationQueries();
 
         LOGGER.info("Starting database migration...");
 
@@ -62,29 +62,29 @@ public class SqliteMigrator implements Migrator {
         try (Connection conn = AbstractSqlFactoryDao.getSqlFactoryDao(AbstractSqlFactoryDao.SQLITE).getConnection();) {
             conn.setAutoCommit(false);
 
-            for (ParsedSqlMigration queryMigration : migrations) {
-                PreparedStatement checkIfMigrationExistsStatement = conn
+            for (final ParsedSqlMigration queryMigration : migrations) {
+                final PreparedStatement checkIfMigrationExistsStatement = conn
                         .prepareStatement(QUERY_CHECK_MIGRATION_EXISTS);
 
                 checkIfMigrationExistsStatement.setInt(1, queryMigration.versionNumber());
                 checkIfMigrationExistsStatement.setString(2, queryMigration.name());
 
-                ResultSet rs = checkIfMigrationExistsStatement.executeQuery();
+                final ResultSet rs = checkIfMigrationExistsStatement.executeQuery();
 
                 if (rs.next() && rs.getBoolean(1)) {
                     continue;
                 }
 
                 try (PreparedStatement insertMigrationStatement = conn.prepareStatement(QUERY_INSERT_MIGRATION);) {
-                    for (String rawSqlStatement : splitStatements(queryMigration.query())) {
-                        String trimmed = rawSqlStatement.trim();
+                    for (final String rawSqlStatement : splitStatements(queryMigration.query())) {
+                        final String trimmed = rawSqlStatement.trim();
 
                         if (trimmed.isEmpty()) {
                             continue;
                         }
 
                         try (PreparedStatement rawSqlQueryStatement = conn.prepareStatement(trimmed)) {
-                            SqlStatement parsedSqlStatement = SqlScriptParser.parseSqlStatement(trimmed);
+                            final SqlStatement parsedSqlStatement = SqlScriptParser.parseSqlStatement(trimmed);
 
                             LOGGER.log(Level.INFO, "Type: {0} | Name: {1}\n\n-----\n {2} \n-----\n\n",
                                     new Object[] { parsedSqlStatement.type(), queryMigration.name(), trimmed });
@@ -98,7 +98,7 @@ public class SqliteMigrator implements Migrator {
                     insertMigrationStatement.executeUpdate();
 
                     conn.commit();
-                } catch (SQLException err) {
+                } catch (final SQLException err) {
                     conn.rollback();
 
                     LOGGER.log(Level.SEVERE, "Failed to execute migration {0} - {1}: {2}",
@@ -109,36 +109,44 @@ public class SqliteMigrator implements Migrator {
         }
     }
 
-    private List<String> splitStatements(String sqlScript) {
-        List<String> statements = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        String currentDelimiter = ";";
+    private List<String> splitStatements(final String sqlScript) {
+        final List<String> statements = new ArrayList<>();
+        final StringBuilder current = new StringBuilder();
+        final String currentDelimiter = ";";
+        boolean isInTrigger = false;
 
-        for (String rawLine : sqlScript.split("\\R")) {
-            String line = rawLine.trim();
+        for (final String rawLine : sqlScript.split("\\R")) {
+            final String line = rawLine.trim();
 
             // Change delimiter if directive is found
-            if (line.toUpperCase().startsWith("DELIMITER ")) {
-                currentDelimiter = line.substring("DELIMITER ".length()).trim();
-                continue;
+
+            if (line.toUpperCase().startsWith("CREATE TRIGGER")) {
+                isInTrigger = true;
             }
 
             current.append(rawLine).append("\n");
 
-            // Check if current buffer ends with the delimiter (ignoring trailing
-            // spaces/newlines)
-            String trimmed = current.toString().replaceAll("\\s+$", "");
-            if (trimmed.endsWith(currentDelimiter)) {
-                // Remove the delimiter from the end
-                String statement = trimmed.substring(0, trimmed.length() - currentDelimiter.length()).trim();
+            if (isInTrigger) {
+                if (line.toUpperCase().startsWith("END")) {
+                    isInTrigger = false;
+                } else {
+                    continue;
+                }
+            }
+
+            final String trimmed = current.toString().replaceAll("\\s+$", "");
+
+            if (trimmed.endsWith(currentDelimiter) && !isInTrigger) {
+                final String statement = trimmed.substring(0, trimmed.length() - currentDelimiter.length()).trim();
+
                 if (!statement.isEmpty()) {
                     statements.add(statement);
                 }
+
                 current.setLength(0); // Reset for next statement
             }
         }
 
-        // Add any remaining statement (without delimiter)
         if (!current.toString().trim().isEmpty()) {
             statements.add(current.toString().trim());
         }

@@ -91,9 +91,10 @@ CREATE TABLE
 CREATE TABLE
   item_category_assignments (
     _item_category_assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _item_id INTEGER,
-    _item_category_id INTEGER,
+    _item_id INTEGER NOT NULL,
+    _item_category_id INTEGER NOT NULL,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE  (_item_id, _item_category_id),
     FOREIGN KEY (_item_id) REFERENCES items (_item_id),
     FOREIGN KEY (_item_category_id) REFERENCES item_categories (_item_category_id)
   );
@@ -118,6 +119,7 @@ CREATE TABLE
         _storage_location_id INTEGER NOT NULL,
         _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         quantity INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (_item_stock_id, _storage_location_id),
         FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id),
     	FOREIGN KEY (_storage_location_id) REFERENCES storage_locations (_storage_location_id)
 	);
@@ -125,16 +127,15 @@ CREATE TABLE
 CREATE TABLE
   item_restocks (
     _item_restock_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    _item_stock_id INTEGER NOT NULL,
+    _item_stock_storage_location_id INTEGER NOT NULL,
     _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     quantity_before INTEGER NOT NULL,
     quantity_after INTEGER NOT NULL,
     quantity_added INTEGER NOT NULL,
-    FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id)
+    FOREIGN KEY (_item_stock_storage_location_id) REFERENCES item_stock_storage_locations (_item_stock_storage_location_id)
   );
   
   
-
 CREATE TABLE
   suppliers (
     _supplier_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -350,13 +351,6 @@ AS
     ORDER BY
         item_stock_storage_locations._item_stock_storage_location_id;
 
--- ========================================================= --
--- =====                                             ======= --
--- =====             TRIGGERS & AUDITING             ======= --
--- =====                                             ======= --
--- ========================================================= --
-
-DELIMITER $$
 
 CREATE TRIGGER trg_item_stock_storage_location_restock
 AFTER UPDATE OF quantity ON item_stock_storage_locations
@@ -393,7 +387,7 @@ BEGIN
             'description', NEW.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS roles_audit_update
 AFTER UPDATE ON roles
@@ -436,7 +430,7 @@ BEGIN
             'description', OLD.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS users_audit_insert
 AFTER INSERT ON users
@@ -455,7 +449,7 @@ BEGIN
             'last_name', NEW.last_name
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS users_audit_update
 AFTER UPDATE ON users
@@ -501,7 +495,7 @@ BEGIN
             'last_name', OLD.last_name
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS accounts_audit_insert
 AFTER INSERT ON accounts
@@ -521,7 +515,7 @@ BEGIN
             'email', NEW.email
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS accounts_audit_update
 AFTER UPDATE ON accounts
@@ -551,7 +545,6 @@ BEGIN
     );
 END;
 
-
 CREATE TRIGGER IF NOT EXISTS accounts_audit_delete
 AFTER DELETE ON accounts
 FOR EACH ROW
@@ -570,7 +563,7 @@ BEGIN
             'email', OLD.email
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS user_roles_audit_insert
 AFTER INSERT ON user_roles
@@ -588,7 +581,7 @@ BEGIN
             '_role_id', NEW._role_id
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS user_roles_audit_update
 AFTER UPDATE ON user_roles
@@ -631,8 +624,7 @@ BEGIN
             '_role_id', OLD._role_id
         )
     );
-END $$
-
+END;
 
 CREATE TRIGGER IF NOT EXISTS sessions_audit_insert
 AFTER INSERT ON sessions
@@ -651,7 +643,7 @@ BEGIN
             'ip_address', NEW.ip_address
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS sessions_audit_update
 AFTER UPDATE ON sessions
@@ -679,7 +671,6 @@ BEGIN
     );
 END;
 
-
 CREATE TRIGGER IF NOT EXISTS sessions_audit_delete
 AFTER DELETE ON sessions
 FOR EACH ROW
@@ -697,7 +688,7 @@ BEGIN
             'ip_address', OLD.ip_address
         )
     );
-END $$
+END;
 
 
 CREATE TRIGGER IF NOT EXISTS storage_locations_audit_insert
@@ -716,7 +707,7 @@ BEGIN
             'description', NEW.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS storage_locations_audit_update
 AFTER UPDATE ON storage_locations
@@ -759,7 +750,7 @@ BEGIN
             'description', OLD.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_categories_audit_insert
 AFTER INSERT ON item_categories
@@ -774,7 +765,7 @@ BEGIN
             'description', NEW.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_categories_audit_update
 AFTER UPDATE ON item_categories
@@ -812,7 +803,7 @@ BEGIN
             'description', OLD.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_brands_audit_insert
 AFTER INSERT ON item_brands
@@ -827,7 +818,7 @@ BEGIN
             'description', NEW.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_brands_audit_update
 AFTER UPDATE ON item_brands
@@ -865,7 +856,7 @@ BEGIN
             'description', OLD.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS items_audit_insert
 AFTER INSERT ON items
@@ -880,7 +871,7 @@ BEGIN
             'description', NEW.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS items_audit_update
 AFTER UPDATE ON items
@@ -918,7 +909,7 @@ BEGIN
             'description', OLD.description
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_category_assignments_audit_insert
 AFTER INSERT ON item_category_assignments
@@ -933,7 +924,7 @@ BEGIN
             '_created_at', NEW._created_at
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_category_assignments_audit_update
 AFTER UPDATE ON item_category_assignments
@@ -971,7 +962,7 @@ BEGIN
             '_created_at', OLD._created_at
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_stocks_audit_insert
 AFTER INSERT ON item_stocks
@@ -988,7 +979,7 @@ BEGIN
             'minimum_quantity', NEW.minimum_quantity
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_stocks_audit_update
 AFTER UPDATE ON item_stocks
@@ -1034,7 +1025,7 @@ BEGIN
             'minimum_quantity', OLD.minimum_quantity
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_audit_insert
 AFTER INSERT ON item_stock_storage_locations
@@ -1050,7 +1041,7 @@ BEGIN
             'quantity', NEW.quantity
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_audit_update
 AFTER UPDATE ON item_stock_storage_locations
@@ -1093,7 +1084,7 @@ BEGIN
             'quantity', OLD.quantity
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_restocks_audit_insert
 AFTER INSERT ON item_restocks
@@ -1110,7 +1101,7 @@ BEGIN
             'quantity_added', NEW.quantity_added
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_restocks_audit_update
 AFTER UPDATE ON item_restocks
@@ -1154,7 +1145,7 @@ BEGIN
             'quantity_added', OLD.quantity_added
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS sales_audit_insert
 AFTER INSERT ON sales
@@ -1174,7 +1165,7 @@ BEGIN
             'discount_type', NEW.discount_type
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS sales_audit_update
 AFTER UPDATE ON sales
@@ -1228,7 +1219,7 @@ BEGIN
             'discount_type', OLD.discount_type
         )
     );
-END $$
+END;
 
 
 CREATE TRIGGER IF NOT EXISTS sale_payments_audit_insert
@@ -1248,7 +1239,7 @@ BEGIN
             'amount_php', NEW.amount_php
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS sale_payments_audit_update
 AFTER UPDATE ON sale_payments
@@ -1296,7 +1287,7 @@ BEGIN
             'amount_php', OLD.amount_php
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS sale_item_stocks_audit_insert
 AFTER INSERT ON sale_item_stocks
@@ -1314,7 +1305,7 @@ BEGIN
             'unit_price_php', NEW.unit_price_php
         )
     );
-END $$
+END;
 
 CREATE TRIGGER IF NOT EXISTS sale_item_stocks_audit_update
 AFTER UPDATE ON sale_item_stocks
@@ -1359,7 +1350,5 @@ BEGIN
             'unit_price_php', OLD.unit_price_php
         )
     );
-END $$
-
-DELIMITER ;
+END;
 

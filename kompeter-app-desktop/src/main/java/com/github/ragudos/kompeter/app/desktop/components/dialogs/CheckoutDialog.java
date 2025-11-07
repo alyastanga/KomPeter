@@ -124,7 +124,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
     public void stateChanged(final ChangeEvent e) {
         final CurrencySpinner spinner = (CurrencySpinner) e.getSource();
 
-        final BigDecimal val = ((BigDecimal) spinner.getValue()).subtract(discountedTotalVal);
+        final BigDecimal val = ((BigDecimal) spinner.getValue()).subtract(totalVal);
 
         if (val.compareTo(BigDecimal.ZERO) <= 0) {
             return;
@@ -180,9 +180,9 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         final JLabel netTotalLabel = new JLabel("Net Price: ");
         netTotal = new JLabel("-.--");
         final JLabel discountLbl = new JLabel("Discount: ");
+        discount = new JLabel("-.--");
         final JLabel discountedNetTotalLabel = new JLabel("Discounted Net Price: ");
         discountedNetTotal = new JLabel("-.--");
-        discount = new JLabel("-.--");
         final JLabel vatLbl = new JLabel("Tax 12%: ");
         vat = new JLabel("-.--");
         final JLabel totalLbl = new JLabel("Total Price: ");
@@ -192,24 +192,25 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
         netTotal.setHorizontalAlignment(JLabel.RIGHT);
         discount.setHorizontalAlignment(JLabel.RIGHT);
+        discountedNetTotal.setHorizontalAlignment(JLabel.RIGHT);
         vat.setHorizontalAlignment(JLabel.RIGHT);
         total.setHorizontalAlignment(JLabel.RIGHT);
         change.setHorizontalAlignment(JLabel.RIGHT);
 
-        final BigDecimal totalPrice = cart.totalPrice();
-        totalVal = totalPrice;
+        netTotalVal = cart.totalPrice();
+        discountedNetTotalVal = netTotalVal;
         discountVal = new BigDecimal("0.00");
-        discountedTotalVal = totalVal.subtract(discountVal);
-        vatVal = discountedTotalVal.multiply(Transaction.VAT_RATE);
+        vatVal = discountedNetTotalVal.multiply(Transaction.VAT_RATE);
         changeVal = new BigDecimal("0.00");
-        finalVal = discountedTotalVal.add(vatVal);
+        totalVal = discountedNetTotalVal.add(vatVal);
 
+        netTotal.setText(StringUtils.formatBigDecimal(netTotalVal));
         total.setText(StringUtils.formatBigDecimal(totalVal));
         vat.setText(StringUtils.formatBigDecimal(vatVal));
-        finalLabel.setText(StringUtils.formatBigDecimal(finalVal));
+        discountedNetTotal.setText(StringUtils.formatBigDecimal(discountedNetTotalVal));
 
-        subTotalLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
-        subTotal.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        netTotalLabel.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        netTotal.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
         discountLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
         discount.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
         vatLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
@@ -222,10 +223,12 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         bottomPanel.add(vatLbl);
         bottomPanel.add(vat, "wrap");
         bottomPanel.add(new JSeparator(JSeparator.HORIZONTAL), "growx, span 2, wrap");
+        bottomPanel.add(discountedNetTotalLabel);
+        bottomPanel.add(discountedNetTotal, "wrap");
         bottomPanel.add(totalLbl);
         bottomPanel.add(total, "wrap");
-        bottomPanel.add(finalLbl);
-        bottomPabel.add(finalLabel, "wrap");
+        bottomPanel.add(totalLbl);
+        bottomPanel.add(total, "wrap");
         bottomPanel.add(changeLbl);
         bottomPanel.add(change);
     }
@@ -259,7 +262,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         }
 
         if (e.getActionCommand().equals("confirm")) {
-            if (((BigDecimal) paymentSpinner.getValue()).compareTo(discountedTotalVal) == -1) {
+            if (((BigDecimal) paymentSpinner.getValue()).compareTo(totalVal) == -1) {
                 JOptionPane.showMessageDialog(this, "The provided payment amount is insufficient.",
                         "Insufficient Amount", JOptionPane.ERROR_MESSAGE);
 
@@ -296,40 +299,48 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 switch (discountData.getType()) {
                     case FIXED -> {
                         discountVal = discountData.getAmt();
-                        discountedTotalVal = totalVal.subtract(discountVal);
+                        discountedNetTotalVal = netTotalVal.subtract(discountVal);
                     }
                     case PERCENTAGE -> {
                         discountVal = totalVal.multiply(discountData.getAmt());
-                        discountedTotalVal = totalVal.subtract(discountVal);
+                        discountedNetTotalVal = netTotalVal.subtract(discountVal);
                     }
                 }
 
                 dData = discountData;
-                vatVal = discountedTotalVal.multiply(Transaction.VAT_RATE);
-                finalVal = discountedTotalVal.add(vatVal);
-                changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(finalVal);
+                vatVal = discountedNetTotalVal.multiply(Transaction.VAT_RATE);
+                totalVal = discountedNetTotalVal.add(vatVal);
+                changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(totalVal);
 
                 vat.setText(StringUtils.formatBigDecimal(vatVal));
                 discount.setText(StringUtils.formatBigDecimal(discountVal));
-                total.setText(StringUtils.formatBigDecimal(discountedTotalVal));
-                finalLabel.setText(StringUtils.formatBigDecimal(finalVal));
+                discountedNetTotal.setText(StringUtils.formatBigDecimal(discountedNetTotalVal));
+                total.setText(StringUtils.formatBigDecimal(totalVal));
 
                 if (changeVal.compareTo(BigDecimal.ZERO) > 0) {
                     change.setText(StringUtils.formatBigDecimal(changeVal));
+                } else {
+                    change.setText("-.--");
                 }
             }).setVisible(true);
 
             return;
         } else if (e.getActionCommand().equals("remove_discount")) {
             discountVal = new BigDecimal("0.00");
-            discountedTotalVal = totalVal;
-            changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(discountedTotalVal);
+            discountedNetTotalVal = netTotalVal;
+            vatVal = discountedNetTotalVal.multiply(Transaction.VAT_RATE);
+            totalVal = discountedNetTotalVal.add(vatVal);
+            changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(totalVal);
 
             discount.setText("-.--");
             total.setText(StringUtils.formatBigDecimal(totalVal));
+            discountedNetTotal.setText(StringUtils.formatBigDecimal(discountedNetTotalVal));
+            vat.setText(StringUtils.formatBigDecimal(vatVal));
 
             if (changeVal.compareTo(BigDecimal.ZERO) > 0) {
                 change.setText(StringUtils.formatBigDecimal(changeVal));
+            } else {
+                change.setText("-.--");
             }
 
             return;
@@ -425,7 +436,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 if (selected == DiscountType.FIXED) {
                     final BigDecimal val = (BigDecimal) fixedSpinner.getValue();
 
-                    if (discountedTotalVal.subtract(val).compareTo(BigDecimal.ZERO) <= 0) {
+                    if (discountedNetTotalVal.subtract(val).compareTo(BigDecimal.ZERO) <= 0) {
                         JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
                                 "Cannot add discount because it will make the total price go 0 and below");
 
@@ -437,7 +448,7 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 } else if (selected == DiscountType.PERCENTAGE) {
                     final BigDecimal val = new BigDecimal((Double) percentageSpinner.getValue());
 
-                    if (discountedTotalVal.subtract(val).compareTo(BigDecimal.ZERO) <= 0) {
+                    if (discountedNetTotalVal.subtract(val).compareTo(BigDecimal.ZERO) <= 0) {
                         JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
                                 "Cannot add discount because it will make the total price go 0 and below");
 

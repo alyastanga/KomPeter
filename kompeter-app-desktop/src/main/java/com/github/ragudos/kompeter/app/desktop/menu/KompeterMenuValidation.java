@@ -13,6 +13,11 @@ import com.github.ragudos.kompeter.database.dto.user.UserMetadataDto;
 import raven.modal.drawer.menu.MenuValidation;
 
 public class KompeterMenuValidation extends MenuValidation {
+    private static final int TAB_PROFILE = 0;
+    private static final int TAB_LOGOUT = 4;
+    private static final int TAB_POS = 1;
+    private static final int TAB_INVENTORY = 2;
+    private static final int TAB_MONITORING = 3;
 
     public static boolean validate(final int[] index) {
         if (SessionManager.getInstance().session() == null) {
@@ -25,23 +30,21 @@ public class KompeterMenuValidation extends MenuValidation {
             return true;
         }
 
-        if (user.isAuditor()) {
-            return index[0] == 0 || (index[0] == 3 && index[1] == 3) || index[0] == 4 || index[0] == 5;
-        }
+        final boolean allAllowed = index[0] == TAB_PROFILE || index[0] == TAB_LOGOUT;
 
         if (user.isCashier()) {
-            return index[0] == 0 || index[0] == 1 || index[0] == 3 || index[0] == 5;
+            return allAllowed || index[0] == TAB_POS;
         }
 
         if (user.isInventoryClerk()) {
-            return index[0] == 0 || index[0] == 2 || index[0] == 4 || index[0] == 5;
+            return allAllowed || index[0] == TAB_INVENTORY;
         }
 
-        if (user.isManager()) {
-            return index[0] == 0 || index[0] == 2 || index[0] == 3 || index[0] == 4 || index[0] == 5;
+        if (user.isAuditor()) {
+            return allAllowed || index[0] == TAB_MONITORING;
         }
 
-        return index[0] == 0 || index[0] == 5;
+        return allAllowed;
     }
 
     @Override
