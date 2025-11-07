@@ -884,13 +884,11 @@ public class FormInventoryBrowseProducts extends Form {
             add(deleteButton, "growx", 0);
 
             if (productsTable.getSelectedRowCount() == 1) {
-                if (productsTable.getSelectedRowItemStatus() != ItemStatus.INACTIVE) {
-                    if (addStockButton == null) {
-                        createAddStockButton();
-                    }
-
-                    add(addStockButton, "growx", 1);
+                if (addStockButton == null) {
+                    createAddStockButton();
                 }
+
+                add(addStockButton, "growx", 1);
             }
 
             if (productsTable.allSelectedRowsAreOfStatus(ItemStatus.ACTIVE)) {
@@ -918,10 +916,6 @@ public class FormInventoryBrowseProducts extends Form {
             add(deleteButton, "growx", 0);
 
             if (productsTable.getSelectedRowCount() == 1) {
-                if (productsTable.getSelectedRowItemStatus() == ItemStatus.INACTIVE) {
-                    return;
-                }
-
                 if (addStockButton == null) {
                     createAddStockButton();
                 }
@@ -942,6 +936,14 @@ public class FormInventoryBrowseProducts extends Form {
             }
 
             add(deleteButton, "growx", 0);
+
+            if (productsTable.getSelectedRowCount() == 1) {
+                if (addStockButton == null) {
+                    createAddStockButton();
+                }
+
+                add(addStockButton, "growx", 1);
+            }
 
             if (markActiveButton == null) {
                 createMarkActiveButton();
