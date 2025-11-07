@@ -9,6 +9,7 @@ package com.github.ragudos.kompeter.database.sqlite.dao.inventory;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -27,11 +28,15 @@ import com.github.ragudos.kompeter.database.sqlite.SqliteQueryLoader;
  */
 public class SqliteItemStockStorageLocationDao implements ItemStockStorageLocationDao {
     @Override
-    public ItemStockStorageLocationDto[] getAllData(final Connection conn) throws SQLException, IOException {
+    public ItemStockStorageLocationDto[] getAllData(final Connection conn, final int _itemStockId)
+            throws SQLException, IOException {
         final List<ItemStockStorageLocationDto> listItemStockStorageLocation = new ArrayList<>();
-        try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(SqliteQueryLoader.getInstance().get("select_all_issl", "items",
-                        AbstractSqlQueryLoader.SqlQueryType.SELECT))) {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                SqliteQueryLoader.getInstance().get("select_all_issl", "items",
+                        AbstractSqlQueryLoader.SqlQueryType.SELECT));) {
+            stmt.setInt(1, _itemStockId);
+            final ResultSet rs = stmt.executeQuery();
+
             while (rs.next()) {
                 final ItemStockStorageLocationDto issl = new ItemStockStorageLocationDto(
                         rs.getInt("_item_stock_storage_location_id"), rs.getInt("_item_stock_id"),

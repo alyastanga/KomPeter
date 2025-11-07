@@ -146,8 +146,6 @@ public class FormPosTransactions extends Form {
 
                 BigDecimal discount = new BigDecimal("0.00");
 
-                System.out.println(sale);
-
                 if (sale.getDiscountType() == null || sale.getDiscountType().isEmpty()) {
                 } else if (sale.getDiscountType().equals(DiscountType.FIXED.toString())) {
                     discount = sale.getDiscountValue();

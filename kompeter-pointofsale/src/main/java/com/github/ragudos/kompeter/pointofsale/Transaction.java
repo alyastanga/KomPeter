@@ -59,9 +59,10 @@ public class Transaction {
             for (final CartItem item : cart.getAllItems()) {
                 saleItemStockDao.createSaleItemStock(conn, _saleId, item._itemStockId(), item.qty(), item.price());
 
+                final ItemStockStorageLocationDto[] locations = itemStockStorageLocationDao.getAllData(conn,
+                        item._itemStockId());
                 int totalRemaining = item.qty();
-                final ItemStockStorageLocationDto[] locations = itemStockStorageLocationDao.getAllData(conn);
-                int newQuantity = 0;
+                int newQuantity = item.stockQty();
 
                 for (final ItemStockStorageLocationDto loc : locations) {
                     if (totalRemaining <= 0) {
@@ -75,14 +76,14 @@ public class Transaction {
                     final int available = loc.quantity();
                     final int toTake = Math.min(totalRemaining, available);
 
-                    newQuantity += loc.quantity() - toTake;
-
+                    newQuantity -= toTake;
                     totalRemaining -= toTake;
-                    itemStockStorageLocationDao.updateItemStockQuantity(conn, loc.quantity() - toTake,
+
+                    itemStockStorageLocationDao.updateItemStockQuantity(conn, (loc.quantity() - toTake),
                             loc._itemStockStorageLocationId());
                 }
 
-                if (newQuantity == 0) {
+                if (newQuantity <= 0) {
                     itemStockDao.setItemStocksStatusByName(conn, item.name(), ItemStatus.INACTIVE);
                 }
             }

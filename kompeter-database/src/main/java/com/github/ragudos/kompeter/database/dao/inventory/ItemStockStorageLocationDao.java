@@ -17,7 +17,7 @@ import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocati
  * @author Peter M. Dela Cruz
  */
 public interface ItemStockStorageLocationDao {
-    ItemStockStorageLocationDto[] getAllData(Connection conn) throws SQLException, IOException;
+    ItemStockStorageLocationDto[] getAllData(Connection conn, int _itemStockId) throws SQLException, IOException;
 
     int setItemStockStorageLocation(Connection conn, int itemStockId, int storageLocId, int qty)
             throws SQLException, IOException;
