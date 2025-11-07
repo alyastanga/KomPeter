@@ -177,9 +177,9 @@ public class FormInventoryAddProduct extends Form {
         public FourthStepForm() {
             setLayout(new MigLayout("insets 0, flowx", "[grow, fill, left]"));
 
-            clearBtn = new JButton("Clear", new SVGIconUIColor("circle-x.svg", 0.75f, "foreground.background"));
+            clearBtn = new JButton("Clear", new SVGIconUIColor("circle-x.svg", 1f, "foreground.background"));
             final JLabel imageLabel = new JLabel("Product Image ");
-            final JLabel resName = new JLabel(new SVGIconUIColor("image-file.svg", 0.5f, "Label.disabledForeground"));
+            final JLabel resName = new JLabel(new SVGIconUIColor("image-file.svg", 0.75f, "Label.disabledForeground"));
             productImageChooser = new ImageChooser(() -> {
                 SwingUtilities.invokeLater(() -> {
                     resName.setText(productImageChooser.chosenImageFile() == null ? ""
@@ -197,10 +197,10 @@ public class FormInventoryAddProduct extends Form {
             });
 
             clearBtn.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
-            clearBtn.putClientProperty(FlatClientProperties.STYLE, "font:10;");
+            clearBtn.putClientProperty(FlatClientProperties.STYLE, "font:-1;");
 
             resName.setHorizontalAlignment(JLabel.LEFT);
-            resName.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;font:9;");
+            resName.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;font:-2;");
 
             final JPanel buttonContainer = new JPanel(new MigLayout("insets 0"));
             buttonContainer.add(clearBtn);
@@ -317,13 +317,13 @@ public class FormInventoryAddProduct extends Form {
                 public RowPanel() {
                     setLayout(new MigLayout("insets 0, flowx, gapx 1", "[grow, fill]", "[grow, top]"));
                     updating = new AtomicBoolean(false);
-                    removeButton = new JButton(new SVGIconUIColor("x.svg", 0.5f, "foreground.background"));
+                    removeButton = new JButton(new SVGIconUIColor("x.svg", 0.75f, "foreground.background"));
                     qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
                     locationComboBox = new JComboBox<>();
 
-                    locationComboBox.putClientProperty(FlatClientProperties.STYLE, "font: 10;");
-                    qtySpinner.putClientProperty(FlatClientProperties.STYLE, "font: 10;");
-                    removeButton.putClientProperty(FlatClientProperties.STYLE, "font: 10;");
+                    locationComboBox.putClientProperty(FlatClientProperties.STYLE, "font: -1;");
+                    qtySpinner.putClientProperty(FlatClientProperties.STYLE, "font: -1;");
+                    removeButton.putClientProperty(FlatClientProperties.STYLE, "font: -1;");
                     removeButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
 
                     locationComboBox.setRenderer(new StorageLocationRenderer());
@@ -410,7 +410,7 @@ public class FormInventoryAddProduct extends Form {
                 selectedStorageLocations = new AtomicReference<>(new ArrayList<>());
                 emptyLabel = new JLabel("No location selected");
                 addLocationButton = new JButton("Location",
-                        new SVGIconUIColor("plus.svg", 0.75f, "foreground.background"));
+                        new SVGIconUIColor("plus.svg", 1f, "foreground.background"));
                 container = new JPanel();
                 final JScrollPane scroller = ScrollerFactory.createScrollPane(container);
 
@@ -421,7 +421,6 @@ public class FormInventoryAddProduct extends Form {
 
                 emptyLabel.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;");
                 addLocationButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
-                addLocationButton.putClientProperty(FlatClientProperties.STYLE, "font:10;");
                 addLocationButton.setIconTextGap(16);
 
                 container.setLayout(new ResponsiveLayout(JustifyContent.FIT_CONTENT, new Dimension(-1, -1), 9, 9));
@@ -525,9 +524,9 @@ public class FormInventoryAddProduct extends Form {
 
             brands.setRenderer(new ItemBrandRenderer());
             brandError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
-            brandError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+            brandError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
             categoryError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
-            categoryError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+            categoryError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
 
             brands.setToolTipText("Select a brand for this product.");
 
@@ -647,7 +646,6 @@ public class FormInventoryAddProduct extends Form {
         final JLabel subtitle = new JLabel("Add a new product to inventory.");
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary h4");
-        subtitle.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.muted;font:11;");
 
         headerPanel.add(title, "wrap");
         headerPanel.add(subtitle, "wrap, gapy 4px");
@@ -742,8 +740,8 @@ public class FormInventoryAddProduct extends Form {
             nameError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
             descriptionError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
 
-            nameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-            descriptionError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+            nameError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+            descriptionError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
 
             add(nameLabel, "growx, wrap, gapy 12px");
             add(nameTextField, "growx, wrap, gapy 2px");
@@ -846,9 +844,9 @@ public class FormInventoryAddProduct extends Form {
                 new MigLayout("insets 0", "[grow, left, fill]", "[grow, top, fill]"));
         slidePane = new SlidePane();
         rightPanel = new RightPanel();
-        nextIcon = new SVGIconUIColor("move-right.svg", 0.75f, "foreground.primary");
-        backIcon = new SVGIconUIColor("move-left.svg", 0.75f, "foreground.muted");
-        submitIcon = new SVGIconUIColor("circle-check.svg", 0.75f, "foreground.primary");
+        nextIcon = new SVGIconUIColor("move-right.svg", 1f, "foreground.primary");
+        backIcon = new SVGIconUIColor("move-left.svg", 1f, "foreground.muted");
+        submitIcon = new SVGIconUIColor("circle-check.svg", 1f, "foreground.primary");
         nextConfirmButton = new JButton("Continue", nextIcon);
         backButton = new JButton("Back", backIcon);
         progressBar = new StepProgressBar(4);
@@ -882,7 +880,7 @@ public class FormInventoryAddProduct extends Form {
         add(headerPanel, "growx");
         add(bodyPane, "gapy 16px, grow");
 
-        bodyPane.setResizeWeight(0.35);
+        bodyPane.setResizeWeight(0.45);
         bodyPane.setContinuousLayout(true);
         bodyPane.setOneTouchExpandable(true);
 
@@ -1189,8 +1187,8 @@ public class FormInventoryAddProduct extends Form {
                             chosenImage == null ? "No Image" : chosenImage.getAbsolutePath())));
 
             confirmBtn = new JButton("Add Product",
-                    new SVGIconUIColor("circle-check.svg", 0.75f, "foreground.primary"));
-            cancelBtn = new JButton("Cancel", new SVGIconUIColor("circle-x.svg", 0.75f, "foreground.muted"));
+                    new SVGIconUIColor("circle-check.svg", 1f, "foreground.primary"));
+            cancelBtn = new JButton("Cancel", new SVGIconUIColor("circle-x.svg", 1f, "foreground.muted"));
             final JPanel container = new JPanel(new MigLayout("insets 0, flowx, wrap", "[grow, left]"));
             final JScrollPane scroller = ScrollerFactory.createScrollPane(container);
 

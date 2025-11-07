@@ -44,7 +44,7 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
 
         setOpaque(false);
 
-        imagePanel.setMinimumSize(new Dimension(36, 36));
+        imagePanel.setMinimumSize(new Dimension(42, 42));
 
         add(imagePanel);
         add(label, "growx");
@@ -64,17 +64,26 @@ public class LabelWithImage extends JPanel implements TableCellRenderer {
         }
 
         if (value instanceof final LabelWithImageData data) {
-            AssetLoader.loadImageAsync(data.imagePath, true, (img) -> {
-                if (img != null) {
-                    imagePanel.setImage(img);
-                    table.repaint(table.getCellRect(row, column, false));
-                }
-            });
+            AssetLoader
+                    .loadImageAsync(
+                            (data.imagePath == null || data.imagePath.isEmpty()
+                                    ? String.format("%s/images/placeholder.png",
+                                            AssetLoader.class.getPackageName().replace(".", "/"))
+                                    : data.imagePath),
+                            true, (img) -> {
+                                if (img != null) {
+                                    imagePanel.setImage(img);
+                                    table.repaint(table.getCellRect(row, column, false));
+                                }
+                            });
 
             label.setText(data.label);
         } else {
             LOGGER.severe("Invalid data for LabelWithImage \n" + value);
         }
+
+        repaint();
+        revalidate();
 
         return this;
     }

@@ -16,6 +16,14 @@ public class CartItem implements Cloneable {
     private int qty;
     private final int stockQty;
 
+    public BigDecimal vatUnitPrice() {
+        return price.multiply(Transaction.VAT_RATE).multiply(new BigDecimal(qty));
+    }
+
+    public BigDecimal netPrice() {
+        return price.subtract(vatUnitPrice()).multiply(new BigDecimal(qty));
+    }
+
     public CartItem(final int _itemStockId, final String name, final int stockQty, final int qty,
             final BigDecimal price) throws InsufficientStockException, NegativeQuantityException {
         this._itemStockId = _itemStockId;

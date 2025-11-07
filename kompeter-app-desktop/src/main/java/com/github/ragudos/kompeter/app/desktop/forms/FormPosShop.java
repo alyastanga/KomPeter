@@ -74,7 +74,7 @@ import com.github.ragudos.kompeter.utilities.StringUtils;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.DropShadowBorder;
 
-@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = {"sales", "shop"})
+@SystemForm(name = "Point of Sale Shop", description = "The point of sale shop", tags = { "sales", "shop" })
 public class FormPosShop extends Form {
     private AtomicReference<Cart> cart;
     private JPanel cartButtonsContainer;
@@ -115,13 +115,13 @@ public class FormPosShop extends Form {
         boolean returnVal = false;
 
         switch (chosenOption) {
-            case JOptionPane.CANCEL_OPTION :
+            case JOptionPane.CANCEL_OPTION:
                 returnVal = false;
                 break;
-            case JOptionPane.YES_OPTION :
+            case JOptionPane.YES_OPTION:
                 returnVal = true;
                 break;
-            case JOptionPane.NO_OPTION :
+            case JOptionPane.NO_OPTION:
                 SwingUtilities.invokeLater(() -> {
                     cart.getAcquire().clearCart();
                     buildRightPanelContent();
@@ -217,6 +217,11 @@ public class FormPosShop extends Form {
                                     AssetLoader.class.getPackageName().replace(".", "/"))
                             : item.displayImage();
                     final ImagePanel imagePanel = new ImagePanel(AssetLoader.loadImage(imagePath, true));
+
+                    imagePanel.setMinimumSize(new Dimension(150, getPreferredSize().height));
+                    imagePanel.setMaximumSize(new Dimension(150, 150));
+                    imagePanel.setScaleMode(ImagePanel.ScaleMode.CONTAIN);
+
                     final JLabel itemName = new JLabel(
                             HtmlUtils.wrapInHtml(String.format("<p align='center'>%s", item.itemName())));
                     final JLabel itemPrice = new JLabel(String.format(HtmlUtils.wrapInHtml("<p align='center'> %s"),
@@ -297,7 +302,7 @@ public class FormPosShop extends Form {
         rightPanel = new JPanel(new MigLayout("insets 0, wrap", "[grow, fill]", "[grow, fill, top][bottom]"));
         leftPanelHeader = new JPanel(new MigLayout("flowx, insets 0 0 0 12", "[grow,fill]16px[]2px[]push[]"));
         leftPanelContentContainer = new JPanel(
-                new ResponsiveLayout(JustifyContent.START, new Dimension(190, -1), 1, 1));
+                new ResponsiveLayout(JustifyContent.START, new Dimension(180, -1), 1, 1));
         final JLabel title = new JLabel("Products");
         final JLabel subtitle = new JLabel("Click a product card to add them to cart.");
         final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelContentContainer);
@@ -307,7 +312,7 @@ public class FormPosShop extends Form {
 
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
 
-        containerSplitPane.setResizeWeight(0.7);
+        containerSplitPane.setResizeWeight(0.6);
         containerSplitPane.setContinuousLayout(true);
         containerSplitPane.setOneTouchExpandable(true);
 
@@ -316,7 +321,7 @@ public class FormPosShop extends Form {
         leftPanel.add(subtitle, "growx");
         leftPanel.add(scroller, "grow");
 
-        rightPanelWrapper.add(rightPanel, "grow, width ::450px");
+        rightPanelWrapper.add(rightPanel, "grow");
 
         containerSplitPane.add(leftPanel);
         containerSplitPane.add(rightPanelWrapper);
@@ -329,20 +334,26 @@ public class FormPosShop extends Form {
         cartItemPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
         cartItemPanel.setName(String.format("_itemStockId:%s", item._itemStockId()));
 
+        System.out.println(item.qty());
+
         final JLabel productName = new JLabel(item.name());
-        final JLabel productPrice = new JLabel(String.format("%s", StringUtils.formatBigDecimal(item.price())));
+        final JLabel productNetPrice = new JLabel(String.format("Net Price: %s", StringUtils
+                .formatBigDecimal(item.netPrice())));
         final JLabel productQty = new JLabel(String.format("x%s", item.qty()));
 
         final String decIcon = item.qty() == 1 ? "trash.svg" : "minus.svg";
 
-        final JPanel qtyPanel = new JPanel(new MigLayout("insets 0, wrap 3, al center center", "[]5[]5[]", "[]"));
+        final JPanel qtyPanel = new JPanel(new MigLayout("insets 0, flowx", "[]5[]"));
         final JButton decBtn = new JButton(new SVGIconUIColor(decIcon, 0.5f, "foreground.background"));
         final JButton addBtn = new JButton(new SVGIconUIColor("plus.svg", 0.5f, "foreground.background"));
 
         decBtn.setName("decrement");
         addBtn.setName("increment");
-        productPrice.setName("price");
+        productNetPrice.setName("net_price");
         productQty.setName("quantity");
+
+        productNetPrice.putClientProperty(FlatClientProperties.STYLE, "font:-2;foreground:$Label.disabledForeground;");
+        productName.putClientProperty(FlatClientProperties.STYLE, "font:-1;");
 
         decBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
         addBtn.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
@@ -357,8 +368,8 @@ public class FormPosShop extends Form {
         qtyPanel.add(addBtn, "center");
 
         cartItemPanel.add(productName, "growx");
-        cartItemPanel.add(productPrice, "gapx 10");
-        cartItemPanel.add(qtyPanel, "gapx 10");
+        cartItemPanel.add(qtyPanel, "gapx 10, wrap");
+        cartItemPanel.add(productNetPrice);
 
         return cartItemPanel;
     }
@@ -462,23 +473,6 @@ public class FormPosShop extends Form {
     private void createRightPanelContents() {
         final Cart cart = this.cart.getAcquire();
 
-        final JPanel headerPanel = new JPanel(new MigLayout("insets 5, fillx", "[grow][right][center]", "[]"));
-        headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
-
-        final JLabel nameHeader = new JLabel("Product");
-        final JLabel priceHeader = new JLabel("Price");
-        final JLabel quantityHeader = new JLabel("Quantity");
-
-        nameHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
-        priceHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
-        quantityHeader.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4");
-
-        headerPanel.add(nameHeader, "growx");
-        headerPanel.add(priceHeader, "gapright 20");
-        headerPanel.add(quantityHeader, "gapright 6");
-
-        cartPanel.add(headerPanel, "growx");
-
         for (final CartItem item : cart.getAllItems()) {
             cartPanel.add(createItemCard(item), "growx, wrap");
         }
@@ -560,13 +554,13 @@ public class FormPosShop extends Form {
     private void removeActionListeners(final JComponent component) {
         for (final Component c : component.getComponents()) {
             switch (c) {
-                case final JButton button :
+                case final JButton button:
                     Arrays.stream(button.getActionListeners()).forEach(button::removeActionListener);
                     break;
-                case final JComponent co :
+                case final JComponent co:
                     removeActionListeners(co);
                     break;
-                default :
+                default:
             }
         }
     }
@@ -626,7 +620,7 @@ public class FormPosShop extends Form {
 
             title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3 primary");
             subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-            subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
+            subtitle.putClientProperty(FlatClientProperties.STYLE, "font:-1;");
 
             final JLabel quantityLabel = new JLabel(String.format("Quantity (Max %s)", totalQuantity));
             final JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, totalQuantity, 1));
@@ -713,50 +707,52 @@ public class FormPosShop extends Form {
 
             SwingUtilities.invokeLater(() -> {
                 switch (cartEvent.eventType()) {
-                    case INCREASE_ITEM_QTY :
-                    case INCREMENT_ITEM :
-                    case DECREASE_ITEM_QTY :
-                    case DECREMENT_ITEM : {
+                    case INCREASE_ITEM_QTY:
+                    case INCREMENT_ITEM:
+                    case DECREASE_ITEM_QTY:
+                    case DECREMENT_ITEM: {
                         final JComponent parent = (JComponent) getComponent(cartPanel,
                                 String.format("_itemStockId:%s", cartItem._itemStockId()));
                         final JButton decrementButton = (JButton) getComponent(parent, "decrement");
-                        final JLabel priceLabel = (JLabel) getComponent(parent, "price");
+                        final JLabel netPriceLabel = (JLabel) getComponent(parent, "net_price");
                         final JLabel qtyLabel = (JLabel) getComponent(parent, "quantity");
 
                         switch (cartEvent.eventType()) {
-                            case INCREASE_ITEM_QTY :
-                            case INCREMENT_ITEM : {
+                            case INCREASE_ITEM_QTY:
+                            case INCREMENT_ITEM: {
                                 if (previousCartItem.qty() == 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("minus.svg", 0.5f, "foregorund.background"));
                                 }
 
-                                priceLabel.setText(
-                                        String.format("%s", StringUtils.formatBigDecimal(cartItem.getTotalPrice())));
+                                netPriceLabel.setText(
+                                        String.format("Net Price: %s",
+                                                StringUtils.formatBigDecimal(cartItem.netPrice())));
                                 qtyLabel.setText(String.format("x%s", cartItem.qty()));
 
                                 updateCartTotals();
                             }
                                 break;
-                            case DECREASE_ITEM_QTY :
-                            case DECREMENT_ITEM : {
+                            case DECREASE_ITEM_QTY:
+                            case DECREMENT_ITEM: {
                                 if (cartItem.qty() <= 1) {
                                     decrementButton
                                             .setIcon(new SVGIconUIColor("trash.svg", 0.5f, "foregorund.background"));
                                 }
 
-                                priceLabel.setText(
-                                        String.format("%s", StringUtils.formatBigDecimal(cartItem.getTotalPrice())));
+                                netPriceLabel.setText(
+                                        String.format("Net Price: %s",
+                                                StringUtils.formatBigDecimal(cartItem.netPrice())));
                                 qtyLabel.setText(String.format("x%s", cartItem.qty()));
 
                                 updateCartTotals();
                             }
                                 break;
-                            default :
+                            default:
                         }
                     }
                         break;
-                    case REMOVE_ITEM : {
+                    case REMOVE_ITEM: {
                         if (acquiredCart.isEmpty()) {
                             buildRightPanelContent();
                         } else {
@@ -769,11 +765,11 @@ public class FormPosShop extends Form {
                         }
                     }
                         break;
-                    case CLEAR : {
+                    case CLEAR: {
                         buildRightPanelContent();
                     }
                         break;
-                    case ADD_ITEM : {
+                    case ADD_ITEM: {
                         if (acquiredCart.getAllItems().size() == 1) {
                             buildRightPanelContent();
                         } else {
@@ -798,7 +794,7 @@ public class FormPosShop extends Form {
                     "Are you sure you want to checkout the cart?", "Checkout", JOptionPane.YES_NO_OPTION);
 
             switch (res) {
-                case JOptionPane.YES_OPTION :
+                case JOptionPane.YES_OPTION:
                     checkout();
                     break;
             }
@@ -808,7 +804,8 @@ public class FormPosShop extends Form {
             new CheckoutDialog(KompeterDesktopApp.getRootFrame(), cart.get(), () -> {
                 cart.get().clearCart();
                 formRefresh();
-            }).setVisible(true);;
+            }).setVisible(true);
+            ;
         }
     }
 
@@ -821,7 +818,7 @@ public class FormPosShop extends Form {
                     "Clear Cart", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
             switch (chosenOption) {
-                case JOptionPane.YES_OPTION :
+                case JOptionPane.YES_OPTION:
                     cart.getAcquire().clearCart();
                     break;
             }

@@ -38,7 +38,7 @@ public class ItemStatusText extends JPanel implements TableCellRenderer {
 
         setOpaque(false);
 
-        label.putClientProperty(FlatClientProperties.STYLE, "arc: 999;border: 6,12,6,12; font: 11 bold;");
+        label.putClientProperty(FlatClientProperties.STYLE, "arc: 999;border: 6,12,6,12; font: bold;");
 
         setLayout(new MigLayout("insets 6, al center center"));
 
@@ -66,19 +66,22 @@ public class ItemStatusText extends JPanel implements TableCellRenderer {
 
         // for some reason putClientProperties doesnt work
         switch (itemStatus) {
-            case ACTIVE :
+            case ACTIVE:
                 label.setBackground(Color.decode("#80EF80"));
                 label.setForeground(Color.decode("#084108"));
                 break;
-            case INACTIVE :
+            case INACTIVE:
                 label.setBackground(Color.decode("#c2bdb9"));
                 label.setForeground(Color.decode("#282623"));
                 break;
-            case ARCHIVED :
+            case ARCHIVED:
                 label.setBackground(Color.decode("#FF6961"));
                 label.setForeground(Color.decode("#ffccca"));
                 break;
         }
+
+        repaint();
+        revalidate();
 
         return this;
     }

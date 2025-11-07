@@ -103,6 +103,7 @@ public class Transaction {
 
             exception.addSuppressed(err);
 
+            LOGGER.severe(err.getMessage());
             throw exception;
         }
     }

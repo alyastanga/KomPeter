@@ -38,6 +38,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.jspinner.CurrencySpinner;
 import com.github.ragudos.kompeter.database.dto.enums.DiscountType;
@@ -58,12 +59,16 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
     private JLabel discount;
     private JLabel vat;
+    private JLabel netTotal;
+    private JLabel discountedNetTotal;
     private JLabel total;
     private JLabel change;
+    private BigDecimal netTotalVal;
+    private BigDecimal discountedNetTotalVal;
     private BigDecimal totalVal;
     private BigDecimal discountVal;
     private BigDecimal changeVal;
-    private BigDecimal discountedTotalVal;
+    private BigDecimal vatVal;
 
     private final JPanel topPanel;
     private final JPanel bottomPanel;
@@ -119,7 +124,13 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
     public void stateChanged(final ChangeEvent e) {
         final CurrencySpinner spinner = (CurrencySpinner) e.getSource();
 
-        changeVal = ((BigDecimal) spinner.getValue()).subtract(discountedTotalVal);
+        final BigDecimal val = ((BigDecimal) spinner.getValue()).subtract(discountedTotalVal);
+
+        if (val.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        changeVal = val;
         change.setText(StringUtils.formatBigDecimal(changeVal));
     }
 
@@ -166,32 +177,36 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
     private void createBottomPanel() {
         bottomPanel.setBorder(BorderFactory.createDashedBorder(null));
 
-        final JLabel subTotalLbl = new JLabel("Sub Total: ");
-        final JLabel subTotal = new JLabel(String.format("%s", StringUtils.formatBigDecimal(cart.totalPrice())));
+        final JLabel netTotalLabel = new JLabel("Net Price: ");
+        netTotal = new JLabel("-.--");
         final JLabel discountLbl = new JLabel("Discount: ");
+        final JLabel discountedNetTotalLabel = new JLabel("Discounted Net Price: ");
+        discountedNetTotal = new JLabel("-.--");
         discount = new JLabel("-.--");
         final JLabel vatLbl = new JLabel("Tax 12%: ");
         vat = new JLabel("-.--");
-        final JLabel totalLbl = new JLabel("Total Payment: ");
+        final JLabel totalLbl = new JLabel("Total Price: ");
         total = new JLabel("-.--");
         final JLabel changeLbl = new JLabel("Change: ");
         change = new JLabel("-.--");
 
-        subTotal.setHorizontalAlignment(JLabel.RIGHT);
+        netTotal.setHorizontalAlignment(JLabel.RIGHT);
         discount.setHorizontalAlignment(JLabel.RIGHT);
         vat.setHorizontalAlignment(JLabel.RIGHT);
         total.setHorizontalAlignment(JLabel.RIGHT);
         change.setHorizontalAlignment(JLabel.RIGHT);
 
         final BigDecimal totalPrice = cart.totalPrice();
-        final BigDecimal vatVal = totalPrice.multiply(Transaction.VAT_RATE);
-        totalVal = totalPrice.add(vatVal);
+        totalVal = totalPrice;
         discountVal = new BigDecimal("0.00");
         discountedTotalVal = totalVal.subtract(discountVal);
+        vatVal = discountedTotalVal.multiply(Transaction.VAT_RATE);
         changeVal = new BigDecimal("0.00");
+        finalVal = discountedTotalVal.add(vatVal);
 
         total.setText(StringUtils.formatBigDecimal(totalVal));
         vat.setText(StringUtils.formatBigDecimal(vatVal));
+        finalLabel.setText(StringUtils.formatBigDecimal(finalVal));
 
         subTotalLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
         subTotal.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
@@ -200,8 +215,8 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         vatLbl.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
         vat.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
 
-        bottomPanel.add(subTotalLbl);
-        bottomPanel.add(subTotal, "wrap");
+        bottomPanel.add(netTotalLabel);
+        bottomPanel.add(netTotal, "wrap");
         bottomPanel.add(discountLbl);
         bottomPanel.add(discount, "wrap");
         bottomPanel.add(vatLbl);
@@ -209,6 +224,8 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
         bottomPanel.add(new JSeparator(JSeparator.HORIZONTAL), "growx, span 2, wrap");
         bottomPanel.add(totalLbl);
         bottomPanel.add(total, "wrap");
+        bottomPanel.add(finalLbl);
+        bottomPabel.add(finalLabel, "wrap");
         bottomPanel.add(changeLbl);
         bottomPanel.add(change);
     }
@@ -288,11 +305,18 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 }
 
                 dData = discountData;
-                changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(discountedTotalVal);
+                vatVal = discountedTotalVal.multiply(Transaction.VAT_RATE);
+                finalVal = discountedTotalVal.add(vatVal);
+                changeVal = ((BigDecimal) paymentSpinner.getValue()).subtract(finalVal);
 
+                vat.setText(StringUtils.formatBigDecimal(vatVal));
                 discount.setText(StringUtils.formatBigDecimal(discountVal));
                 total.setText(StringUtils.formatBigDecimal(discountedTotalVal));
-                change.setText(StringUtils.formatBigDecimal(changeVal));
+                finalLabel.setText(StringUtils.formatBigDecimal(finalVal));
+
+                if (changeVal.compareTo(BigDecimal.ZERO) > 0) {
+                    change.setText(StringUtils.formatBigDecimal(changeVal));
+                }
             }).setVisible(true);
 
             return;
@@ -303,7 +327,10 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
 
             discount.setText("-.--");
             total.setText(StringUtils.formatBigDecimal(totalVal));
-            change.setText(StringUtils.formatBigDecimal(changeVal));
+
+            if (changeVal.compareTo(BigDecimal.ZERO) > 0) {
+                change.setText(StringUtils.formatBigDecimal(changeVal));
+            }
 
             return;
         }
@@ -396,10 +423,28 @@ public class CheckoutDialog extends JDialog implements ActionListener, ChangeLis
                 final DiscountType selected = (DiscountType) dComboBox.getSelectedItem();
 
                 if (selected == DiscountType.FIXED) {
-                    onDiscount.accept(DiscountData.builder().amt((BigDecimal) fixedSpinner.getValue())
+                    final BigDecimal val = (BigDecimal) fixedSpinner.getValue();
+
+                    if (discountedTotalVal.subtract(val).compareTo(BigDecimal.ZERO) <= 0) {
+                        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                                "Cannot add discount because it will make the total price go 0 and below");
+
+                        return;
+                    }
+
+                    onDiscount.accept(DiscountData.builder().amt(val)
                             .type(DiscountType.FIXED).build());
                 } else if (selected == DiscountType.PERCENTAGE) {
-                    onDiscount.accept(DiscountData.builder().amt(new BigDecimal((Double) percentageSpinner.getValue()))
+                    final BigDecimal val = new BigDecimal((Double) percentageSpinner.getValue());
+
+                    if (discountedTotalVal.subtract(val).compareTo(BigDecimal.ZERO) <= 0) {
+                        JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                                "Cannot add discount because it will make the total price go 0 and below");
+
+                        return;
+                    }
+
+                    onDiscount.accept(DiscountData.builder().amt(val)
                             .type(DiscountType.PERCENTAGE).build());
                 } else {
                     dComboBox.putClientProperty("JComponent.outline", "error");

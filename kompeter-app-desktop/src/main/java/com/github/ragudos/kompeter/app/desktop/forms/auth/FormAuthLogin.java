@@ -103,8 +103,8 @@ public class FormAuthLogin extends Form {
 
         emailError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
         passwordError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
-        emailError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-        passwordError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        emailError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        passwordError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
 
         registerButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "link");
         loginButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");

@@ -25,11 +25,12 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.database.dto.inventory.ItemStockStorageLocationDto;
 import com.github.ragudos.kompeter.utilities.logger.KompeterLogger;
 
+import lombok.ToString;
+
 public class PercentageBar extends JPanel implements TableCellRenderer {
     private static final Logger LOGGER = KompeterLogger.getLogger(PercentageBar.class);
 
     final JProgressBar bar;
-    int currentValue;
     final JLabel label;
 
     public PercentageBar() {
@@ -43,7 +44,7 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
 
         label = new JLabel("");
 
-        label.putClientProperty(FlatClientProperties.STYLE, "font: 9 bold;");
+        label.putClientProperty(FlatClientProperties.STYLE, "font: -2 bold;");
         bar = new JProgressBar(0, 100);
 
         label.setAlignmentX(0.5f);
@@ -59,14 +60,9 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         add(container);
     }
 
-    public int currentValue() {
-        return currentValue;
-    }
-
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
             final boolean hasFocus, final int row, final int column) {
-
         if (isSelected) {
             setOpaque(true);
             setBackground(table.getSelectionBackground());
@@ -82,22 +78,16 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         }
 
         final PercentageBarData percentageBarData = (PercentageBarData) value;
-
-        currentValue = percentageBarData.currentValue;
-        bar.setMaximum(percentageBarData.maxThreshold);
-
-        final float percentage = ((float) percentageBarData.currentValue - (float) percentageBarData.minimumThreshold)
-                / (Math.max(percentageBarData.maxThreshold, percentageBarData.minimumThreshold)
-                        - percentageBarData.minimumThreshold);
+        final float percentage = percentageBarData.currentValue / percentageBarData.minimumThreshold;
         String text = percentageBarData.currentValue + " " + percentageBarData.measure;
 
-        if (percentage <= 0.1f) {
+        if (percentage <= 1f) {
             text += " (Critically Low)";
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.error;");
-        } else if (percentage <= 0.49f) {
+        } else if (percentage <= 2f) {
             text += " (Low)";
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.warning;");
-        } else if (percentage <= 0.89f) {
+        } else if (percentage <= 3f) {
             text += " (Mid)";
             bar.putClientProperty(FlatClientProperties.STYLE, "foreground:$color.info;");
         } else {
@@ -107,6 +97,7 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
 
         label.setText(text);
         bar.setValue(Math.round(percentage * 100f));
+        bar.setMaximum(Math.round(percentage * 300f));
 
         return this;
     }
@@ -126,12 +117,7 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
 
         public ItemStockQtyPercentageBarData(final int id, final int currentValue, final int minimumThreshold,
                 final String measure, final ItemStockStorageLocationDto[] locations) {
-            this(id, currentValue, minimumThreshold, 100, measure, locations);
-        }
-
-        public ItemStockQtyPercentageBarData(final int id, final int currentValue, final int minimumThreshold,
-                final int maxThreshold, final String measure, final ItemStockStorageLocationDto[] locations) {
-            super(id, currentValue, minimumThreshold, maxThreshold, measure);
+            super(id, currentValue, minimumThreshold, measure);
 
             this.locations = locations;
         }
@@ -152,30 +138,24 @@ public class PercentageBar extends JPanel implements TableCellRenderer {
         }
     }
 
+    @ToString
     public static class PercentageBarData {
         public static boolean isPercentageBarData(final Object obj) {
             return (obj != null && obj instanceof final PercentageBarData data) && data.currentValue >= 0
-                    && data.minimumThreshold >= 0 && data.maxThreshold > data.minimumThreshold;
+                    && data.minimumThreshold >= 0;
         }
 
         int currentValue;
         int id;
-        int maxThreshold;
         String measure;
 
         int minimumThreshold;
 
         public PercentageBarData(final int id, final int currentValue, final int minimumThreshold,
                 final String measure) {
-            this(id, currentValue, minimumThreshold, 100, measure);
-        }
-
-        public PercentageBarData(final int id, final int currentValue, final int minimumThreshold,
-                final int maxThreshold, final String measure) {
             this.id = id;
             this.currentValue = currentValue;
             this.minimumThreshold = minimumThreshold;
-            this.maxThreshold = maxThreshold;
             this.measure = measure;
         }
 

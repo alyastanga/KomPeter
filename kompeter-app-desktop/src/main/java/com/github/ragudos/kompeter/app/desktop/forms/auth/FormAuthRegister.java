@@ -175,11 +175,11 @@ public class FormAuthRegister extends Form {
         emailError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
         passwordError.putClientProperty(FlatClientProperties.STYLE_CLASS, "error");
 
-        firstNameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-        lastNameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-        displayNameError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-        emailError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
-        passwordError.putClientProperty(FlatClientProperties.STYLE, "font:9;");
+        firstNameError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        lastNameError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        displayNameError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        emailError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
+        passwordError.putClientProperty(FlatClientProperties.STYLE, "font:-2;");
 
         previousStepButton.setIconTextGap(16);
         previousStepButton.setHorizontalTextPosition(SwingConstants.RIGHT);
@@ -387,16 +387,16 @@ public class FormAuthRegister extends Form {
             }
 
             switch (currentStep.get()) {
-                case 1 :
+                case 1:
                     stepOne();
                     break;
-                case 2 :
+                case 2:
                     stepTwo();
                     break;
-                case 3 :
+                case 3:
                     stepThree();
                     break;
-                default :
+                default:
                     JOptionPane.showMessageDialog(owner, "Something went wrong");
             }
         }
@@ -458,16 +458,16 @@ public class FormAuthRegister extends Form {
             }
 
             switch (currentStep.get()) {
-                case 1 :
+                case 1:
                     stepOne();
                     break;
-                case 2 :
+                case 2:
                     stepTwo();
                     break;
-                case 3 :
+                case 3:
                     stepThree();
                     break;
-                default :
+                default:
                     JOptionPane.showMessageDialog(owner, "Something went wrong");
             }
         }

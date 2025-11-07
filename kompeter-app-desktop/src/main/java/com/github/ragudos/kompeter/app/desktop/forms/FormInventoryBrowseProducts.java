@@ -51,6 +51,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.util.UIScale;
 import com.github.ragudos.kompeter.app.desktop.components.combobox.ItemStockStorageLocationRenderer;
 import com.github.ragudos.kompeter.app.desktop.components.icons.SVGIconUIColor;
 import com.github.ragudos.kompeter.app.desktop.components.menu.FilterPopupMenu.CategoryBrandFilterPopupMenu;
@@ -289,7 +290,7 @@ public class FormInventoryBrowseProducts extends Form {
 
             addMouseListener(mouseListener);
 
-            getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:14 semibold;");
+            getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:+2 semibold;");
             ((DefaultTableCellRenderer) getTableHeader().getDefaultRenderer())
                     .setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -306,19 +307,18 @@ public class FormInventoryBrowseProducts extends Form {
             columnModel.getColumn(COL_STOCK_QTY).setCellRenderer(new PercentageBar());
             columnModel.getColumn(COL_STATUS).setCellRenderer(new ItemStatusText());
 
-            columnModel.getColumn(COL_NAME).setPreferredWidth(750);
-            columnModel.getColumn(COL_BRAND).setPreferredWidth(105);
-            columnModel.getColumn(COL_PRICE).setPreferredWidth(120);
-            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(175);
-            columnModel.getColumn(COL_STATUS).setPreferredWidth(82);
+            columnModel.getColumn(COL_NAME).setPreferredWidth(620);
+            columnModel.getColumn(COL_BRAND).setPreferredWidth(125);
+            columnModel.getColumn(COL_PRICE).setPreferredWidth(140);
+            columnModel.getColumn(COL_STOCK_QTY).setPreferredWidth(225);
+            columnModel.getColumn(COL_STATUS).setPreferredWidth(96);
 
             columnModel.removeColumn(columnModel.getColumn(COL_ID));
 
             setRowSorter(new ProductsTableRowSorter(tableModel));
 
             setShowGrid(true);
-            setRowHeight(38);
-            putClientProperty(FlatClientProperties.STYLE, "font:12;");
+            setRowHeight(UIScale.scale(48));
         }
 
         @Override
@@ -522,7 +522,6 @@ public class FormInventoryBrowseProducts extends Form {
 
                 title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3 primary");
                 subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-                subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
 
                 add(title, "growx, wrap");
                 add(subtitle, "growx, wrap, gapy 2px");
@@ -646,7 +645,6 @@ public class FormInventoryBrowseProducts extends Form {
 
                 title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h3 primary");
                 subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
-                subtitle.putClientProperty(FlatClientProperties.STYLE, "font:11;");
 
                 add(title, "growx, wrap");
                 add(subtitle, "growx, gapy 2px, wrap");
@@ -694,6 +692,8 @@ public class FormInventoryBrowseProducts extends Form {
 
             productsTableControlFooter.rerender();
 
+            repaint();
+            revalidate();
             bodyPanel.repaint();
             bodyPanel.revalidate();
 
@@ -788,7 +788,6 @@ public class FormInventoryBrowseProducts extends Form {
                     new SVGIconUIColor("add-stock.svg", 0.5f, "foreground.background"));
 
             addStockButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            addStockButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             addStockButton.setToolTipText("Add stock to selected item");
             addStockButton.setActionCommand("add_stock");
             addStockButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
@@ -801,7 +800,6 @@ public class FormInventoryBrowseProducts extends Form {
                     new SVGIconUIColor("archive-restore.svg", 0.5f, "foreground.background"));
 
             unDeleteButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            unDeleteButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             unDeleteButton.setToolTipText("Restore selected item/s");
             unDeleteButton.putClientProperty(FlatClientProperties.BUTTON_TYPE_BORDERLESS, true);
             unDeleteButton.setActionCommand("undelete");
@@ -814,7 +812,6 @@ public class FormInventoryBrowseProducts extends Form {
                     new SVGIconUIColor("archive.svg", 0.5f, "foreground.background"));
 
             deleteButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            deleteButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             deleteButton.setToolTipText("Delete selected item/s");
             deleteButton.setActionCommand("delete");
             deleteButton.addActionListener(this);
@@ -827,7 +824,6 @@ public class FormInventoryBrowseProducts extends Form {
                     new SVGIconUIColor("circle-check.svg", 0.5f, "foreground.background"));
 
             markActiveButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            markActiveButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             markActiveButton.setToolTipText("Mark selected item/s as active");
             markActiveButton.setActionCommand("mark_active");
             markActiveButton.addActionListener(this);
@@ -840,7 +836,6 @@ public class FormInventoryBrowseProducts extends Form {
                     new SVGIconUIColor("circle-x.svg", 0.5f, "foreground.background"));
 
             markInactiveButton.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-            markInactiveButton.putClientProperty(FlatClientProperties.STYLE, "font:11;");
             markInactiveButton.setToolTipText("Mark selected item/s as inactive");
             markInactiveButton.setActionCommand("mark_inactive");
             markInactiveButton.addActionListener(this);
@@ -989,14 +984,14 @@ public class FormInventoryBrowseProducts extends Form {
             paginationContainer.putClientProperty(FlatClientProperties.STYLE, "background:null;");
 
             leftLabel.putClientProperty(FlatClientProperties.STYLE,
-                    "foreground:$TextField.placeholderForeground;font:10;");
+                    "foreground:$TextField.placeholderForeground;font:-1;");
             rowsLabel.putClientProperty(FlatClientProperties.STYLE,
-                    "foreground:$TextField.placeholderForeground;font:10;");
+                    "foreground:$TextField.placeholderForeground;font:-1;");
             rowsPerPageSpinner.putClientProperty(FlatClientProperties.STYLE, "arc:0;");
 
             rowsPerPageSpinner.setToolTipText("Change the visible amount of rows per table page.");
 
-            rowsPerPageSpinner.putClientProperty(FlatClientProperties.STYLE, "font:10;");
+            rowsPerPageSpinner.putClientProperty(FlatClientProperties.STYLE, "font:-1;");
             rowsPerPageSpinner.addChangeListener(this);
 
             add(leftLabel);
@@ -1085,8 +1080,7 @@ public class FormInventoryBrowseProducts extends Form {
                 final JButton b = new JButton(String.valueOf(page));
                 b.addActionListener(this);
                 b.putClientProperty(FlatClientProperties.STYLE_CLASS, "ghost");
-                b.putClientProperty(FlatClientProperties.STYLE, "arc:0;font:9;");
-                b.setMaximumSize(new Dimension(38, 38));
+                b.putClientProperty(FlatClientProperties.STYLE, "arc:0;font:-1;");
 
                 if (page == currentPage) {
                     b.setSelected(true);
