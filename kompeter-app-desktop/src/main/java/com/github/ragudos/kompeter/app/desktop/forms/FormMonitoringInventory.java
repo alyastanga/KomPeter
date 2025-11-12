@@ -17,6 +17,8 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingWorker;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -37,12 +39,46 @@ import net.miginfocom.swing.MigLayout;
 @SystemForm(name = "Monitoring Inventory", description = "Shows all possible information about the inventory.", tags = {
         "monitoring", "inventory" })
 public class FormMonitoringInventory extends Form {
+    private MonitoringInventoryService inventoryService;
 
-    private final MonitoringInventoryService inventoryService;
+    JTabbedPane body;
+
+    @Override
+    public void formInit() {
+        this.inventoryService = new MonitoringInventoryService(new SqliteInventoryDao());
+        body = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+
+        final JLabel title = new JLabel("Monitor Inventory");
+
+        setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, fill, center]", "[][][grow, fill]"));
+
+        body.addTab(TOOL_TIP_TEXT_KEY, null, body, TOOL_TIP_TEXT_KEY);
+
+        add(body, "grow");
+
+        loadData();
+    }
+
+    @Override
+    public void formRefresh() {
+        loadData();
+    }
+
+    @Override
+    public void formOpen() {
+        loadData();
+    }
+
+    private void loadData() {
+        new SwingWorker<Void, Void>() {
+            protected Void doInBackground() throws Exception {
+
+                return null;
+            };
+        }.execute();
+    }
 
     public FormMonitoringInventory() {
-        this.inventoryService = new MonitoringInventoryService(new SqliteInventoryDao());
-
         setLayout(new MigLayout("fill, insets 0"));
 
         final JPanel inventoryValuePanel = createInventoryValueChart();
