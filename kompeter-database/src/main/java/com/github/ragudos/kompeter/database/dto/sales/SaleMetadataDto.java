@@ -33,6 +33,20 @@ public class SaleMetadataDto {
     SaleItemStocks[] saleItemStocks;
     BigDecimal vatPercent;
 
+    public int getTotalProductsSold() {
+        return saleItemStocks.length;
+    }
+
+    public int getTotalSold() {
+        int total = 0;
+
+        for (final SaleItemStocks s : saleItemStocks) {
+            total += s.quantity;
+        }
+
+        return total;
+    }
+
     @JsonCreator
     @Builder
     public SaleMetadataDto(@JsonProperty("_saleId") final int saleId, @JsonProperty("saleCode") final String saleCode,

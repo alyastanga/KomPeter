@@ -95,6 +95,8 @@ public class FormPosTransactions extends Form {
         public static final int COL_RAW_PRICE = 4;
         public static final int COL_REAL_PRICE = 5;
         public static final int COL_VAT_PRICE = 6;
+        public static final int COL_TOTAL_PRODUCTS_SOLD = 8;
+        public static final int COL_TOTAL_PRODUCTS = 9;
 
         public TransactionsTable() {
             getTableHeader().putClientProperty(FlatClientProperties.STYLE, "font:+2 semibold;");
@@ -105,7 +107,7 @@ public class FormPosTransactions extends Form {
 
             tableModel.setColumnIdentifiers(
                     new String[] { "Id", "Code", "Customer Name", "Amount Paid", "Net Revenue", "Revenue", "Vat",
-                            "Discount" });
+                            "Discount", "Total Products Sold", "Overall Product Quantity" });
 
             setModel(tableModel);
 
@@ -162,7 +164,7 @@ public class FormPosTransactions extends Form {
                         sale.getCustomerName() == null || sale.getCustomerName().isEmpty() ? "No entry provided"
                                 : sale.getCustomerName(),
                         payment, revenue,
-                        revenue.add(vatPrice), vatPrice, discount });
+                        revenue.add(vatPrice), vatPrice, discount, sale.getTotalProductsSold(), sale.getTotalSold() });
             }
 
             repaint();
@@ -186,6 +188,8 @@ public class FormPosTransactions extends Form {
                     case COL_REAL_PRICE -> BigDecimal.class;
                     case COL_DISCOUNT -> BigDecimal.class;
                     case COL_CUSTOMER_NAME -> String.class;
+                    case COL_TOTAL_PRODUCTS -> Integer.class;
+                    case COL_TOTAL_PRODUCTS_SOLD -> Integer.class;
                     default -> super.getColumnClass(columnIndex);
                 };
             }

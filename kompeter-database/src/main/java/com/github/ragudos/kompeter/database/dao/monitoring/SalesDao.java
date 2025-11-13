@@ -41,8 +41,4 @@ public interface SalesDao {
     List<RevenueDto> getRevenue(Timestamp from, Timestamp to) throws SQLException;
 
     List<Top10SellingItemsDto> getTop10SellingItems() throws SQLException;
-
-    List<Top10SellingItemsDto> getTop10SellingItems(Timestamp date, FromTo fromto) throws SQLException;
-
-    List<Top10SellingItemsDto> getTop10SellingItems(Timestamp from, Timestamp to) throws SQLException;
 }

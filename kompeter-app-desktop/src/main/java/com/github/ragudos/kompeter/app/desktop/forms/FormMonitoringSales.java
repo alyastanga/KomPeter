@@ -8,6 +8,8 @@
 
 package com.github.ragudos.kompeter.app.desktop.forms;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -22,7 +24,9 @@ import javax.swing.JTabbedPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
@@ -53,6 +57,8 @@ public class FormMonitoringSales extends Form {
     JFreeChart top10Chart;
     JFreeChart revenueChart;
 
+    DefaultCategoryDataset top10Data;
+
     @Override
     public void formInit() {
         this.salesService = new MonitoringSalesService(new SqliteSalesDao());
@@ -65,6 +71,7 @@ public class FormMonitoringSales extends Form {
                 new MigLayout("insets 8 0 0 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
         revenuePanel = new JPanel(
                 new MigLayout("insets 8 0 0 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
+        top10Data = new DefaultCategoryDataset();
 
         body.addTab("Top 10 Products Sold", top10Panel);
         body.addTab("Total Revenue", revenuePanel);
@@ -92,29 +99,51 @@ public class FormMonitoringSales extends Form {
     }
 
     private void loadData() {
+        top10Data.clear();
 
+        final List<Top10SellingItemsDto> data = salesService.getTop10SellingItemsReport();
+
+        if (data.isEmpty()) {
+            top10Data.addValue(0, "Total Sold", "No Data");
+        } else {
+            for (final Top10SellingItemsDto item : data) {
+                top10Data.addValue(item.totalSold(), "Total Sold", item.itemName());
+            }
+        }
     }
 
     private void createTop10ChartPanel() {
-        final Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-        final Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
-        final List<Top10SellingItemsDto> data = salesService.getTop10SellingItemsReport(from, to);
-
-        final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-        if (data.isEmpty()) {
-            dataset.addValue(0, "Total Sold", "No Data");
-        } else {
-            for (final Top10SellingItemsDto item : data) {
-                dataset.addValue(item.totalSold(), "Total Sold", item.itemName());
-            }
-        }
-
-        final JFreeChart barChart = ChartFactory.createBarChart(
+        top10Chart = ChartFactory.createBarChart(
                 "Top 10 Selling Items (Last 30 Days)", "Product", "Units Sold",
-                dataset, PlotOrientation.VERTICAL, true, true, false);
+                top10Data, PlotOrientation.VERTICAL, true, true, false);
 
-        new ChartPanel(barChart);
+        final ChartPanel panel = new ChartPanel(top10Chart);
+
+        top10Chart.setBackgroundPaint(new Color(0, 0, 0, 0));
+        final CategoryPlot plot = top10Chart.getCategoryPlot();
+        plot.setBackgroundPaint(new Color(0, 0, 0, 0)); // transparent plot area
+        plot.setDomainGridlinesVisible(true); // vertical gridlines
+        plot.setRangeGridlinesVisible(true); // horizontal gridlines
+        plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+        plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+
+        // Customize renderer for colors, bar width, tooltips
+        final BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setSeriesPaint(0, new Color(79, 129, 189)); // custom bar color
+        renderer.setBarPainter(new BarRenderer().getBarPainter()); // default painter
+        renderer.setDrawBarOutline(true);
+        renderer.setMaximumBarWidth(0.1); // adjust bar width
+        renderer.setDefaultToolTipGenerator(
+                (dataset1, row, column) -> dataset1.getRowKey(row) + ": " + dataset1.getValue(row, column));
+
+        plot.setRenderer(renderer);
+
+        top10Chart.getLegend().setItemFont(new Font("Dialog", Font.BOLD, 14));
+        top10Chart.getLegend().setBackgroundPaint(new Color(0, 0, 0, 0));
+
+        panel.setDisplayToolTips(true);
+
+        top10Panel.add(panel, "grow");
     }
 
     private void createRevenueChartPanel() {
