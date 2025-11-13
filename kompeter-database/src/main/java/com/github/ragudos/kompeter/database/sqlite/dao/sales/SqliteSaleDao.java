@@ -41,8 +41,9 @@ public class SqliteSaleDao implements SaleDao {
         try (NamedPreparedStatement stmnt = new NamedPreparedStatement(conn,
                 SqliteQueryLoader.getInstance().get("create_sale", "sales", SqlQueryType.INSERT),
                 Statement.RETURN_GENERATED_KEYS)) {
+            System.out.println(saleDate);
             stmnt.setString("customer_name", customerName);
-            stmnt.setTimestamp("sale_date", saleDate);
+            stmnt.setString("sale_date", saleDate.toString());
             stmnt.setString("sale_code", saleCode);
             stmnt.setBigDecimal("vat_percent", vatPercent);
             stmnt.setString("discount_type", discountType == null ? null : discountType.toString());

@@ -7,8 +7,10 @@
 */
 package com.github.ragudos.kompeter.database.dto.monitoring;
 
+import java.math.BigDecimal;
+
 /**
  * @author Hanz Mapua
  */
-public record MappedRevenueDto(int ordinalDay, float totalRevenue) {
+public record MappedRevenueDto(int ordinalDay, BigDecimal totalRevenue) {
 }

@@ -7,10 +7,11 @@
 */
 package com.github.ragudos.kompeter.database.dto.monitoring;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
  * @author Hanz Mapua
  */
-public record RevenueDto(Timestamp date, float totalRevenue) {
+public record RevenueDto(Timestamp date, BigDecimal totalRevenue, BigDecimal totalPaid) {
 }

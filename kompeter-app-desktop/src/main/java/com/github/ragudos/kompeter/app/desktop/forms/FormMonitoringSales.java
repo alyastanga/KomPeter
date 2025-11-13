@@ -8,31 +8,38 @@
 
 package com.github.ragudos.kompeter.app.desktop.forms;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Locale;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.github.ragudos.kompeter.app.desktop.KompeterDesktopApp;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 import com.github.ragudos.kompeter.database.dto.monitoring.RevenueDto;
@@ -59,6 +66,11 @@ public class FormMonitoringSales extends Form {
 
     DefaultCategoryDataset top10Data;
 
+    TimeSeries revenuePredictionSeries;
+    TimeSeries revenueSeries;
+    TimeSeries amountPaidSeries;
+    TimeSeriesCollection revenuSeriesCollection;
+
     @Override
     public void formInit() {
         this.salesService = new MonitoringSalesService(new SqliteSalesDao());
@@ -72,6 +84,14 @@ public class FormMonitoringSales extends Form {
         revenuePanel = new JPanel(
                 new MigLayout("insets 8 0 0 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
         top10Data = new DefaultCategoryDataset();
+        revenuePredictionSeries = new TimeSeries("Revenue (Prediction)");
+        revenueSeries = new TimeSeries("Revenue");
+        amountPaidSeries = new TimeSeries("Amount Paid by Customer");
+        revenuSeriesCollection = new TimeSeriesCollection();
+
+        revenuSeriesCollection.addSeries(revenuePredictionSeries);
+        revenuSeriesCollection.addSeries(revenueSeries);
+        revenuSeriesCollection.addSeries(amountPaidSeries);
 
         body.addTab("Top 10 Products Sold", top10Panel);
         body.addTab("Total Revenue", revenuePanel);
@@ -108,6 +128,45 @@ public class FormMonitoringSales extends Form {
         } else {
             for (final Top10SellingItemsDto item : data) {
                 top10Data.addValue(item.totalSold(), "Total Sold", item.itemName());
+            }
+        }
+
+        RevenuePredictionReport report = null;
+
+        try {
+            report = salesService.getRevenuePredictionReport();
+        } catch (final SQLException e) {
+            JOptionPane.showMessageDialog(KompeterDesktopApp.getRootFrame(),
+                    "Cannot get reevnue data because of: \n\n" + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+            return;
+        }
+
+        revenueSeries.clear();
+        revenuePredictionSeries.clear();
+
+        if (report.actualData().isEmpty()) {
+            revenueSeries.add(new Day(), 0.0);
+        } else {
+            for (final RevenueDto revenue : report.actualData()) {
+                final LocalDateTime day = revenue.date().toLocalDateTime();
+
+                revenueSeries.addOrUpdate(new Day(day.getDayOfMonth(), day.getMonthValue(), day.getYear()),
+                        revenue.totalRevenue());
+
+                amountPaidSeries.addOrUpdate(new Day(day.getDayOfMonth(), day.getMonthValue(), day.getYear()),
+                        revenue.totalPaid());
+            }
+        }
+
+        if (report.predictedData().isEmpty()) {
+            revenuePredictionSeries.add(new Day(), 0.0);
+        } else {
+            for (final PredictionPoint pv : report.predictedData()) {
+                final LocalDateTime day = pv.date().toLocalDateTime();
+                revenuePredictionSeries.addOrUpdate(new Day(day.getDayOfMonth(), day.getMonthValue(), day.getYear()),
+                        pv.value());
             }
         }
     }
@@ -147,71 +206,48 @@ public class FormMonitoringSales extends Form {
     }
 
     private void createRevenueChartPanel() {
-        final Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-        final Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
+        revenueChart = ChartFactory.createTimeSeriesChart(
+                "Revenue w/ Prediction (+7 Day Forecast)", "Date", "Revenue (PHP)",
+                revenuSeriesCollection, true, true, false);
 
-        final List<RevenueDto> data = salesService.getRevenueReport(from, to);
+        final ChartPanel panel = new ChartPanel(revenueChart);
+        final XYPlot plot = revenueChart.getXYPlot();
+        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+        final NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.of("tl", "ph"));
 
-        final TimeSeries series = new TimeSeries("Daily Revenue");
+        renderer.setSeriesStroke(0, new BasicStroke(3.5f));
+        renderer.setSeriesStroke(1, new BasicStroke(3.5f));
+        renderer.setSeriesStroke(2, new BasicStroke(3.5f));
+        renderer.setSeriesPaint(2, Color.GREEN.darker());
 
-        if (data.isEmpty()) {
-            series.add(new Day(), 0.0);
-        } else {
-            for (final RevenueDto revenue : data) {
-                series.add(new Day(revenue.date()), revenue.totalRevenue());
-            }
-        }
+        rangeAxis.setNumberFormatOverride(currencyFormatter);
+        renderer.setDefaultShapesVisible(true);
+        renderer
+                .setDefaultToolTipGenerator(
+                        new StandardXYToolTipGenerator(
 
-        final TimeSeriesCollection dataset = new TimeSeriesCollection(series);
+                                "{0}: {1} = {2}", new SimpleDateFormat("dd-MM-yyyy"), currencyFormatter));
+        revenueChart.getLegend().setItemFont(new Font("Montserrat", Font.PLAIN, 16));
 
-        final JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
-                "Daily Revenue (Last 30 Days)", "Date", "Revenue (PHP)",
-                dataset, true, true, false);
+        revenueChart.getLegend().setBackgroundPaint(new Color(0, 0, 0, 0));
+        revenueChart.setBackgroundPaint(new Color(0, 0, 0, 0));
 
-        new ChartPanel(timeChart);
-    }
+        plot.setBackgroundPaint(new Color(0, 0, 0, 0));
 
-    private void createRevenuePredictionChart() {
-        final TimeSeriesCollection dataset = new TimeSeriesCollection();
-        final TimeSeries actualSeries = new TimeSeries("Actual Revenue");
-        final TimeSeries predictedSeries = new TimeSeries("Predicted Trend");
+        plot.setDomainGridlinesVisible(true);
+        plot.setRangeGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+        plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+        plot.setDomainGridlineStroke(new BasicStroke(1.0f));
+        plot.setRangeGridlineStroke(new BasicStroke(1.0f));
 
-        try {
-            final Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-            final Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
-            final RevenuePredictionReport report = salesService.getRevenuePredictionReport(from, to, 7);
+        plot.getDomainAxis().setLabelFont(new Font("Montserrat", Font.BOLD, 14));
+        plot.getRangeAxis().setLabelFont(new Font("Montserrat", Font.BOLD, 14));
 
-            if (report.actualData().isEmpty()) {
-                actualSeries.add(new Day(), 0.0);
-            } else {
-                for (final RevenueDto revenue : report.actualData()) {
-                    actualSeries.add(new Day(revenue.date()), revenue.totalRevenue());
-                }
-            }
+        panel.setDisplayToolTips(true);
 
-            if (report.predictedData().isEmpty()) {
-                predictedSeries.add(new Day(), 0.0);
-            } else {
-                for (final PredictionPoint pv : report.predictedData()) {
-                    predictedSeries.add(new Day(pv.date()), pv.value());
-                }
-            }
-
-        } catch (final SQLException e) {
-            Logger.getLogger(FormMonitoringSales.class.getName()).log(Level.SEVERE,
-                    "Failed to load revenue prediction chart", e);
-            actualSeries.add(new Day(), 0.0);
-            predictedSeries.add(new Day(), 0.0);
-        }
-
-        dataset.addSeries(actualSeries);
-        dataset.addSeries(predictedSeries);
-
-        final JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
-                "Revenue Prediction (Last 30 Days + 7 Day Forecast)", "Date", "Revenue (PHP)",
-                dataset, true, true, false);
-
-        new ChartPanel(timeChart);
+        revenuePanel.add(panel, "grow");
     }
 
 }
