@@ -118,6 +118,8 @@ CREATE TABLE
         _item_stock_id INTEGER NOT NULL,
         _storage_location_id INTEGER NOT NULL,
         _created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        -- last date restocked
+        _restock_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         quantity INTEGER NOT NULL DEFAULT 0,
         UNIQUE (_item_stock_id, _storage_location_id),
         FOREIGN KEY (_item_stock_id) REFERENCES item_stocks (_item_stock_id),
@@ -134,7 +136,6 @@ CREATE TABLE
     quantity_added INTEGER NOT NULL,
     FOREIGN KEY (_item_stock_storage_location_id) REFERENCES item_stock_storage_locations (_item_stock_storage_location_id)
   );
-  
   
 CREATE TABLE
   suppliers (
@@ -350,26 +351,6 @@ AS
         item_stock_storage_locations._storage_location_id = storage_locations._storage_location_id
     ORDER BY
         item_stock_storage_locations._item_stock_storage_location_id;
-
-
-CREATE TRIGGER trg_item_stock_storage_location_restock
-AFTER UPDATE OF quantity ON item_stock_storage_locations
-FOR EACH ROW
-WHEN NEW.quantity > OLD.quantity
-BEGIN
-    INSERT INTO item_restocks (
-        _item_stock_storage_location_id,
-        quantity_before,
-        quantity_after,
-        quantity_added
-    )
-    VALUES (
-        NEW._item_stock_storage_location_id,
-        OLD.quantity,
-        NEW.quantity,
-        NEW.quantity - OLD.quantity
-    );
-END;
 
 CREATE TRIGGER IF NOT EXISTS roles_audit_insert
 AFTER INSERT ON roles
@@ -1043,6 +1024,26 @@ BEGIN
     );
 END;
 
+CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_restock_insert
+AFTER INSERT ON item_stock_storage_locations
+FOR EACH ROW
+BEGIN
+    INSERT INTO item_restocks (
+        _item_stock_storage_location_id,
+        _created_at,
+        quantity_before,
+        quantity_after,
+        quantity_added
+    )
+    VALUES (
+        NEW._item_stock_storage_location_id,
+        NEW._created_at,
+        0,
+        NEW.quantity,
+        NEW.quantity
+    );
+END;
+
 CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_audit_update
 AFTER UPDATE ON item_stock_storage_locations
 FOR EACH ROW
@@ -1069,6 +1070,25 @@ BEGIN
     );
 END;
 
+CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_restock_update
+AFTER UPDATE ON item_stock_storage_locations
+FOR EACH ROW
+BEGIN
+    INSERT INTO item_restocks (
+        _item_stock_storage_location_id,
+        _created_at,
+        quantity_before,
+        quantity_after,
+        quantity_added
+    )
+    VALUES (
+        NEW._item_stock_storage_location_id,
+        NEW._restock_date,
+        OLD.quantity,
+        NEW.quantity,
+        NEW.quantity - OLD.quantity
+    );
+END;
 
 CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_audit_delete
 AFTER DELETE ON item_stock_storage_locations
@@ -1083,6 +1103,24 @@ BEGIN
             '_created_at', OLD._created_at,
             'quantity', OLD.quantity
         )
+    );
+END;
+
+CREATE TRIGGER IF NOT EXISTS item_stock_storage_locations_restock_delete
+AFTER DELETE ON item_stock_storage_locations
+FOR EACH ROW
+BEGIN
+    INSERT INTO item_restocks (
+        _item_stock_storage_location_id,
+        quantity_before,
+        quantity_after,
+        quantity_added
+    )
+    VALUES (
+        OLD._item_stock_storage_location_id,
+        OLD.quantity,
+        0,
+        OLD.quantity * -1
     );
 END;
 

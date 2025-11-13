@@ -91,7 +91,6 @@ INSERT INTO items (name, description) VALUES
 ('External Webcam Tripod', 'Small tripod for external webcams.'), ('USB-A to USB-C Hub 4-port', 'Hub for expanding port access.'),
 ('Laptop Backpack 15-inch', 'Padded backpack for safely carrying laptops.');
 
-
 INSERT INTO item_category_assignments (_item_id, _item_category_id) VALUES
 (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1), (9, 1), (10, 1), 
 (11, 1), (12, 1), (13, 1), (14, 1), (15, 1), (16, 1), (17, 1), (18, 1), (19, 1), (20, 1), 
@@ -126,24 +125,151 @@ INSERT INTO item_stocks (_item_stock_id, _item_id, _item_brand_id, unit_price_ph
 (64, 64, 4, 600.00, 20), (65, 65, 6, 7000.00, 20), (66, 66, 6, 10000.00, 20), (67, 67, 8, 1500.00, 20), 
 (68, 68, 4, 400.00, 20), (69, 69, 4, 800.00, 20), (70, 70, 4, 2000.00, 20);
 
-INSERT INTO item_stock_storage_locations (_item_stock_id, _storage_location_id, quantity) VALUES
-(1, 2, 8), (1, 1, 2), (2, 2, 40), (2, 1, 10), (3, 2, 12), (3, 1, 3), (4, 2, 4), (4, 1, 1), 
-(5, 2, 80), (5, 1, 20), (6, 2, 35), (6, 1, 5), (7, 2, 32), (7, 1, 8), (8, 2, 25), (8, 1, 5), 
-(9, 2, 40), (9, 1, 10), (10, 2, 50), (10, 1, 10), (11, 2, 35), (11, 1, 10), (12, 2, 25), (12, 1, 5), 
-(13, 2, 40), (13, 1, 10), (14, 2, 20), (14, 1, 5), (15, 2, 30), (15, 1, 10), (16, 2, 28), (16, 1, 7), 
-(17, 2, 25), (17, 1, 5), (18, 2, 15), (18, 1, 5), (19, 2, 80), (19, 1, 20), (20, 2, 60), (20, 1, 20), 
-(21, 3, 60), (21, 1, 15), (22, 3, 40), (22, 1, 10), (23, 3, 50), (23, 1, 10), (24, 3, 30), (24, 1, 10), 
-(25, 3, 25), (25, 1, 5), (26, 3, 8), (26, 1, 2), (27, 3, 45), (27, 1, 10), (28, 3, 25), (28, 1, 5), 
-(29, 3, 50), (29, 1, 15), (30, 3, 15), (30, 1, 5), (31, 3, 30), (31, 1, 10), (32, 3, 40), (32, 1, 10), 
-(33, 3, 28), (33, 1, 7), (34, 3, 35), (34, 1, 10), (35, 3, 20), (35, 1, 5), 
-(36, 3, 15), (37, 3, 20), (38, 3, 10), (39, 3, 12), (40, 3, 25), (41, 3, 35), (42, 3, 25), (43, 3, 10), 
-(44, 3, 30), (45, 3, 10), (46, 3, 15), (47, 3, 8), (48, 3, 20), (49, 3, 15), (50, 3, 5), (51, 3, 10), 
-(52, 3, 5), (53, 3, 6), (54, 3, 4), (55, 3, 30), 
-(56, 1, 100), (56, 2, 50), (57, 1, 150), (57, 2, 50), (58, 1, 50), (58, 2, 30), (59, 1, 70), (59, 2, 20), 
-(60, 1, 80), (60, 2, 40), (61, 1, 70), (61, 2, 40), (62, 1, 200), (62, 2, 100), (63, 1, 100), (63, 2, 50), 
-(64, 1, 75), (64, 2, 25), (65, 1, 20), (65, 2, 30), (66, 1, 15), (66, 2, 25), (67, 1, 40), (67, 2, 20), 
-(68, 1, 50), (68, 2, 20), (69, 1, 60), (69, 2, 30), (70, 1, 25), (70, 3, 25);
+-- INSERT statements
+INSERT INTO item_stock_storage_locations (_item_stock_id, _created_at, _storage_location_id, quantity)
+VALUES
+(1, '2025-11-08 09:16:52', 1, 113),
+(2, '2025-10-17 08:45:01', 3, 119),
+(3, '2025-11-01 21:23:44', 2, 147),
+(4, '2025-11-04 04:18:31', 3, 23),
+(5, '2025-11-07 02:30:07', 1, 9),
+(6, '2025-10-23 18:35:39', 3, 146),
+(7, '2025-10-21 08:46:43', 1, 83),
+(8, '2025-10-31 07:34:22', 3, 139),
+(9, '2025-10-31 13:58:59', 1, 17),
+(10, '2025-10-26 21:16:21', 2, 90),
+(11, '2025-11-05 05:10:42', 1, 129),
+(12, '2025-10-20 15:50:03', 2, 92),
+(13, '2025-10-31 07:09:45', 1, 49),
+(14, '2025-10-23 22:03:13', 3, 116),
+(15, '2025-11-06 20:27:36', 3, 22),
+(16, '2025-10-29 06:08:39', 2, 93),
+(17, '2025-11-03 22:34:32', 3, 32),
+(18, '2025-10-30 20:06:30', 2, 84),
+(19, '2025-10-14 23:28:13', 3, 36),
+(20, '2025-10-26 07:57:52', 3, 9),
+(21, '2025-11-12 10:04:25', 1, 33),
+(22, '2025-10-26 00:04:34', 1, 120),
+(23, '2025-10-18 04:07:38', 2, 141),
+(24, '2025-10-21 14:12:45', 3, 123),
+(25, '2025-10-16 23:25:54', 1, 11),
+(26, '2025-11-02 09:01:34', 2, 147),
+(27, '2025-11-02 20:45:36', 1, 31),
+(28, '2025-10-20 21:06:39', 2, 112),
+(29, '2025-11-12 14:23:05', 3, 23),
+(30, '2025-10-26 19:42:30', 1, 80),
+(31, '2025-11-08 10:45:36', 2, 106),
+(32, '2025-10-20 05:32:28', 3, 82),
+(33, '2025-10-31 06:44:29', 2, 18),
+(34, '2025-11-07 09:37:52', 2, 20),
+(35, '2025-11-09 10:16:36', 3, 18),
+(36, '2025-10-30 05:47:45', 1, 17),
+(37, '2025-10-17 01:04:33', 3, 145),
+(38, '2025-10-24 00:43:02', 1, 37),
+(39, '2025-10-17 12:44:34', 3, 31),
+(40, '2025-10-22 23:52:48', 3, 67),
+(41, '2025-10-21 12:46:27', 3, 99),
+(42, '2025-10-26 10:45:48', 1, 82),
+(43, '2025-10-25 08:47:47', 1, 14),
+(44, '2025-11-05 16:59:17', 1, 130),
+(45, '2025-11-11 23:16:02', 1, 62),
+(46, '2025-10-29 05:40:58', 1, 24),
+(47, '2025-11-11 06:26:35', 3, 98),
+(48, '2025-11-12 00:42:12', 3, 103),
+(49, '2025-10-29 00:37:04', 1, 65),
+(50, '2025-10-27 10:20:07', 1, 80),
+(51, '2025-11-01 21:03:21', 2, 54),
+(52, '2025-10-22 05:28:06', 3, 83),
+(53, '2025-11-11 09:07:41', 2, 106),
+(54, '2025-11-12 15:39:04', 2, 86),
+(55, '2025-11-10 05:37:53', 2, 31),
+(56, '2025-10-17 16:20:39', 3, 72),
+(57, '2025-10-15 20:31:39', 2, 9),
+(58, '2025-10-22 10:45:16', 3, 138),
+(59, '2025-10-28 14:04:41', 2, 19),
+(60, '2025-11-12 22:21:03', 2, 49),
+(61, '2025-10-29 08:32:07', 2, 67),
+(62, '2025-10-17 02:36:13', 3, 102),
+(63, '2025-10-25 00:32:39', 3, 68),
+(64, '2025-10-18 18:22:58', 1, 141),
+(65, '2025-10-23 00:43:41', 3, 102),
+(66, '2025-10-26 01:06:32', 3, 83),
+(67, '2025-10-25 14:50:39', 3, 95),
+(68, '2025-11-07 15:31:58', 2, 45),
+(69, '2025-11-05 10:41:46', 3, 95),
+(70, '2025-10-16 21:06:17', 1, 12);
 
+-- UPDATE statements for restocks
+UPDATE item_stock_storage_locations SET quantity = 122, _restock_date = '2025-11-12 10:05:00' WHERE _item_stock_storage_location_id = 1;
+UPDATE item_stock_storage_locations SET quantity = 130, _restock_date = '2025-10-18 09:20:00' WHERE _item_stock_storage_location_id = 2;
+UPDATE item_stock_storage_locations SET quantity = 155, _restock_date = '2025-11-04 14:30:00' WHERE _item_stock_storage_location_id = 3;
+UPDATE item_stock_storage_locations SET quantity = 50, _restock_date = '2025-11-06 11:15:00' WHERE _item_stock_storage_location_id = 4;
+UPDATE item_stock_storage_locations SET quantity = 25, _restock_date = '2025-11-08 08:45:00' WHERE _item_stock_storage_location_id = 5;
+UPDATE item_stock_storage_locations SET quantity = 160, _restock_date = '2025-10-25 18:50:00' WHERE _item_stock_storage_location_id = 6;
+UPDATE item_stock_storage_locations SET quantity = 95, _restock_date = '2025-10-22 12:10:00' WHERE _item_stock_storage_location_id = 7;
+UPDATE item_stock_storage_locations SET quantity = 145, _restock_date = '2025-11-02 09:40:00' WHERE _item_stock_storage_location_id = 8;
+UPDATE item_stock_storage_locations SET quantity = 35, _restock_date = '2025-11-01 07:25:00' WHERE _item_stock_storage_location_id = 9;
+UPDATE item_stock_storage_locations SET quantity = 100, _restock_date = '2025-10-27 19:05:00' WHERE _item_stock_storage_location_id = 10;
+UPDATE item_stock_storage_locations SET quantity = 140, _restock_date = '2025-11-06 14:55:00' WHERE _item_stock_storage_location_id = 11;
+UPDATE item_stock_storage_locations SET quantity = 105, _restock_date = '2025-10-21 10:15:00' WHERE _item_stock_storage_location_id = 12;
+UPDATE item_stock_storage_locations SET quantity = 60, _restock_date = '2025-11-02 16:30:00' WHERE _item_stock_storage_location_id = 13;
+UPDATE item_stock_storage_locations SET quantity = 120, _restock_date = '2025-10-25 13:45:00' WHERE _item_stock_storage_location_id = 14;
+UPDATE item_stock_storage_locations SET quantity = 45, _restock_date = '2025-11-08 11:20:00' WHERE _item_stock_storage_location_id = 15;
+UPDATE item_stock_storage_locations SET quantity = 85, _restock_date = '2025-10-30 14:10:00' WHERE _item_stock_storage_location_id = 16;
+UPDATE item_stock_storage_locations SET quantity = 55, _restock_date = '2025-11-04 18:00:00' WHERE _item_stock_storage_location_id = 17;
+UPDATE item_stock_storage_locations SET quantity = 40, _restock_date = '2025-10-31 12:30:00' WHERE _item_stock_storage_location_id = 18;
+UPDATE item_stock_storage_locations SET quantity = 90, _restock_date = '2025-10-15 20:20:00' WHERE _item_stock_storage_location_id = 19;
+UPDATE item_stock_storage_locations SET quantity = 70, _restock_date = '2025-10-27 09:45:00' WHERE _item_stock_storage_location_id = 20;
+UPDATE item_stock_storage_locations SET quantity = 65, _restock_date = '2025-11-12 14:15:00' WHERE _item_stock_storage_location_id = 21;
+UPDATE item_stock_storage_locations SET quantity = 125, _restock_date = '2025-10-27 11:35:00' WHERE _item_stock_storage_location_id = 22;
+UPDATE item_stock_storage_locations SET quantity = 140, _restock_date = '2025-10-19 08:50:00' WHERE _item_stock_storage_location_id = 23;
+UPDATE item_stock_storage_locations SET quantity = 110, _restock_date = '2025-10-22 16:40:00' WHERE _item_stock_storage_location_id = 24;
+UPDATE item_stock_storage_locations SET quantity = 20, _restock_date = '2025-10-17 23:10:00' WHERE _item_stock_storage_location_id = 25;
+UPDATE item_stock_storage_locations SET quantity = 150, _restock_date = '2025-11-03 12:20:00' WHERE _item_stock_storage_location_id = 26;
+UPDATE item_stock_storage_locations SET quantity = 35, _restock_date = '2025-11-03 20:55:00' WHERE _item_stock_storage_location_id = 27;
+UPDATE item_stock_storage_locations SET quantity = 95, _restock_date = '2025-10-21 10:10:00' WHERE _item_stock_storage_location_id = 28;
+UPDATE item_stock_storage_locations SET quantity = 60, _restock_date = '2025-11-12 16:45:00' WHERE _item_stock_storage_location_id = 29;
+UPDATE item_stock_storage_locations SET quantity = 90, _restock_date = '2025-10-27 21:10:00' WHERE _item_stock_storage_location_id = 30;
+UPDATE item_stock_storage_locations SET quantity = 110, _restock_date = '2025-11-09 09:05:00' WHERE _item_stock_storage_location_id = 31;
+UPDATE item_stock_storage_locations SET quantity = 85, _restock_date = '2025-10-21 15:30:00' WHERE _item_stock_storage_location_id = 32;
+UPDATE item_stock_storage_locations SET quantity = 25, _restock_date = '2025-11-01 08:40:00' WHERE _item_stock_storage_location_id = 33;
+UPDATE item_stock_storage_locations SET quantity = 30, _restock_date = '2025-11-08 17:20:00' WHERE _item_stock_storage_location_id = 34;
+UPDATE item_stock_storage_locations SET quantity = 20, _restock_date = '2025-11-10 13:50:00' WHERE _item_stock_storage_location_id = 35;
+UPDATE item_stock_storage_locations SET quantity = 19, _restock_date = '2025-10-30 14:00:00' WHERE _item_stock_storage_location_id = 36;
+UPDATE item_stock_storage_locations SET quantity = 155, _restock_date = '2025-10-17 15:05:00' WHERE _item_stock_storage_location_id = 37;
+UPDATE item_stock_storage_locations SET quantity = 45, _restock_date = '2025-10-25 09:20:00' WHERE _item_stock_storage_location_id = 38;
+UPDATE item_stock_storage_locations SET quantity = 35, _restock_date = '2025-10-17 20:15:00' WHERE _item_stock_storage_location_id = 39;
+UPDATE item_stock_storage_locations SET quantity = 70, _restock_date = '2025-10-23 19:10:00' WHERE _item_stock_storage_location_id = 40;
+UPDATE item_stock_storage_locations SET quantity = 100, _restock_date = '2025-10-21 18:05:00' WHERE _item_stock_storage_location_id = 41;
+UPDATE item_stock_storage_locations SET quantity = 90, _restock_date = '2025-10-27 12:45:00' WHERE _item_stock_storage_location_id = 42;
+UPDATE item_stock_storage_locations SET quantity = 20, _restock_date = '2025-10-25 11:55:00' WHERE _item_stock_storage_location_id = 43;
+UPDATE item_stock_storage_locations SET quantity = 140, _restock_date = '2025-11-06 10:40:00' WHERE _item_stock_storage_location_id = 44;
+UPDATE item_stock_storage_locations SET quantity = 70, _restock_date = '2025-11-12 08:20:00' WHERE _item_stock_storage_location_id = 45;
+UPDATE item_stock_storage_locations SET quantity = 40, _restock_date = '2025-10-30 17:30:00' WHERE _item_stock_storage_location_id = 46;
+UPDATE item_stock_storage_locations SET quantity = 105, _restock_date = '2025-11-11 12:10:00' WHERE _item_stock_storage_location_id = 47;
+UPDATE item_stock_storage_locations SET quantity = 110, _restock_date = '2025-11-12 09:25:00' WHERE _item_stock_storage_location_id = 48;
+UPDATE item_stock_storage_locations SET quantity = 75, _restock_date = '2025-10-30 08:50:00' WHERE _item_stock_storage_location_id = 49;
+UPDATE item_stock_storage_locations SET quantity = 90, _restock_date = '2025-10-28 15:15:00' WHERE _item_stock_storage_location_id = 50;
+UPDATE item_stock_storage_locations SET quantity = 65, _restock_date = '2025-11-01 17:35:00' WHERE _item_stock_storage_location_id = 51;
+UPDATE item_stock_storage_locations SET quantity = 90, _restock_date = '2025-10-22 09:45:00' WHERE _item_stock_storage_location_id = 52;
+UPDATE item_stock_storage_locations SET quantity = 115, _restock_date = '2025-11-11 15:55:00' WHERE _item_stock_storage_location_id = 53;
+UPDATE item_stock_storage_locations SET quantity = 100, _restock_date = '2025-11-12 18:20:00' WHERE _item_stock_storage_location_id = 54;
+UPDATE item_stock_storage_locations SET quantity = 50, _restock_date = '2025-11-10 14:30:00' WHERE _item_stock_storage_location_id = 55;
+UPDATE item_stock_storage_locations SET quantity = 105, _restock_date = '2025-10-18 20:50:00' WHERE _item_stock_storage_location_id = 56;
+UPDATE item_stock_storage_locations SET quantity = 30, _restock_date = '2025-10-16 18:20:00' WHERE _item_stock_storage_location_id = 57;
+UPDATE item_stock_storage_locations SET quantity = 140, _restock_date = '2025-10-23 14:10:00' WHERE _item_stock_storage_location_id = 58;
+UPDATE item_stock_storage_locations SET quantity = 35, _restock_date = '2025-10-29 16:35:00' WHERE _item_stock_storage_location_id = 59;
+UPDATE item_stock_storage_locations SET quantity = 85, _restock_date = '2025-11-12 20:10:00' WHERE _item_stock_storage_location_id = 60;
+UPDATE item_stock_storage_locations SET quantity = 100, _restock_date = '2025-10-29 12:20:00' WHERE _item_stock_storage_location_id = 61;
+UPDATE item_stock_storage_locations SET quantity = 150, _restock_date = '2025-10-17 08:55:00' WHERE _item_stock_storage_location_id = 62;
+UPDATE item_stock_storage_locations SET quantity = 90, _restock_date = '2025-10-25 13:05:00' WHERE _item_stock_storage_location_id = 63;
+UPDATE item_stock_storage_locations SET quantity = 160, _restock_date = '2025-10-18 22:20:00' WHERE _item_stock_storage_location_id = 64;
+UPDATE item_stock_storage_locations SET quantity = 105, _restock_date = '2025-10-23 07:50:00' WHERE _item_stock_storage_location_id = 65;
+UPDATE item_stock_storage_locations SET quantity = 95, _restock_date = '2025-10-26 16:25:00' WHERE _item_stock_storage_location_id = 66;
+UPDATE item_stock_storage_locations SET quantity = 110, _restock_date = '2025-10-25 18:15:00' WHERE _item_stock_storage_location_id = 67;
+UPDATE item_stock_storage_locations SET quantity = 60, _restock_date = '2025-11-08 12:30:00' WHERE _item_stock_storage_location_id = 68;
+UPDATE item_stock_storage_locations SET quantity = 120, _restock_date = '2025-11-05 18:50:00' WHERE _item_stock_storage_location_id = 69;
+UPDATE item_stock_storage_locations SET quantity = 30, _restock_date = '2025-10-17 13:25:00' WHERE _item_stock_storage_location_id = 70;
 
 INSERT INTO purchases (_supplier_id, purchase_date, purchase_code, delivery_date, vat_percent, discount_value, discount_type) VALUES
 (1, DATETIME('now', '-3 days'), 'PO-CDI-2025-001', DATETIME('now', '-2 days'), 0.12, 500.00, 'fixed'),

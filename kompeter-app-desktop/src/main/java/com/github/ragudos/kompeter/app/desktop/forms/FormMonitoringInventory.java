@@ -7,30 +7,32 @@
 */
 package com.github.ragudos.kompeter.app.desktop.forms;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.Timestamp;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingWorker;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.github.ragudos.kompeter.app.desktop.system.Form;
 import com.github.ragudos.kompeter.app.desktop.utilities.SystemForm;
 import com.github.ragudos.kompeter.database.dto.monitoring.InventoryCountDto;
-import com.github.ragudos.kompeter.database.dto.monitoring.InventoryValueDto;
 import com.github.ragudos.kompeter.database.sqlite.dao.monitoring.SqliteInventoryDao;
 import com.github.ragudos.kompeter.monitoring.service.MonitoringInventoryService;
 
@@ -42,6 +44,13 @@ public class FormMonitoringInventory extends Form {
     private MonitoringInventoryService inventoryService;
 
     JTabbedPane body;
+    JPanel inventoryCount;
+    JFreeChart inventoryCountChart;
+
+    TimeSeries beforeQty;
+    TimeSeries addedQty;
+    TimeSeries currentQty;
+    TimeSeriesCollection inventoryCountSeriesCollection;
 
     @Override
     public void formInit() {
@@ -49,14 +58,30 @@ public class FormMonitoringInventory extends Form {
         body = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 
         final JLabel title = new JLabel("Monitor Inventory");
+        final JLabel subtitle = new JLabel("This contains overall statistics about the inventory.");
 
-        setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, fill, center]", "[][][grow, fill]"));
+        beforeQty = new TimeSeries("Total Quantity Before Stock Change");
+        addedQty = new TimeSeries("Total Quantity Changed");
+        currentQty = new TimeSeries("Total Quantity");
+        inventoryCountSeriesCollection = new TimeSeriesCollection();
+        inventoryCount = new JPanel(
+                new MigLayout("insets 8 0 0 0, al center center", "[grow, fill, center]", "[grow, fill, center]"));
 
-        body.addTab(TOOL_TIP_TEXT_KEY, null, body, TOOL_TIP_TEXT_KEY);
+        inventoryCountSeriesCollection.addSeries(beforeQty);
+        inventoryCountSeriesCollection.addSeries(addedQty);
+        inventoryCountSeriesCollection.addSeries(currentQty);
 
+        title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
+
+        setLayout(new MigLayout("insets 4, flowx, wrap", "[grow, fill, center]", "[][]16px[grow, fill]"));
+
+        body.addTab("Inventory Stock Change History", inventoryCount);
+
+        add(title);
+        add(subtitle);
         add(body, "grow");
 
-        loadData();
+        createInventoryCountChart();
     }
 
     @Override
@@ -70,106 +95,61 @@ public class FormMonitoringInventory extends Form {
     }
 
     private void loadData() {
-        new SwingWorker<Void, Void>() {
-            protected Void doInBackground() throws Exception {
+        final List<InventoryCountDto> data = inventoryService.getInventoryCountReport();
 
-                return null;
-            };
-        }.execute();
+        addedQty.clear();
+        beforeQty.clear();
+        currentQty.clear();
+
+        for (final InventoryCountDto d : data) {
+            final LocalDateTime day = d.day().toLocalDateTime();
+
+            addedQty.addOrUpdate(new Day(day.getDayOfMonth(), day.getMonthValue(), day.getYear()),
+                    d.totalQuantityAdded());
+            beforeQty.addOrUpdate(new Day(day.getDayOfMonth(), day.getMonthValue(), day.getYear()),
+                    d.totalQuantityBefore());
+            currentQty.addOrUpdate(new Day(day.getDayOfMonth(), day.getMonthValue(), day.getYear()), d.totalQuantity());
+        }
     }
 
-    public FormMonitoringInventory() {
-        setLayout(new MigLayout("fill, insets 0"));
+    private void createInventoryCountChart() {
+        inventoryCountChart = ChartFactory.createTimeSeriesChart(
+                "Inventory Stock Change History (Last 30 Days)", "Date", "Total Units",
+                inventoryCountSeriesCollection, true, true, false);
 
-        final JPanel inventoryValuePanel = createInventoryValueChart();
-        final JPanel inventoryCountPanel = createInventoryCountChart();
+        final XYPlot plot = inventoryCountChart.getXYPlot();
+        final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
 
-        final JPanel chartsContainerPanel = new JPanel(new MigLayout("wrap 1, fillx, insets 0"));
+        renderer.setSeriesPaint(2, Color.GREEN.darker());
+        renderer.setSeriesStroke(0, new BasicStroke(3.5f));
+        renderer.setSeriesStroke(1, new BasicStroke(3.5f));
+        renderer.setSeriesStroke(2, new BasicStroke(3.5f));
+        renderer.setDefaultShapesVisible(true);
+        renderer
+                .setDefaultToolTipGenerator(
+                        new StandardXYToolTipGenerator(
 
-        chartsContainerPanel.add(new CollapsibleChartPanel("Total Inventory Value", inventoryValuePanel), "growx");
-        chartsContainerPanel.add(new CollapsibleChartPanel("Total Inventory Count", inventoryCountPanel), "growx");
+                                "{0}: {1} = {2}", new SimpleDateFormat("dd-MM-yyyy"), new DecimalFormat("0")));
+        inventoryCountChart.getLegend().setItemFont(new Font("Montserrat", Font.PLAIN, 16));
 
-        final JScrollPane scrollPane = new JScrollPane(chartsContainerPanel);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBorder(null);
+        inventoryCountChart.getLegend().setBackgroundPaint(new Color(0, 0, 0, 0));
+        inventoryCountChart.setBackgroundPaint(new Color(0, 0, 0, 0));
+        plot.setBackgroundPaint(new Color(0, 0, 0, 0));
 
-        add(scrollPane, "grow");
-    }
+        plot.setDomainGridlinesVisible(true);
+        plot.setRangeGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+        plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+        plot.setDomainGridlineStroke(new BasicStroke(1.0f));
+        plot.setRangeGridlineStroke(new BasicStroke(1.0f));
 
-    private JPanel createInventoryValueChart() {
-        final Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-        final Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
-        final List<InventoryValueDto> data = inventoryService.getInventoryValueReport(from, to);
+        plot.getDomainAxis().setLabelFont(new Font("Montserrat", Font.BOLD, 14));
+        plot.getRangeAxis().setLabelFont(new Font("Montserrat", Font.BOLD, 14));
 
-        final TimeSeries series = new TimeSeries("Total Inventory Value");
+        final ChartPanel panel = new ChartPanel(inventoryCountChart);
 
-        if (data.isEmpty()) {
-            series.add(new Day(), 0.0);
-        } else {
-            for (final InventoryValueDto iv : data) {
-                series.add(new Day(iv.date()), iv.totalInventoryValue());
-            }
-        }
+        panel.setDisplayToolTips(true);
 
-        final TimeSeriesCollection dataset = new TimeSeriesCollection(series);
-
-        final JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
-                "Total Inventory Value (Last 30 Days)", "Date", "Value (PHP)",
-                dataset, true, true, false);
-
-        return new ChartPanel(timeChart);
-    }
-
-    private JPanel createInventoryCountChart() {
-        final Timestamp to = Timestamp.valueOf(LocalDateTime.now());
-        final Timestamp from = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
-        final List<InventoryCountDto> data = inventoryService.getInventoryCountReport(from, to);
-
-        final TimeSeries series = new TimeSeries("Total Item Count");
-
-        if (data.isEmpty()) {
-            series.add(new Day(), 0);
-        } else {
-            for (final InventoryCountDto ic : data) {
-                series.add(new Day(ic.date()), ic.totalInventoryCount());
-            }
-        }
-
-        final TimeSeriesCollection dataset = new TimeSeriesCollection(series);
-
-        final JFreeChart timeChart = ChartFactory.createTimeSeriesChart(
-                "Total Inventory Count (Last 30 Days)", "Date", "Total Units",
-                dataset, true, true, false);
-
-        return new ChartPanel(timeChart);
-    }
-
-    private class CollapsibleChartPanel extends JPanel implements ActionListener {
-        private final JPanel contentPanel;
-        private final JButton toggleButton;
-
-        public CollapsibleChartPanel(final String title, final JPanel contentPanel) {
-            super(new MigLayout("wrap 1, fillx, insets 0"));
-            this.contentPanel = contentPanel;
-
-            final JPanel headerPanel = new JPanel(new MigLayout("fillx, insets 2 5 2 5"));
-            this.toggleButton = new JButton("-");
-            this.toggleButton.addActionListener(this);
-
-            headerPanel.add(toggleButton);
-            headerPanel.add(new JLabel(title));
-
-            add(headerPanel, "growx");
-            add(contentPanel, "grow");
-        }
-
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            final boolean isVisible = contentPanel.isVisible();
-            contentPanel.setVisible(!isVisible);
-            toggleButton.setText(isVisible ? "+" : "-");
-            revalidate();
-            repaint();
-        }
+        inventoryCount.add(panel, "grow");
     }
 }

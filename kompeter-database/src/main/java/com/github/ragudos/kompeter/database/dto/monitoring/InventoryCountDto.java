@@ -12,5 +12,5 @@ import java.sql.Timestamp;
 /**
  * @author Hanz Mapua
  */
-public record InventoryCountDto(Timestamp date, int totalInventoryCount, int totalPurchaseCount, int totalSalesCount) {
+public record InventoryCountDto(Timestamp day, int totalQuantity, int totalQuantityAdded, int totalQuantityBefore) {
 }

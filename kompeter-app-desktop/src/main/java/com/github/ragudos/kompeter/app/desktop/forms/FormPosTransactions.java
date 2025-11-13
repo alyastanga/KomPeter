@@ -66,7 +66,6 @@ public class FormPosTransactions extends Form {
         final JScrollPane scroller = ScrollerFactory.createScrollPane(table);
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
-        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
         add(title, "wrap");
         add(subtitle, "wrap");

@@ -308,7 +308,6 @@ public class FormPosShop extends Form {
         final JScrollPane scroller = ScrollerFactory.createScrollPane(leftPanelContentContainer);
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
-        subtitle.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
         leftPanel.putClientProperty(FlatClientProperties.STYLE, "background:tint($Panel.background, 20%);");
 

@@ -1114,7 +1114,6 @@ public class FormInventoryAddProduct extends Form {
                     HtmlUtils.wrapInHtml("<p>Please make sure all information below are correct</p>"));
 
             title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
-            subtitle.putClientProperty(FlatClientProperties.STYLE, "foreground:$Label.disabledForeground;");
 
             final JLabel n = new JLabel(HtmlUtils.wrapInHtml(String.format("<p><b>Name: </b>%s</p>", name)));
             final JLabel dL = new JLabel(HtmlUtils.wrapInHtml("<b>Description: </b>"));

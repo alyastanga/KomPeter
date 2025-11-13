@@ -17,5 +17,6 @@ ON
 DO UPDATE SET
     -- since our update's logic literally just a replace and not an addition,
     -- we just make the quantity to that
-    quantity = excluded.quantity;
+    quantity = excluded.quantity,
+    _restock_date = DATETIME('now');
 

@@ -141,7 +141,7 @@ public class FormInventoryBrowseProducts extends Form {
     }
 
     private void createContainers() {
-        setLayout(new MigLayout("insets 2, flowx, wrap", "[grow, fill, center]", "[]8px[grow, top, fill]"));
+        setLayout(new MigLayout("insets 2, flowx, wrap", "[grow, fill, center]", "[]16px[grow, top, fill]"));
 
         headerPanel = new JPanel(new MigLayout("insets 0, flowx", "[grow 50]8px[]push[]", "[]16[]4[]"));
         bodyPanel = new JPanel(
@@ -161,7 +161,6 @@ public class FormInventoryBrowseProducts extends Form {
         manageStockPopupMenu = new ManageStockPopupMenu();
 
         title.putClientProperty(FlatClientProperties.STYLE_CLASS, "h4 primary");
-        description.putClientProperty(FlatClientProperties.STYLE_CLASS, "muted");
 
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         searchTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
